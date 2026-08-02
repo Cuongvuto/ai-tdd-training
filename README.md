@@ -51,7 +51,7 @@ the following weeks.
 The Week 1 documentation is stored in:
 
 ```text
-docs/week-1/
+docs/week1/
 ├── research.md
 ├── references.md
 ├── validation-log.md
