@@ -131,11 +131,26 @@ and Validation stages remain intentionally unfinished.
 
 ### 2.6 Practical Example Prompt
 
-_Not started._
+The repository-aware prompt for this stage is recorded at
+[Layered Questioning - Practical Example Prompt](prompts/layered-questioning-example.md).
+It requests one conceptual TypeScript and Vitest-style Red-Green-Refactor cycle
+without creating or executing implementation files.
 
 ### 2.7 Practical Example Result
 
-_Not started._
+The example specifies that a newly created ticket retains a non-empty title,
+starts with status `open`, and rejects empty or whitespace-only titles. Red uses
+focused Vitest-style assertions and explains that the expected failure must be
+caused by missing creation or validation behavior, not by syntax, imports,
+fixtures, dependencies, or unrelated repository errors.
+
+Green shows only the responsible minimum: trim the title, reject it when empty,
+and create the ticket with `open` status. Refactor then extracts title
+normalization and introduces a `TicketStatus` type while keeping inputs,
+outputs, and validation errors observably unchanged. The snippets are explicitly
+conceptual and were not run. They do not cover CLI parsing, persistence,
+file-storage errors, identifiers, integration, or end-to-end behavior, and
+passing them would not establish complete correctness [R-011] [R-013].
 
 ### 2.8 Validation Prompt
 

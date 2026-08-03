@@ -5,9 +5,9 @@
 | Requirement | Primary evidence | Supporting evidence | Status |
 | --- | --- | --- | --- |
 | Explain TDD principles | `research.md`, Sections 2-3 | `references.md` | Completed |
-| Explain Red-Green-Refactor | `research.md`, Section 3 | `validation-log.md` | Partially completed |
+| Explain Red-Green-Refactor | `research.md`, Section 3 | `validation-log.md` | Completed |
 | Compare testing levels | `research.md`, Section 4 | `references.md` | Not started |
-| Provide Ticket Manager CLI test examples | `research.md`, Section 5 | `validation-log.md` | Not started |
+| Provide Ticket Manager CLI test examples | `research.md`, Section 5 | `validation-log.md` | In progress |
 | Explain testing of file storage and errors | `research.md`, Section 5 | `references.md` | Not started |
 | Explain how tests validate AI-generated code | `research.md`, Section 6 | `validation-log.md` | Not started |
 | Explain common testing mistakes | `research.md`, Section 7 | `validation-log.md` | In progress |

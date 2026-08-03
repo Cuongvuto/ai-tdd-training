@@ -18,9 +18,9 @@ the testing discipline that will guide later implementation. Test-Driven
 Development (TDD) is relevant because it combines small implementation steps
 with frequent automated feedback and deliberate design improvement, rather
 than postponing testing until a feature is considered complete [R-001]
-[R-002]. This research stage examines the discipline, evidence, and trade-offs
-of TDD only; it does not yet select a detailed CLI testing strategy or provide
-an implementation example.
+[R-002]. This document examines the discipline, evidence, and trade-offs of TDD. At this
+stage, it includes one conceptual Red-Green-Refactor example but does not yet
+select a complete CLI testing strategy.
 
 ### 1.2 Research Objectives
 
@@ -253,7 +253,151 @@ success [R-010] [R-012].
 
 ### 3.5 Practical Red-Green-Refactor Example
 
-_Not started._
+The following TypeScript and Vitest-style snippets are **conceptual
+documentation only**. They were not added to the repository as implementation
+files and were not executed.
+
+#### Desired Behavior
+
+When the future Ticket Manager creates a ticket, the ticket must keep the
+supplied non-empty title and start with status `open`. An empty or
+whitespace-only title must be rejected.
+
+This is one small domain behavior. It deliberately excludes identifiers,
+timestamps, persistence, CLI argument parsing, JSON storage, and repository
+interfaces.
+
+#### Red: Describe the Behavior First
+
+The illustrative test is written before the behavior is implemented:
+
+```ts
+// Conceptual Vitest-style test; not executed in this repository.
+import { describe, expect, it } from 'vitest';
+import { DomainValidationError, Ticket } from './ticket';
+
+describe('Ticket.create', () => {
+  it('creates a ticket with the supplied title and open status', () => {
+    const ticket = Ticket.create('Fix login');
+
+    expect(ticket.title).toBe('Fix login');
+    expect(ticket.status).toBe('open');
+  });
+
+  it.each(['', '   ', '\t\n'])(
+    'rejects an empty or whitespace-only title: %j',
+    (title) => {
+      expect(() => Ticket.create(title)).toThrow(DomainValidationError);
+    },
+  );
+});
+```
+
+At Red, the expected failure is that the callable `Ticket.create` surface does
+not yet implement the specified creation and validation behavior. Depending on
+the deliberately incomplete starting point, the valid-title case would fail
+because no ticket with the expected values is returned, or the invalid-title
+case would fail because the required domain error is not thrown. The developer
+must inspect the failure and confirm that it represents this missing behavior
+[R-001] [R-012].
+
+A syntax error, incorrect import, broken fixture, missing Vitest dependency, or
+unrelated repository failure would not be a valid Red for this example. The
+snippets assume those supporting concerns are already correct; no actual test
+result is claimed here.
+
+#### Green: Add the Smallest Responsible Implementation
+
+The minimum illustrative implementation trims the input, rejects a title that
+is then empty, and assigns `open`. It adds no unrelated behavior:
+
+```ts
+// Conceptual minimum implementation; not executed in this repository.
+export class DomainValidationError extends Error {}
+
+export class Ticket {
+  private constructor(
+    public readonly title: string,
+    public readonly status: string,
+  ) {}
+
+  static create(title: string): Ticket {
+    const trimmedTitle = title.trim();
+
+    if (trimmedTitle.length === 0) {
+      throw new DomainValidationError('Ticket title must not be empty');
+    }
+
+    return new Ticket(trimmedTitle, 'open');
+  }
+}
+```
+
+If the conceptual test and implementation were placed in a correctly configured
+project, the expected Green result would be that all three requirements pass:
+the title is retained, the status is `open`, and blank input throws
+`DomainValidationError`. Green supplies only enough behavior for these examples;
+it is not presented as the final production design [R-001] [R-010].
+
+#### Refactor: Clarify the Same Behavior
+
+With the same tests kept unchanged, title normalization can be extracted and
+the allowed initial status can be expressed with a type:
+
+```ts
+// Conceptual behavior-preserving refactor; not executed in this repository.
+export type TicketStatus = 'open';
+
+export class DomainValidationError extends Error {}
+
+function requireNonEmptyTitle(input: string): string {
+  const title = input.trim();
+
+  if (title.length === 0) {
+    throw new DomainValidationError('Ticket title must not be empty');
+  }
+
+  return title;
+}
+
+export class Ticket {
+  private constructor(
+    public readonly title: string,
+    public readonly status: TicketStatus,
+  ) {}
+
+  static create(title: string): Ticket {
+    return new Ticket(requireNonEmptyTitle(title), 'open');
+  }
+}
+```
+
+This refactor does not intentionally change externally observable behavior:
+the same inputs produce the same title and `open` status, while the same blank
+inputs produce the same error type and message. It only names the validation
+responsibility and narrows the status representation. An intentional new status
+or validation rule would be a new behavior and would require another Red-Green
+cycle, not this Refactor step [R-011] [R-012].
+
+#### What the Example Demonstrates
+
+The example moves from a focused behavioral expectation, through the smallest
+responsible implementation, to a small behavior-preserving design improvement.
+It also shows why observing the intended Red failure matters and why Green and
+Refactor are separate decisions. This illustrates the TDD feedback loop; it
+does not prove that TDD always produces a good design [R-002] [R-007].
+
+#### Limitations
+
+- The snippets are illustrative and have not been compiled or executed.
+- Only one domain factory behavior is covered; this is not a complete Ticket
+  Manager CLI test example or testing strategy.
+- The example does not address CLI parsing, persistence, file errors,
+  identifiers, concurrency, integration, or end-to-end behavior.
+- The API shape and error type remain proposals for a later implementation and
+  require developer review.
+- Passing these examples would provide evidence only for the stated cases; it
+  would not prove complete correctness or the absence of defects [R-013].
 
 ### 3.6 Common Misunderstandings
 
