@@ -639,11 +639,128 @@ requirements, mentor-review status, or any implementation or execution claim.
 
 ### 4.8 Final Validation Prompt
 
-_Not started._
+The independent Final Validation request is recorded at
+`docs/week1/prompts/iterative-refinement-final-validation.md`. It requires a
+repository-based review of `README.md`, the supplementary note, Chapters 1–10,
+references, validation entries, all three workflow records, requirements
+mapping, every prompt, Git history, and the current working tree.
+
+The review covers assignment coverage, research completion, workflow and prompt
+traceability, `R-001` through `R-023`, the deferred `IR-F15` verification-level
+review, `V-001` through `V-060`, all `IR-F01` through `IR-F15` dispositions,
+Markdown and repository integrity, execution-claim boundaries, and Git state.
+Original papers, official documentation, and other primary sources are
+preferred; every actual access level and limitation must be disclosed.
+
+Completion requires all required evidence, resolved IDs, no blocker or
+important contradiction, honest treatment of limited-access sources, complete
+Sections 4.2–4.9, and an accurately unfinished mentor-review requirement.
+Problems must be reported with severity rather than silently fixed, especially
+when they occur in protected files. The result remains subject to human review;
+the AI does not accept its own validation result or repository changes.
 
 ### 4.9 Final Validation Result
 
-_Not started._
+#### Overall Result
+
+**Fail.** Most validation dimensions pass or pass with disclosed limitations,
+but one `Important` current-state contradiction remains in the protected
+research conclusion. Section 10.6 states that Iterative Refinement and Final
+Validation are not complete, while this section records the completed Final
+Validation activity; Section 10.5 also lists evidence of only the first two AI
+workflows. The source document cannot be silently corrected during this task.
+Under the completion rules, the unresolved important contradiction blocks
+promotion of the two workflow requirements to `Completed`.
+
+| Severity | Location | Finding | Blocks completion | Required follow-up |
+| --- | --- | --- | --- | --- |
+| Important | `docs/week1/research.md`, Sections 10.5–10.6 | The conclusion omits completed Iterative Refinement evidence and says Iterative Refinement and Final Validation are not complete. That wording becomes stale when Sections 4.8–4.9 record this validation. | Yes | In a separately authorized correction, update or temporally qualify the workflow-state wording without changing the accurate implementation and execution limitations, then rerun Final Validation. |
+
+#### Validation Summary Table
+
+| Area | Result | Evidence | Limitation or follow-up |
+| --- | --- | --- | --- |
+| A. Assignment and requirements coverage | Pass with limitation | Every mapping evidence file exists; research and the first two workflows support their completed rows; Iterative Refinement and validation records support their current `In progress` rows; mentor review remains `Not started`. | The two in-progress workflow rows cannot be promoted while the important Chapter 10 contradiction remains. |
+| B. Research completion | Fail | Chapters 1–10 exist, contain no unfinished placeholder, retain the three confirmed Ticket Manager behaviors, preserve unresolved decisions, and distinguish plans from execution. | Sections 10.5–10.6 contain the important stale workflow-state conclusion described above. |
+| C. Workflow evidence | Pass | Layered Questioning contains Research, Brief, Example, Validation, and Human Evaluation; Solution Exploration contains alternatives, comparison, provisional advice, Human Evaluation, Contextual Decision, and limitations; Iterative Refinement records Initial Review, Human Evaluation, three passes, and this Final Validation. | A completed validation activity may still return `Fail`; it does not make the overall workflow requirement complete. |
+| D. Prompt traceability | Pass with limitation | All prompt links referenced by previously committed workflow evidence exist and are tracked; canonical relative links resolve; historical `docs/week-1/` records remain explicitly historical. | This Final Validation prompt exists but is untracked and must be included in the eventual reviewed commit. The untracked report prompt is not workflow-result evidence. |
+| E. Reference audit | Pass with limitation | `R-001`–`R-023` are unique and sequential; all 23 are cited; all 177 research citation mentions resolve; titles, authors, source types, and claim use are coherent; empirical and practitioner claims remain qualified. | `R-001` remains preview-level and `R-007` remains abstract-level; neither is presented as full-text verified. |
+| F. `IR-F15` verification-level review | Pass with limitation | The table below distinguishes the one explicitly recorded preview source from conservative publisher/repository candidates and records the current verification action and level. | Section 2.9 did not preserve every affected ID, so the exact historical limited-access set beyond `R-001` cannot be reconstructed with certainty. |
+| G. Validation-log audit | Pass | `V-001`–`V-060` are unique, sequential, and complete; status counts are 52 `Rejected`, 4 `Corrected`, and 4 `Contextual`; all required fields exist; five related-entry links resolve and are reciprocal; no exact duplicate correction exists. | No new validation entry was created because this is an audit rather than a new technical claim evaluation. |
+| H. Iterative Refinement finding audit | Pass | Every `IR-F01`–`IR-F15` has the final disposition shown below; authorized fixes, preserved content, no-change decisions, separate housekeeping, and `IR-F15` evaluation are traceable. | The new Final Validation defect is reported separately and not silently converted into an existing finding. |
+| I. Markdown and repository integrity | Pass | All 24 Markdown files are valid UTF-8; fences are balanced; tables have consistent columns; internal Markdown links resolve; reference and validation IDs resolve; current navigation uses `docs/week1/`. | Section 5 intentionally retains its placeholder; historical path mismatches remain only as disclosed evidence or prompt history. |
+| J. Scope and execution claims | Pass | README, research, validation records, and workflow evidence consistently label snippets and strategy as conceptual or planned and deny implementation, test execution, Red/Green observations, measurements, portability proof, and defect-free guarantees. | Documentation validation supplies no implementation evidence. |
+| K. Git and change audit | Pass with limitation | Branch `docs/week1-tdd-research` was at `20dd27b` before this validation; the last 15 commits show the staged workflow history; no file is staged and no prohibited artifact exists. | The working tree is not clean because this evidence file is modified and the Final Validation and reporting prompts are untracked. |
+
+#### Source Verification Table
+
+Section 2.9 explicitly identifies only `R-001` as preview-based. It does not
+preserve the other affected IDs. To avoid inventing history, Final Validation
+treats the empirical publisher and repository endpoints `R-007`–`R-009` as a
+conservative candidate set and distinguishes that inference from recorded fact.
+
+| Reference | Source type | Previous verification level | Final action | Final verification level | Claims affected | Limitation |
+| --- | --- | --- | --- | --- | --- | --- |
+| `R-001` | Foundational book | Explicitly recorded bibliographic record and preview | Rechecked Google Books title, author, publisher metadata, description, and available preview; compared the attached TDD claims with the accessible canonical/practitioner record. | Bibliographic metadata and preview | TDD definition, small test-driven steps, minimum implementation, refactoring, and incremental design feedback | Full book text was not available through the verification interface; the research does not treat promotional claims as empirical proof. |
+| `R-007` | Peer-reviewed meta-analysis | Not individually recoverable from Section 2.9; conservatively treated as a publisher-endpoint candidate | Rechecked DOI and journal metadata plus the accessible abstract describing 27 studies, small positive external-quality effect, little-to-no overall productivity effect, subgroup differences, and moderators. | Bibliographic metadata and abstract | Aggregate external-quality, productivity, and context-sensitivity claims | IEEE full text was not accessible through the interface; the research wording remains within the abstract and keeps subgroup and heterogeneity limitations. |
+| `R-008` | Peer-reviewed industrial case study | Not individually recoverable from Section 2.9; conservatively treated as a repository-endpoint candidate | Read the complete 14-page primary paper and checked title, authors, four-team scope, 40%–90% defect-density result, 15%–35% subjective initial-time increase, and case-study threats. | Full text | Four-team industrial quality and initial-development-time observations | No access limitation remains; observational context and non-generalizability still limit the claim. |
+| `R-009` | Peer-reviewed systematic review | Not individually recoverable from Section 2.9; conservatively treated as a repository-endpoint candidate | Read the institutional full-text paper and checked title, authors, review method, and seven reported adoption-limiting factors. | Full text | TDD adoption barriers involving time, knowledge, design, tools/domain, test skill, adherence, and legacy code | No access limitation remains; evidence reflects studies available through 2011 and identifies potential factors rather than universal causes. |
+
+The wider `R-001`–`R-023` audit also checked the current original or official
+records. Notably, the primary full paper for `R-020` confirms 1,689 generated
+programs across 89 security scenarios, and the author-hosted full paper for
+`R-022` confirms 13,866 recent oracles from 135 Java projects. Their research
+uses remain explicitly limited to the studied models, languages, prompts,
+projects, scenarios, and oracle measures.
+
+#### IR Finding Final Disposition
+
+| Finding | Human decision | Final state | Evidence |
+| --- | --- | --- | --- |
+| `IR-F01` | Accepted | Applied in Pass 1 | `research.md` Section 1.1 records the contextual balanced layered strategy while keeping execution future work. |
+| `IR-F02` | Accepted | Applied in Pass 1 | `requirements-mapping.md` changed Iterative Refinement from `Not started` to `In progress`. |
+| `IR-F03` | Accepted | Applied in Pass 1 | `README.md` closes the deliverables `text` fence. |
+| `IR-F04` | Accepted | Traceability satisfied | `iterative-refinement-initial-review.md` exists and is tracked with the committed Initial Review evidence. |
+| `IR-F05` | Accepted with modification | Applied in Pass 1 | Sections 2.5 and 2.10 use explicit earlier-stage temporal qualifiers. |
+| `IR-F06` | Deferred to a later refinement pass | Applied in Pass 2 | `V-017`, `V-020`, `V-037` and `V-021`, `V-036` contain resolved reciprocal cross-links without changing audit history. |
+| `IR-F07` | No change for now | No change retained | Chapter 9 citation density remains available for traceability. |
+| `IR-F08` | No change for now | No change retained | Sections 8.7, 9.4, and Chapter 10 retain repeated scope reinforcement. |
+| `IR-F09` | Accepted | Applied in Pass 1 | Mentor-review mapping names a future artifact, reports no supporting evidence, and remains `Not started`. |
+| `IR-F10` | Deferred as separate supplementary-note housekeeping | Applied in Pass 3 | `note/README.md` has a balanced fence and canonical `docs/week1/` navigation. |
+| `IR-F11` | Preserve current content | Preserved | Test levels remain classified by the behavior and real boundary exercised. |
+| `IR-F12` | Preserve current content | Preserved | Confirmed behavior remains title trimming, blank-title rejection, and initial `open`; other policies remain unresolved or illustrative. |
+| `IR-F13` | Preserve current content | Preserved | TDD, empirical, and testing claims retain contextual limitations and avoid universal guarantees. |
+| `IR-F14` | Preserve current content | Preserved | Human decisions, workflow provenance, historical path disclosure, and scope boundaries remain intact. |
+| `IR-F15` | Deferred to Final Validation | Evaluated — Pass with limitation | The verification table records current levels and discloses that the exact earlier limited-access set cannot be fully reconstructed. |
+
+#### Remaining Limitations
+
+- `R-001` remains verified only through bibliographic metadata and preview.
+- `R-007` remains verified only through bibliographic metadata and abstract.
+- Section 2.9 did not preserve every limited-access reference ID; the
+  conservative candidate review cannot retroactively prove the exact earlier
+  set.
+- The `Important` Sections 10.5–10.6 workflow-state contradiction remains in a
+  protected file and blocks completion.
+- The Final Validation prompt is currently untracked and needs inclusion in the
+  eventual reviewed commit for durable traceability.
+
+#### Work Still Not Completed
+
+- Section 5, Lessons Learned;
+- mentor review and any mentor-review artifact;
+- Ticket Manager production implementation;
+- executable automated tests and installed test infrastructure;
+- observed Red/Green, compilation, coverage, duration, flakiness, portability,
+  maintenance, and production-reliability evidence.
+
+#### Human Acceptance
+
+This Final Validation reports evidence and a blocking result; it does not
+approve its own repository changes. A human remains responsible for accepting
+the result, authorizing any correction to the protected research conclusion,
+reviewing the eventual prompt/evidence commit, and deciding when another Final
+Validation justifies requirement completion.
 
 ---
 
