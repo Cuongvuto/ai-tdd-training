@@ -144,25 +144,89 @@ focused Vitest-style assertions and explains that the expected failure must be
 caused by missing creation or validation behavior, not by syntax, imports,
 fixtures, dependencies, or unrelated repository errors.
 
-Green shows only the responsible minimum: trim the title, reject it when empty,
-and create the ticket with `open` status. Refactor then extracts title
-normalization and introduces a `TicketStatus` type while keeping inputs,
-outputs, and validation errors observably unchanged. The snippets are explicitly
-conceptual and were not run. They do not cover CLI parsing, persistence,
-file-storage errors, identifiers, integration, or end-to-end behavior, and
-passing them would not establish complete correctness [R-011] [R-013].
+Green shows only the responsible minimum: trim the title, reject it when blank,
+and create the ticket with `open` status. Refactor extracts title validation and
+normalization while keeping inputs, outputs, and validation errors observably
+unchanged. A premature one-literal `TicketStatus` type was removed during
+Validation because the example establishes only the initial status, not the
+future status lifecycle. The snippets are explicitly conceptual and were not
+run. They do not cover CLI parsing, persistence, file-storage errors,
+identifiers, integration, or end-to-end behavior, and passing them would not
+establish complete correctness [R-011] [R-013].
 
 ### 2.8 Validation Prompt
 
-_Not started._
+The repository-aware prompt for this stage is recorded at
+[Layered Questioning - Validation Prompt](prompts/layered-questioning-validation.md).
+It requests a critical review of the completed Layered Questioning work while
+leaving later research chapters and the other AI workflows unfinished.
 
 ### 2.9 Validation Result
 
-_Not started._
+The review covered TDD terminology and trade-offs, the conceptual
+Red-Green-Refactor example, citation traceability, validation-log consistency,
+workflow evidence, requirements statuses, and Markdown structure. The core TDD
+account was validated: test-first alone is not full TDD, Red must fail for the
+intended reason, Green is a minimum responsible step, Refactor preserves
+observable behavior, and neither TDD nor a passing suite guarantees universal
+quality, productivity, design, or correctness outcomes.
+
+One example inconsistency required correction: `TicketStatus = 'open'` implied
+a complete status domain even though only initial status is specified. The type
+was removed, and the refactor now limits itself to the already demonstrated
+title validation and normalization. This finding is recorded as `V-008`.
+Reference wording was also tightened to distinguish practitioner reasoning about
+design feedback from empirical findings about quality and productivity.
+
+All cited reference IDs exist, and the accessible source records support the
+attached foundational, practitioner, empirical, and contextual claims. The
+empirical results remain qualified by study design and context. Some publisher
+and repository endpoints did not expose their complete content through the
+available verification interface, so bibliographic and abstract-level checks
+were used where full-text access was unavailable; no new source was introduced.
+
+The TypeScript remains conceptual and unexecuted. CLI parsing, persistence,
+testing-level comparisons, AI-generated-code validation, Chapters 4 through 10,
+Solution Exploration, and Iterative Refinement remain outside this validation.
+The original Research prompt also contains legacy `docs/week-1` path examples;
+the repository uses `docs/week1`, so the existing corresponding files were
+reviewed without modifying the historical prompt. Section 2.10 is intentionally
+left for the developer's human evaluation.
 
 ### 2.10 Human Evaluation and Corrections
 
-_Not started._
+I reviewed the AI validation findings and accepted the overall verdict of
+**Valid with minor corrections**.
+
+The validation confirmed that the completed research accurately explains TDD,
+the distinction between test-first development and the complete TDD discipline,
+the Red-Green-Refactor cycle, the need for Red to fail for the intended reason,
+the minimum responsible implementation during Green, and behavior-preserving
+refactoring.
+
+I accepted the correction that removed the premature
+`TicketStatus = 'open'` type. The practical example specifies only that a newly
+created ticket starts with the status `open`; it does not yet define the
+complete ticket status lifecycle. Keeping a general `TicketStatus` type with
+only one literal would therefore imply a broader domain decision that has not
+been researched or specified.
+
+I also accepted the revised distinction between practitioner observations and
+empirical evidence. Practitioner sources support the view that TDD can provide
+useful design feedback, while empirical studies show that quality and
+productivity outcomes vary by project context, developer experience, task, and
+process adherence. These outcomes must not be presented as universal
+guarantees.
+
+The conceptual TypeScript example remains intentionally unexecuted. It
+illustrates one Red-Green-Refactor cycle but does not prove complete correctness
+and does not cover CLI parsing, persistence, file-storage errors, integration
+testing, or end-to-end testing.
+
+Based on this review, I accept the corrections recorded in `V-008` and consider
+the Layered Questioning workflow complete. Testing-level research, broader
+Ticket Manager CLI test design, AI-generated-code validation, Solution
+Exploration, and Iterative Refinement remain separate unfinished stages.
 
 ---
 

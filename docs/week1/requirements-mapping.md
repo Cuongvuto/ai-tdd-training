@@ -11,7 +11,7 @@
 | Explain testing of file storage and errors | `research.md`, Section 5 | `references.md` | Not started |
 | Explain how tests validate AI-generated code | `research.md`, Section 6 | `validation-log.md` | Not started |
 | Explain common testing mistakes | `research.md`, Section 7 | `validation-log.md` | In progress |
-| Apply Layered Questioning | `ai-workflow-evidence.md`, Section 2 | `prompts/` | Partially completed |
+| Apply Layered Questioning | `ai-workflow-evidence.md`, Section 2 | `prompts/` | Completed |
 | Apply Solution Exploration | `ai-workflow-evidence.md`, Section 3 | `prompts/` | Not started |
 | Apply Iterative Refinement | `ai-workflow-evidence.md`, Section 4 | `prompts/` | Not started |
 | Record AI validation and corrections | `validation-log.md` | `ai-workflow-evidence.md` | In progress |

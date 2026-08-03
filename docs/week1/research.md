@@ -97,10 +97,10 @@ responsible for broader design decisions and for evaluating whether the tests
 represent the right requirements.
 
 Claims about design improvement should remain conditional. Practitioner
-sources describe useful design pressure, but empirical results vary with the
-study setting, participant experience, task, and adherence to the process
-[R-002] [R-007] [R-009]. TDD can expose design problems; it cannot replace
-design skill.
+sources describe useful design pressure [R-002]. Empirical results for outcomes
+such as external quality and productivity vary with the study setting,
+participant experience, task, and adherence to the process [R-007] [R-009]. TDD
+can expose design problems; it cannot replace design skill.
 
 ### 2.4 Benefits of TDD
 
@@ -341,16 +341,14 @@ it is not presented as the final production design [R-001] [R-010].
 
 #### Refactor: Clarify the Same Behavior
 
-With the same tests kept unchanged, title normalization can be extracted and
-the allowed initial status can be expressed with a type:
+With the same tests kept unchanged, title validation and normalization can be
+extracted and named explicitly:
 
 ```ts
 // Conceptual behavior-preserving refactor; not executed in this repository.
-export type TicketStatus = 'open';
-
 export class DomainValidationError extends Error {}
 
-function requireNonEmptyTitle(input: string): string {
+function requireNonBlankTitle(input: string): string {
   const title = input.trim();
 
   if (title.length === 0) {
@@ -363,11 +361,11 @@ function requireNonEmptyTitle(input: string): string {
 export class Ticket {
   private constructor(
     public readonly title: string,
-    public readonly status: TicketStatus,
+    public readonly status: string,
   ) {}
 
   static create(title: string): Ticket {
-    return new Ticket(requireNonEmptyTitle(title), 'open');
+    return new Ticket(requireNonBlankTitle(title), 'open');
   }
 }
 ```
@@ -375,9 +373,11 @@ export class Ticket {
 This refactor does not intentionally change externally observable behavior:
 the same inputs produce the same title and `open` status, while the same blank
 inputs produce the same error type and message. It only names the validation
-responsibility and narrows the status representation. An intentional new status
-or validation rule would be a new behavior and would require another Red-Green
-cycle, not this Refactor step [R-011] [R-012].
+and normalization responsibility. A general `TicketStatus` type is intentionally
+deferred because the example specifies only the initial status; defining the
+future lifecycle or additional statuses would introduce domain decisions outside
+this behavior. An intentional new status or validation rule would require
+another Red-Green cycle, not this Refactor step [R-011] [R-012].
 
 #### What the Example Demonstrates
 
@@ -385,7 +385,7 @@ The example moves from a focused behavioral expectation, through the smallest
 responsible implementation, to a small behavior-preserving design improvement.
 It also shows why observing the intended Red failure matters and why Green and
 Refactor are separate decisions. This illustrates the TDD feedback loop; it
-does not prove that TDD always produces a good design [R-002] [R-007].
+does not prove that TDD always produces a good design [R-002].
 
 #### Limitations
 
@@ -413,8 +413,8 @@ does not prove that TDD always produces a good design [R-002] [R-007].
 - **“TDD guarantees defect-free software.”** Tests cover selected cases and
   cannot generally prove the absence of defects [R-013].
 - **“TDD always creates a better design or higher productivity.”** These are
-  possible outcomes, but the empirical evidence is mixed and context-dependent
-  [R-007] [R-009].
+  possible outcomes, but practitioner design reasoning and empirical outcome
+  evidence do not establish universal results [R-002] [R-007] [R-009].
 - **“Every test in test-driven delivery must be a unit test.”** Small developer
   tests are common in TDD, while the related ATDD practice starts from
   acceptance tests representing the user's point of view [R-010] [R-014].

@@ -146,3 +146,23 @@ technical reasoning.
   where it does not.
 - **Impact on research:** Sections 2.6 and 2.7 present suitability as a project
   decision and leave the Ticket Manager's exact strategy for a later stage.
+
+### V-008 - Do Not Overstate the Known Ticket Status Domain
+
+- **AI claim:** `TicketStatus = 'open'` accurately represents the Ticket
+  Manager's status type in this conceptual refactor.
+- **Category:** Practical example naming and domain scope.
+- **Validation method:** Compared the type name with the example's single
+  requirement and the rule that Refactor must not introduce a new business
+  feature.
+- **Evidence or reference:** Internal scope consistency and the
+  behavior-preserving definition of refactoring [R-011].
+- **Evaluation:** The broad name implies that the future domain permits only
+  `open`, while the example establishes only the initial status. Inventing
+  additional literals would also exceed the documented behavior.
+- **Status:** Corrected
+- **Correction or final wording:** Remove the premature general status type and
+  limit this refactor to extracting title validation. Define `TicketStatus`
+  later when lifecycle requirements are known.
+- **Impact on research:** Section 3.5 no longer presents a one-literal type as
+  the complete status domain, and workflow evidence records the correction.
