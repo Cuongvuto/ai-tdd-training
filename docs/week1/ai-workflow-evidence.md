@@ -239,31 +239,178 @@ approach based on the Ticket Manager CLI context.
 
 ### 3.2 Problem Selected for Exploration
 
-_Not started._
+How should unit, integration, and end-to-end tests be combined for a
+file-backed Ticket Manager CLI?
+
+The exploration compares portfolios rather than asking which testing level is
+universally best. The relevant boundaries are in-process business behavior,
+real JSON persistence, and the public CLI running as a separate process.
 
 ### 3.3 Options Considered
 
-_Not started._
+- **Option A — Unit-heavy strategy:** Emphasize isolated tests for domain rules,
+  use cases, validation, and command handlers, with test doubles where useful.
+  Retain only a small number of integration and E2E checks.
+- **Option B — Balanced layered strategy:** Use many focused unit tests,
+  targeted integration tests against real temporary JSON storage, and a small
+  set of process-level E2E tests for critical journeys.
+- **Option C — End-to-end-heavy strategy:** Exercise most behavior through the
+  public CLI and real temporary file storage, with fewer isolated tests.
+
+These descriptions establish alternatives only; no option is selected in this
+section.
 
 ### 3.4 Comparison Criteria
 
-_Not started._
+The options are compared using feedback speed, failure localization, confidence
+in component collaboration, confidence in real CLI behavior, file-system
+coverage, test isolation, determinism, maintenance cost, brittleness, setup
+complexity, suitability for TDD, ability to validate AI-generated
+implementation, value for a small training project, and value if the
+application grows later.
+
+The comparison treats these as contextual criteria rather than assigning
+universal weights. It also distinguishes a test's realism from the precision
+and breadth of the evidence it actually supplies.
 
 ### 3.5 AI Comparison
 
-_Not started._
+This comparison was generated from the
+[Solution Exploration prompt](prompts/solution-exploration-testing-levels.md)
+and the boundary analysis in Chapter 4.
+
+| Criterion | A — Unit-heavy | B — Balanced layered | C — E2E-heavy |
+| --- | --- | --- | --- |
+| Feedback speed | Fastest main loop | Fast unit loop; moderate seam and journey checks | Slowest main loop due to process and file setup |
+| Failure localization | Usually precise | Precise locally; moderate at real seams; broad for few journeys | Often broad and diagnosis-intensive |
+| Component collaboration | Low to moderate where doubles dominate | Strong at deliberately selected seams | Strong only for collaborations reached by chosen journeys |
+| Real CLI behavior | Low except for a few smoke tests | Strong for a small critical command set | Strongest for the exercised public commands |
+| File-system coverage | Sparse | Targeted, direct repository coverage plus journey confirmation | Frequent but often indirect through the whole CLI |
+| Test isolation | Easy for unit tests | Manageable with one temporary directory per real-file test | More difficult because process, environment, and storage must be isolated |
+| Determinism | Usually highest | High with controlled fixtures and process harness | Most exposed to platform, path, environment, and timing variation |
+| Maintenance cost | Low initially; doubles can drift | Moderate across three harness types | High when many workflows and outputs change |
+| Brittleness | Low unless coupled to implementation interactions | Moderate and controllable by keeping boundaries explicit | Highest tendency because each test crosses many boundaries |
+| Setup complexity | Lowest | Moderate: doubles, temporary storage, and subprocess helpers | Highest per test and for failure cleanup |
+| Suitability for TDD | Excellent for small Red-Green-Refactor steps | Excellent locally, with seam tests added where evidence requires | Weak as the dominant development loop |
+| AI-generated implementation | Pinpoints rule defects but may miss wiring and real I/O errors | Checks generated logic, seams, and representative public behavior | Finds visible journey failures but gives weak fault localization |
+| Small training project | Simple and fast, but can under-demonstrate storage and CLI reliability | Demonstrates the three boundaries without making every test broad | Easy to explain from a user view, but costly for systematic examples |
+| Growth later | Fast base, but missing seam coverage creates migration risk | Adaptable if boundaries stay explicit and the mix is revisited | Suite time and brittleness risk growing rapidly |
+
+**Option A — advantages, disadvantages, risks, and reasonable conditions.** Its
+advantages are a very short feedback loop, simple fixtures, and precise signals
+while using TDD or reviewing AI-generated logic. Its disadvantage is weak direct
+evidence for JSON and executable wiring. The principal risk is false confidence
+when a fake repository or directly invoked handler drifts from the real system.
+It can be reasonable when the domain is complex, external adapters are already
+covered by dependable contract checks, and the few retained broad tests protect
+the highest-risk seams.
+
+**Option B — advantages, disadvantages, risks, and reasonable conditions.** Its
+advantage is differentiated evidence: focused rules, real persistence seams,
+and public critical journeys are each tested at an appropriate boundary. It
+costs more because the project must maintain unit, temporary-file, and process
+harnesses. Its main risk is accidental duplication or ambiguous labels unless
+each test states its purpose. It is reasonable when all three boundaries matter
+and the team can keep integration tests isolated and the E2E set deliberately
+small.
+
+**Option C — advantages, disadvantages, risks, and reasonable conditions.** Its
+advantage is frequent exercise of real CLI wiring and storage in user-shaped
+flows. Its disadvantages are slower feedback, broader failures, and expensive
+scenario setup. The main risks are brittle assertions, missed edge cases hidden
+behind a few happy journeys, and an increasingly slow TDD loop. It can be
+reasonable for a very thin wrapper with little internal logic when process
+tests are demonstrably fast, deterministic, and cheap to diagnose and maintain.
+
+**Provisional AI suggestion — not a project decision:** Option B is the most
+plausible starting point for this file-backed training CLI: many focused unit
+tests, targeted real-file integration tests, and a small number of subprocess
+E2E journeys. It addresses the distinctive JSON and CLI risks without making
+every behavior pay the broad-test cost. The developer must still accept,
+modify, or reject this suggestion after evaluating actual toolchain speed,
+platform targets, risks, and learning goals in Sections 3.6 through 3.8.
 
 ### 3.6 Human Evaluation
 
-_Not started._
+I reviewed the three testing strategies and agree with the AI's provisional
+recommendation of **Option B — Balanced layered strategy**.
+
+Option A provides the fastest feedback and precise failure localization, which
+makes it useful for domain rules, validation, use cases, and small
+Red-Green-Refactor cycles. However, relying mainly on unit tests would provide
+insufficient evidence that real JSON persistence and public CLI wiring work
+correctly.
+
+Option C provides stronger evidence for complete user-facing journeys, but
+using end-to-end tests as the dominant development loop would make feedback
+slower and failures harder to diagnose. It would also increase setup and
+maintenance costs because each test would cross the process, command parsing,
+application, and file-system boundaries.
+
+Option B provides the most appropriate balance for the planned Ticket Manager
+CLI. It allows each important risk to be checked at a suitable boundary:
+
+- unit tests for focused business and validation behavior
+- integration tests for real JSON persistence
+- end-to-end tests for selected public CLI journeys
+
+I accept this recommendation as a contextual decision rather than a universal
+testing rule. I reject the idea that the project must follow fixed testing
+percentages or that every behavior must be repeated at all three levels.
+
 
 ### 3.7 Contextual Decision
 
-_Not started._
+For the future file-backed Ticket Manager CLI, the selected starting strategy
+is **Option B — Balanced layered strategy**.
+
+The planned approach is:
+
+- Use many focused unit tests for ticket rules, input validation, use cases, and
+  command-handler behavior.
+- Use test doubles or an in-memory repository when the purpose is to test the
+  caller's behavior without exercising real persistence.
+- Use targeted integration tests against unique temporary directories when the
+  claim concerns JSON serialization, deserialization, paths, missing files,
+  read-after-write behavior, or storage errors.
+- Use a small set of process-level end-to-end tests for critical journeys such
+  as creating and listing a ticket, showing an existing ticket, updating a
+  ticket, and handling an invalid command.
+- Observe standard output, standard error, exit status, and resulting storage
+  only when those details are part of the behavior being tested.
+
+No fixed numerical ratio is selected. The guiding rule is to use the narrowest
+test boundary that provides the required evidence, then add a broader test when
+the risk exists at a real component seam or public CLI boundary.
+
+The testing distribution should be reviewed during implementation. It may
+change if subprocess tests are faster or slower than expected, persistence
+becomes more complex, additional platforms are supported, or maintenance
+experience reveals unnecessary duplication.
+
 
 ### 3.8 Assumptions and Limitations
 
-_Not started._
+This decision is based on the following assumptions:
+
+- The application is a relatively small local CLI tool.
+- Tickets are stored in local JSON files.
+- Business rules can be tested independently from the real file system.
+- Tests can create isolated temporary directories without modifying user data.
+- The public CLI can be invoked as a separate process for selected end-to-end
+  journeys.
+- The application does not yet include a database, network service,
+  concurrency requirements, or a graphical interface.
+
+The recommendation has not been validated against an implemented test suite.
+No actual test execution time, platform behavior, flakiness rate, or
+maintenance cost has been measured. The current comparison is therefore a
+research-based starting point rather than a permanent architecture decision.
+
+The selected strategy does not guarantee complete correctness. Each test
+provides evidence only for the behavior, inputs, dependencies, environment, and
+assertions it exercises. Code review, exploratory testing, and later validation
+remain necessary.
 
 ---
 

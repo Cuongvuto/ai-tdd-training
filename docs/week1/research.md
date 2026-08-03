@@ -433,27 +433,164 @@ does not prove that TDD always produces a good design [R-002].
 
 ### 4.1 Unit Testing
 
-_Not started._
+The word *unit* does not impose one universal physical size. Depending on the
+team and architecture, a unit may be a function, an object, or a small cluster
+that exposes one cohesive behavior. A more useful description states the
+chosen system under test and its boundary. Fowler, for example, distinguishes
+solitary unit tests, which replace collaborators, from sociable unit tests,
+which may use real in-process collaborators [R-015]. Therefore, a test does not
+automatically become an integration test merely because several objects
+participate.
+
+For this research, a unit test exercises a narrowly scoped behavior in one
+process and normally replaces slow, nondeterministic, or externally observable
+dependencies such as the real file system and a spawned CLI process. Test
+doubles can stand in for such dependencies, but the kind of double and the
+interaction being asserted should be explicit [R-005]. Representative future
+Ticket Manager targets include title validation, ticket state rules, command
+argument interpretation behind a stable interface, and a use case interacting
+with a fake repository. These examples identify suitable boundaries; they do
+not yet define the complete test suite.
+
+The principal benefits are fast feedback, deterministic setup, precise failure
+localization, and a short Red-Green-Refactor loop. Those properties make unit
+tests especially useful while shaping business behavior with TDD [R-001]
+[R-015]. Their limitation is equally important: replacing persistence or the
+process boundary removes those mechanisms from the evidence. A passing unit
+test with a fake repository cannot demonstrate that JSON is encoded correctly,
+that a real path is used, or that the executable parses arguments and returns
+the intended exit code.
 
 ### 4.2 Integration Testing
 
-_Not started._
+Integration testing focuses on interactions across a selected boundary.
+ISTQB separates component integration from system integration and describes
+their targets as interfaces and interactions, rather than restricting
+integration testing to databases [R-003]. Practitioner terminology varies as
+well: a narrow integration test can exercise one adapter and its external
+resource, while a broad test may connect much more of the application
+[R-016]. Consequently, every integration test here must name both the
+components being combined and the dependencies kept real.
+
+For a file-backed Ticket Manager, a targeted integration test could exercise a
+JSON repository against a unique real temporary directory. This crosses the
+file-system boundary and can reveal path construction, serialization,
+deserialization, encoding, missing-file behavior, and write/read mismatches.
+Node.js provides `mkdtemp` specifically for creating a unique temporary
+directory, making isolated real-file fixtures practical [R-017]. Another
+integration boundary could connect a use case to the real repository while
+still calling application code in the test process. Neither example needs to
+spawn the public CLI, so neither alone proves command-line wiring.
+
+These tests give stronger evidence about component collaboration and real JSON
+persistence than tests built entirely on doubles. The costs are additional
+setup and cleanup, slower execution, and failures that can have more candidate
+causes. Isolation remains essential: each test should own its temporary
+directory and avoid shared user data, current-working-directory assumptions,
+or execution-order dependencies. Integration tests complement rather than
+invalidate narrower tests because they answer a different question about a
+real seam.
 
 ### 4.3 End-to-End Testing
 
-_Not started._
+End-to-end terminology also depends on the declared endpoints. In this
+research, an end-to-end Ticket Manager test starts at the public command-line
+entry point, runs the CLI in a separate process, and observes user-visible
+results while using real temporary JSON storage. It supplies arguments,
+environment, and working directory; captures standard output, standard error,
+and exit status; and may inspect the resulting file. Node.js child-process APIs
+support spawning a separate process and piping these streams, so this is a
+genuine process-boundary check rather than a direct call to a command handler
+[R-004].
+
+This level is well suited to a small set of critical journeys, such as creating
+a ticket and then listing it, because it can expose faults in executable
+wiring, argument parsing, output formatting, exit-code mapping, configuration,
+and collaboration with real persistence. It offers the closest automated
+evidence here to how a user invokes the CLI. It is not synonymous with a UI
+test, and the exact endpoint must still be stated [R-006].
+
+The wider boundary also makes these tests slower, more expensive to arrange,
+and harder to diagnose: the same visible failure can originate in the process
+launcher, parser, use case, repository, file fixture, or assertion. Platform
+and path differences can add brittleness unless the harness controls them.
+Broad tests are therefore valuable evidence, but passing selected journeys does
+not prove all rules, error paths, or inputs correct; testing cannot generally
+demonstrate the absence of defects [R-013].
 
 ### 4.4 Comparison Table
 
-_Not started._
+The categories below are working boundaries for this CLI, not rigid definitions
+for every project.
+
+| Dimension | Unit | Integration | End-to-end for this CLI |
+| --- | --- | --- | --- |
+| System under test | One cohesive behavior or narrow in-process unit | Selected components plus a named real seam | Public CLI journey across the process and storage boundaries |
+| Dependencies | Slow or external dependencies usually replaced; real in-process collaborators are possible | Relevant seam is real; unrelated dependencies may be replaced | Real CLI entry point, subprocess behavior, and temporary file storage |
+| Best at detecting | Rule, validation, branching, and local contract defects | Interface, serialization, path, and collaboration defects | Wiring, argument, output, exit-status, configuration, and journey defects |
+| Feedback speed | Usually fastest | Usually moderate | Usually slowest because process and storage setup are included |
+| Isolation and determinism | High when inputs and doubles are controlled | High only with independent real fixtures | Lower by default; must control process, environment, paths, and fixtures |
+| Failure localization | Usually narrow | Moderate; several collaborators may be responsible | Broad; diagnosis often requires reproduction at a lower level |
+| Confidence in JSON persistence | None when persistence is replaced | Strong for the exercised repository cases | Strong for storage behavior reached by the exercised journey |
+| Confidence in real CLI behavior | Low without the public entry point | Partial if command components are connected in-process | Highest of these levels for the exercised commands and platform |
+| Maintenance and brittleness | Low to moderate; coupled doubles can make tests fragile | Moderate; schema and fixture changes require care | Highest tendency; public text, environment, timing, and workflow changes can affect tests |
+| TDD and AI-code feedback | Excellent for small increments and pinpointing generated logic defects | Useful for driving or checking real adapters and seams | Useful as a final journey check, but inefficient as the only development loop |
+
+No row says that one level is absolutely superior. Confidence is scoped to the
+behavior and boundary actually exercised: an integration test may offer more
+relevant evidence than an E2E test for a rare JSON recovery case, while an E2E
+test is necessary to establish that the installed command reaches that code.
 
 ### 4.5 Testing Pyramid and Test Distribution
 
-_Not started._
+The testing pyramid is a portfolio heuristic: favor many focused, fast checks
+and use fewer broad-stack checks when broad tests are slower, costlier, or more
+brittle [R-006]. It does not define universal percentages, nor does it settle
+the meaning of *unit* or *integration*. Fowler explicitly notes both exceptions
+to the cost assumption and disagreement caused by differing definitions
+[R-006].
+
+The useful decision is therefore not to copy a numerical shape. A team should
+consider product risk, architecture, feedback time, the cost of realistic
+fixtures, platform variability, and how well each failure can be localized. A
+small CLI with a fast subprocess may afford more broad checks than a distributed
+system, while complex domain rules still benefit from many narrow examples.
+The intended shape may also change as the application, dependencies, and test
+infrastructure evolve.
+
+For the Ticket Manager, the heuristic highlights a likely failure in either
+extreme. Replacing the repository everywhere leaves real JSON and path behavior
+unverified; executing every rule only through the CLI makes TDD feedback and
+diagnosis unnecessarily broad. The pyramid is useful here as a prompt to cover
+both gaps, not as a compliance target.
 
 ### 4.6 Choosing the Appropriate Testing Level
 
-_Not started._
+A practical rule is to use the narrowest boundary that can provide the required
+evidence, then add a broader test when the risk exists only at a real seam or
+public journey. The question being answered determines the level:
+
+- Use a unit boundary to explore examples of a validation or business rule and
+  to localize logic defects quickly.
+- Cross the real file-system boundary when the claim concerns JSON shape,
+  encoding, paths, persistence errors, or read-after-write behavior.
+- Cross the real process and public-command boundary when the claim concerns
+  arguments, environment, output streams, exit status, executable wiring, or a
+  critical user journey.
+
+Some important behavior may justifiably appear at more than one level. A
+critical create flow can have detailed rule examples at unit level, persistence
+cases at integration level, and one public smoke journey at E2E level. This is
+purposeful overlap when each test supplies different evidence; duplicating the
+same large matrix at every boundary would add cost without equal diagnostic
+value.
+
+For the future file-backed CLI, the provisional research direction is many
+focused unit tests, targeted real-file integration tests, and a small set of
+process-level E2E journeys. That resembles a balanced layered strategy, but it
+is not yet a project decision. The developer still needs to evaluate expected
+risks, toolchain speed, platform support, and maintenance experience before
+accepting a distribution or designing the Chapter 5 test suite.
 
 ---
 

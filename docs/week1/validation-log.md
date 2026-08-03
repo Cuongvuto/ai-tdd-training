@@ -166,3 +166,168 @@ technical reasoning.
   later when lifecycle requirements are known.
 - **Impact on research:** Section 3.5 no longer presents a one-literal type as
   the complete status domain, and workflow evidence records the correction.
+
+### V-009 - A Unit Is Not Always One Class or Function
+
+- **AI claim:** A unit test must always test exactly one class or one function.
+- **Category:** Testing-level definition.
+- **Validation method:** Compared the absolute claim with formal component-test
+  purposes and the documented solitary and sociable unit-test styles.
+- **Evidence or reference:** [R-003], [R-015].
+- **Evaluation:** The useful unit boundary is a cohesive behavior chosen for the
+  architecture. It can be one function, one object, or a small collaborating
+  cluster; the system under test must be stated.
+- **Status:** Rejected
+- **Correction or final wording:** A unit test exercises one deliberately narrow
+  behavioral boundary, whose physical size depends on context.
+- **Impact on research:** Section 4.1 avoids defining unit tests by a fixed
+  function or class count.
+
+### V-010 - Multiple Objects Do Not Automatically Mean Integration
+
+- **AI claim:** Every test that uses multiple real objects is automatically an
+  integration test.
+- **Category:** Boundary classification.
+- **Validation method:** Checked sociable unit testing and the ambiguity of the
+  term integration test.
+- **Evidence or reference:** [R-015], [R-016].
+- **Evaluation:** A sociable unit test can include real in-process collaborators
+  while exercising one cohesive unit. Classification requires the purpose and
+  boundary, not an object count.
+- **Status:** Rejected
+- **Correction or final wording:** Name the system under test and real seam being
+  verified before classifying a multi-object test.
+- **Impact on research:** Sections 4.1 and 4.2 define levels by evidence and
+  boundaries rather than object count.
+
+### V-011 - Integration Testing Is Not Limited to Databases
+
+- **AI claim:** Integration testing means only testing code against a database.
+- **Category:** Testing-level definition.
+- **Validation method:** Compared the claim with component- and system-
+  integration purposes and narrow-integration terminology.
+- **Evidence or reference:** [R-003], [R-016].
+- **Evaluation:** Integration tests can examine any selected interaction or
+  interface, including a file system, external service, process, or pair of
+  components. A database is only one possible seam.
+- **Status:** Rejected
+- **Correction or final wording:** Integration testing verifies collaboration
+  across a named real boundary; for this CLI, JSON persistence is a key seam.
+- **Impact on research:** Section 4.2 uses the real file-system boundary as the
+  principal project example.
+
+### V-012 - Unit Tests Cannot Prove the Complete CLI Works
+
+- **AI claim:** Passing unit tests prove that the complete Ticket Manager CLI
+  works for users.
+- **Category:** Scope of assurance.
+- **Validation method:** Compared what unit tests omit with the mechanisms needed
+  to execute and observe a separate CLI process.
+- **Evidence or reference:** [R-004], [R-015].
+- **Evaluation:** Unit tests can strongly verify selected logic, but they do not
+  exercise the public executable, process environment, standard streams, exit
+  status, or real persistence when those dependencies are replaced.
+- **Status:** Rejected
+- **Correction or final wording:** Unit tests provide local behavioral evidence;
+  broader tests are needed for real CLI wiring and storage.
+- **Impact on research:** Sections 4.1, 4.3, and 4.4 separate local confidence
+  from public-application confidence.
+
+### V-013 - End-to-End Tests Do Not Eliminate Lower Levels
+
+- **AI claim:** End-to-end tests make unit and integration tests unnecessary.
+- **Category:** Test-strategy composition.
+- **Validation method:** Evaluated the claim against the test-portfolio heuristic
+  and the diagnostic role of focused tests.
+- **Evidence or reference:** [R-006].
+- **Evaluation:** Broad tests cover more wiring per journey but usually provide
+  slower feedback and less precise failure localization. Focused tests can
+  exercise rule and seam cases more economically.
+- **Status:** Rejected
+- **Correction or final wording:** Combine levels when they provide distinct
+  evidence; broad journeys are a complement, not a universal replacement.
+- **Impact on research:** Sections 4.5 and 4.6 explain complementary coverage.
+
+### V-014 - Realism Does Not Make Every End-to-End Test More Valuable
+
+- **AI claim:** End-to-end tests are always more valuable because they are more
+  realistic.
+- **Category:** Contextual value judgment.
+- **Validation method:** Compared realism with execution cost, brittleness,
+  diagnostic precision, and exceptions acknowledged by the pyramid heuristic.
+- **Evidence or reference:** [R-006].
+- **Evaluation:** Realism is valuable when the risk crosses the public boundary,
+  but a narrow test can provide faster and more complete evidence for a local
+  rule. Broad tests can also be highly valuable when they remain fast and
+  reliable.
+- **Status:** Contextual
+- **Correction or final wording:** Choose the boundary whose evidence matches the
+  risk; realism is one criterion, not an automatic ranking.
+- **Impact on research:** Sections 4.3 through 4.6 compare evidence and cost
+  without declaring one level universally superior.
+
+### V-015 - The Testing Pyramid Does Not Require Fixed Percentages
+
+- **AI claim:** Following the testing pyramid requires a universal numerical
+  ratio of unit, integration, and end-to-end tests.
+- **Category:** Practitioner heuristic.
+- **Validation method:** Checked Fowler's description, assumptions, and stated
+  exceptions to the pyramid.
+- **Evidence or reference:** [R-006].
+- **Evaluation:** The pyramid communicates a direction for a balanced portfolio;
+  it does not supply an immutable percentage for every architecture or team.
+- **Status:** Rejected
+- **Correction or final wording:** Treat the pyramid as a cost-and-feedback
+  heuristic and justify the actual distribution from project context.
+- **Impact on research:** Section 4.5 intentionally gives no fixed ratio.
+
+### V-016 - One Distribution Does Not Fit Every Project
+
+- **AI claim:** The same testing distribution is suitable for every project and
+  remains suitable as the project evolves.
+- **Category:** Contextual recommendation.
+- **Validation method:** Tested the universal claim against the assumptions and
+  exceptions behind broad-versus-focused test costs.
+- **Evidence or reference:** [R-006].
+- **Evaluation:** Risk, architecture, execution time, dependencies, platforms,
+  and maintenance cost vary; the useful distribution can change with them.
+- **Status:** Rejected
+- **Correction or final wording:** Select and revisit the mix using current
+  project risks and feedback economics.
+- **Impact on research:** Sections 4.5 and 4.6 leave the Ticket Manager mix
+  provisional pending developer evaluation.
+
+### V-017 - A Mock Cannot Prove Real JSON Persistence
+
+- **AI claim:** A passing repository mock proves that the application can store
+  and retrieve real JSON files.
+- **Category:** Test doubles and evidence boundary.
+- **Validation method:** Compared what a test double replaces with the real file
+  API and fixture required to cross the storage boundary.
+- **Evidence or reference:** [R-005], [R-017].
+- **Evaluation:** A mock can verify the caller's interaction with its assumed
+  contract. It does not execute encoding, paths, permissions, or real
+  read/write behavior.
+- **Status:** Rejected
+- **Correction or final wording:** Use an isolated real temporary directory when
+  the claim concerns JSON persistence; use doubles for caller behavior when
+  appropriate.
+- **Impact on research:** Sections 4.1, 4.2, and 4.4 distinguish fake-repository
+  confidence from real-storage confidence.
+
+### V-018 - Passing End-to-End Tests Do Not Prove Complete Correctness
+
+- **AI claim:** A passing end-to-end test proves that the entire application is
+  correct.
+- **Category:** Scope of assurance.
+- **Validation method:** Compared the finite journeys exercised by a broad test
+  with the general limitation of program testing.
+- **Evidence or reference:** [R-013].
+- **Evaluation:** A passing journey supports only the observed behavior for its
+  selected inputs, environment, and assertions. Untested rules, failure paths,
+  platforms, and weak assertions can still hide defects.
+- **Status:** Rejected
+- **Correction or final wording:** Treat each passing E2E test as scoped evidence
+  for one journey, not proof of complete correctness.
+- **Impact on research:** Sections 4.3 and 4.4 state the confidence boundary of
+  process-level tests explicitly.

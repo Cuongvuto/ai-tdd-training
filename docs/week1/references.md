@@ -37,43 +37,61 @@ technical statements can be traced back to their sources.
 
 ### R-003
 
-- **Title:** _Not selected._
-- **Author or organization:** _Not selected._
-- **Source type:** _Not selected._
-- **URL:** _Not selected._
-- **Accessed:** _Not recorded._
-- **Used for:** Unit, integration, and end-to-end testing.
-- **Reliability notes:** _Not evaluated._
+- **Title:** _Certified Tester Foundation Level Syllabus v4.0.1_
+- **Author or organization:** International Software Testing Qualifications
+  Board (ISTQB)
+- **Source type:** Official certification-body syllabus and testing terminology
+  reference.
+- **URL:** https://www.istqb.org/wp-content/uploads/2024/11/ISTQB_CTFL_Syllabus_v4.0.1.pdf
+- **Accessed:** 2026-08-03
+- **Used for:** Purposes and boundaries of component, component-integration,
+  system, and system-integration testing.
+- **Reliability notes:** Official, versioned ISTQB publication suitable for
+  established terminology. Its taxonomy is used as a reference model, not as
+  proof that every team uses identical test-level names.
 
 ### R-004
 
-- **Title:** _Not selected._
-- **Author or organization:** _Not selected._
-- **Source type:** _Not selected._
-- **URL:** _Not selected._
-- **Accessed:** _Not recorded._
-- **Used for:** CLI testing and test isolation.
-- **Reliability notes:** _Not evaluated._
+- **Title:** _Child Process — Node.js Documentation_
+- **Author or organization:** OpenJS Foundation and Node.js contributors
+- **Source type:** Official platform API documentation.
+- **URL:** https://nodejs.org/api/child_process.html
+- **Accessed:** 2026-08-03
+- **Used for:** Process-level CLI testing through a spawned executable,
+  including arguments, working directory, environment, standard streams, and
+  exit status.
+- **Reliability notes:** Authoritative for Node.js process behavior and
+  cross-platform caveats. It documents mechanisms rather than prescribing a
+  complete testing strategy.
 
 ### R-005
 
-- **Title:** _Not selected._
-- **Author or organization:** _Not selected._
-- **Source type:** _Not selected._
-- **URL:** _Not selected._
-- **Accessed:** _Not recorded._
-- **Used for:** Test doubles, mocks, stubs, and fakes.
-- **Reliability notes:** _Not evaluated._
+- **Title:** _Test Double_
+- **Author or organization:** Martin Fowler; terminology attributed to Gerard
+  Meszaros
+- **Source type:** Recognized software engineering author; practitioner
+  terminology article.
+- **URL:** https://martinfowler.com/bliki/TestDouble.html
+- **Accessed:** 2026-08-03
+- **Used for:** The purpose of replacing dependencies and the distinction among
+  test-double roles such as stubs, spies, mocks, and fakes.
+- **Reliability notes:** Clear, attributable explanation that links the
+  vocabulary to Meszaros's pattern catalog. It defines test-double roles but
+  does not require a double for every collaborator.
 
 ### R-006
 
-- **Title:** _Not selected._
-- **Author or organization:** _Not selected._
-- **Source type:** _Not selected._
-- **URL:** _Not selected._
-- **Accessed:** _Not recorded._
-- **Used for:** Testing AI-generated code and common testing mistakes.
-- **Reliability notes:** _Not evaluated._
+- **Title:** _Test Pyramid_
+- **Author or organization:** Martin Fowler
+- **Source type:** Recognized software engineering author; practitioner
+  heuristic.
+- **URL:** https://martinfowler.com/bliki/TestPyramid.html
+- **Accessed:** 2026-08-03
+- **Used for:** Test-portfolio distribution, broad-stack test trade-offs, and
+  limitations of treating the pyramid as a rigid rule.
+- **Reliability notes:** Clear, attributable explanation of an established
+  practitioner heuristic. Its cost and distribution guidance is treated as
+  contextual advice, not empirical proof or a mandatory ratio.
 
 ### R-007
 
@@ -184,3 +202,44 @@ technical statements can be traced back to their sources.
 - **Reliability notes:** Reputable practitioner organization and a direct
   description of ATDD. Used to clarify terminology, not to collapse ATDD and
   TDD into the same practice.
+
+### R-015
+
+- **Title:** _Unit Test_
+- **Author or organization:** Martin Fowler
+- **Source type:** Recognized software engineering author; practitioner
+  terminology article.
+- **URL:** https://martinfowler.com/bliki/UnitTest.html
+- **Accessed:** 2026-08-03
+- **Used for:** Unit-test scope, fast feedback, and the distinction between
+  solitary and sociable unit tests.
+- **Reliability notes:** Attributable synthesis from a long-standing testing
+  practitioner. It deliberately documents competing schools, so it supports a
+  boundary-aware definition rather than one universal unit size.
+
+### R-016
+
+- **Title:** _Integration Test_
+- **Author or organization:** Martin Fowler
+- **Source type:** Recognized software engineering author; practitioner
+  terminology article.
+- **URL:** https://martinfowler.com/bliki/IntegrationTest.html
+- **Accessed:** 2026-08-03
+- **Used for:** Narrow versus broad integration tests and ambiguity in common
+  uses of the term.
+- **Reliability notes:** Useful attributable analysis of industry terminology.
+  It is used to expose definitional variation, while ISTQB [R-003] supplies the
+  more formal test-level reference.
+
+### R-017
+
+- **Title:** _File System — Node.js Documentation_
+- **Author or organization:** OpenJS Foundation and Node.js contributors
+- **Source type:** Official platform API documentation.
+- **URL:** https://nodejs.org/api/fs.html#fspromisesmkdtempprefix-options
+- **Accessed:** 2026-08-03
+- **Used for:** Creating unique temporary directories for isolated tests against
+  a real file system.
+- **Reliability notes:** Authoritative for the documented Node.js API and its
+  platform-specific path behavior. It supports fixture mechanics, not a claim
+  that temporary directories alone make a test deterministic.
