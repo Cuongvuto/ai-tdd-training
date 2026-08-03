@@ -57,6 +57,7 @@ docs/week1/
 ├── validation-log.md
 ├── ai-workflow-evidence.md
 └── prompts/
+```
 
 Main documents
 research.md: TDD research findings and Ticket Manager CLI test examples.

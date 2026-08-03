@@ -124,10 +124,10 @@ tests first; Green is not the final design; refactoring does not intentionally
 change observable behavior; TDD does not guarantee defect-free software,
 better design, or higher productivity; tests written after implementation can
 be valuable without having driven that implementation; and high coverage does
-not prove correctness [R-002] [R-007] [R-011] [R-013]. Practical
-Red-Green-Refactor examples, testing-level comparisons, Ticket Manager CLI test
-design, AI-generated-code validation, later research chapters, and the Example
-and Validation stages remain intentionally unfinished.
+not prove correctness [R-002] [R-007] [R-011] [R-013]. At the end of the Brief
+stage, practical Red-Green-Refactor examples, testing-level comparisons, Ticket
+Manager CLI test design, AI-generated-code validation, later research chapters,
+and the Example and Validation stages were intentionally unfinished.
 
 ### 2.6 Practical Example Prompt
 
@@ -224,9 +224,10 @@ and does not cover CLI parsing, persistence, file-storage errors, integration
 testing, or end-to-end testing.
 
 Based on this review, I accept the corrections recorded in `V-008` and consider
-the Layered Questioning workflow complete. Testing-level research, broader
-Ticket Manager CLI test design, AI-generated-code validation, Solution
-Exploration, and Iterative Refinement remain separate unfinished stages.
+the Layered Questioning workflow complete. At the end of this human-evaluation
+stage, testing-level research, broader Ticket Manager CLI test design,
+AI-generated-code validation, Solution Exploration, and Iterative Refinement
+were separate unfinished stages.
 
 ---
 
@@ -519,11 +520,61 @@ lacks.
 
 ### 4.4 Human Evaluation
 
-_Not started._
+The human reviewer evaluated all 15 Initial Review findings, distinguished
+current consistency and traceability problems from readability preferences,
+and authorized a limited first refinement pass. The decisions below are human
+decisions recorded by the AI; the AI suggestions were not accepted
+automatically.
+
+| Finding | Human decision | Reason | Pass |
+| --- | --- | --- | --- |
+| IR-F01 | Accepted | The introduction contains a current contradiction with the completed strategy. | Pass 1 |
+| IR-F02 | Accepted | The workflow has begun and the mapping should report an honest in-progress state. | Pass 1 |
+| IR-F03 | Accepted | The unclosed fence obscures normal README rendering. | Pass 1 |
+| IR-F04 | Accepted | The unmodified Initial Review prompt must remain available with its evidence for Git traceability. | Pass 1 |
+| IR-F05 | Accepted with modification | Add temporal qualifiers while preserving the historical result rather than rewriting it from the current perspective. | Pass 1 |
+| IR-F06 | Deferred to a later refinement pass | Preserve the validation audit history until a later pass evaluates cross-links without renumbering IDs. | Later pass |
+| IR-F07 | No change for now | Citation density is a readability preference and may be useful to the mentor audience. | No change |
+| IR-F08 | No change for now | Repeated scope summaries may help the mentor audience and do not create a correctness defect. | No change |
+| IR-F09 | Accepted | The mentor-review row must not imply that supplementary notes already contain review evidence. | Pass 1 |
+| IR-F10 | Deferred as separate supplementary-note housekeeping | The note is outside the official deliverables and should not be silently changed during research refinement. | Separate housekeeping |
+| IR-F11 | Preserve current content | The boundary-based testing classification is correct and should not be weakened. | Preserve |
+| IR-F12 | Preserve current content | Confirmed behavior, assumptions, and unresolved decisions are correctly separated. | Preserve |
+| IR-F13 | Preserve current content | Empirical limitations and scoped testing claims are correctly qualified. | Preserve |
+| IR-F14 | Preserve current content | Existing human decisions, workflow evidence, and historical path disclosure are accurate. | Preserve |
+| IR-F15 | Deferred to Final Validation | External source re-verification and verification-level tracing belong in the authorized Final Validation stage. | Final Validation |
+
+Pass 1 therefore authorizes substantive document refinements only for `IR-F01`,
+`IR-F02`, `IR-F03`, `IR-F05`, and `IR-F09`. `IR-F04` is accepted as a Git
+traceability decision rather than a document rewrite. Readability-only changes,
+validation-log consolidation, supplementary-note housekeeping, and source
+re-verification remain outside this pass.
 
 ### 4.5 Refinement Pass 1
 
-_Not started._
+Pass 1 applied only the refinements authorized by the Human Evaluation. Each
+change corrects current wording, rendering, or evidence status without changing
+the accepted testing strategy, Ticket Manager scope, validation history, or
+empirical limitations.
+
+| Finding | File | Refinement applied | Result |
+| --- | --- | --- | --- |
+| IR-F01 | `docs/week1/research.md` | Replaced the stale Introduction statement with the completed contextual balanced layered strategy and retained implementation, execution, and measurement as future work. | Section 1.1 now agrees with Chapters 8–10 without claiming a fixed ratio or executed strategy. |
+| IR-F02 | `docs/week1/requirements-mapping.md` | Changed `Apply Iterative Refinement` from `Not started` to `In progress` while retaining Section 4 as primary evidence. | The mapping reflects the started workflow without claiming completion. |
+| IR-F03 | `README.md` | Closed the `text` fence immediately after the deliverables tree. | The following descriptions, Scope, Acceptance Criteria, and Project Status render as normal Markdown. |
+| IR-F05 | `docs/week1/ai-workflow-evidence.md` | Added explicit “At the end of...” qualifiers to the Brief and Layered Questioning human-evaluation snapshots. | Historical facts are preserved without appearing to describe the repository's current state. |
+| IR-F09 | `docs/week1/requirements-mapping.md` | Replaced provisional mentor-note evidence with `Mentor-review artifact to be added` and `Not yet available`. | Mentor review remains `Not started` and no supplementary note is presented as completed evidence. |
+
+`IR-F04` is recorded separately as a commit-traceability decision. The Initial
+Review prompt is tracked at
+`docs/week1/prompts/iterative-refinement-initial-review.md` in the current
+repository and was not edited during this pass.
+
+`IR-F06`, `IR-F10`, and `IR-F15` remain deferred to their authorized later
+stages. `IR-F07` and `IR-F08` receive no change for now. The content protected by
+`IR-F11` through `IR-F14` remains unchanged. No external source was re-verified,
+no implementation or test file was created, and no code was compiled or test
+executed. This pass was performed only after the recorded human authorization.
 
 ### 4.6 Refinement Pass 2
 

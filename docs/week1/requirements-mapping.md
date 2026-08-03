@@ -13,6 +13,6 @@
 | Explain common testing mistakes | `research.md`, Section 7 | `validation-log.md` | Completed |
 | Apply Layered Questioning | `ai-workflow-evidence.md`, Section 2 | `prompts/` | Completed |
 | Apply Solution Exploration | `ai-workflow-evidence.md`, Section 3 | `prompts/` | Completed |
-| Apply Iterative Refinement | `ai-workflow-evidence.md`, Section 4 | `prompts/` | Not started |
+| Apply Iterative Refinement | `ai-workflow-evidence.md`, Section 4 | `prompts/` | In progress |
 | Record AI validation and corrections | `validation-log.md` | `ai-workflow-evidence.md` | In progress |
-| Explain findings during mentor review | Mentor-review findings to be added | Vietnamese notes later | Not started |
+| Explain findings during mentor review | Mentor-review artifact to be added | Not yet available | Not started |

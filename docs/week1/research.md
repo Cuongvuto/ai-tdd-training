@@ -18,9 +18,11 @@ the testing discipline that will guide later implementation. Test-Driven
 Development (TDD) is relevant because it combines small implementation steps
 with frequent automated feedback and deliberate design improvement, rather
 than postponing testing until a feature is considered complete [R-001]
-[R-002]. This document examines the discipline, evidence, and trade-offs of TDD. At this
-stage, it includes one conceptual Red-Green-Refactor example but does not yet
-select a complete CLI testing strategy.
+[R-002]. This document examines the discipline, evidence, and trade-offs of TDD.
+The completed research selects a contextual balanced layered starting strategy:
+many focused unit tests, targeted real-file integration tests, and a small
+process-level E2E suite. Implementation, execution evidence, and measurement
+remain future work.
 
 ### 1.2 Research Objectives
 
