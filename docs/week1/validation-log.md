@@ -929,3 +929,134 @@ technical reasoning.
   consolidate it.
 - **Impact on research:** Section 7.5 distinguishes wasteful duplication from
   purposeful multi-level overlap.
+
+### V-054 - Random Test Data Is Not Automatically Stronger
+
+- **AI claim:** Random test data always finds more defects than fixed, readable
+  test data.
+- **Category:** Test-data selection and reproducibility.
+- **Validation method:** Compared the potential variation from random input with
+  the oracle, reproducibility, diagnosis, and requirement partitions needed by
+  a focused test.
+- **Evidence or reference:** Testing limits in [R-013] and project reasoning
+  about deterministic Ticket Manager fixtures.
+- **Evaluation:** Random values can explore additional inputs, but they may add
+  no meaningful partition and can make a failure difficult to reproduce when
+  the seed and failing value are not recorded.
+- **Status:** Rejected
+- **Correction or final wording:** Prefer small readable values for focused
+  examples; use randomness only for a justified purpose with a reproducible seed
+  and captured failing input.
+- **Impact on research:** Section 8.4 makes fixed and random data contextual
+  choices rather than ranking either universally.
+
+### V-055 - Test-Data Builders Are Optional Tools
+
+- **AI claim:** Every project requires a test-data builder or factory before
+  useful tests can be written.
+- **Category:** Fixture abstraction.
+- **Validation method:** Compared a small explicit fixture with the repetition
+  and invalid-default risk that can justify an abstraction later.
+- **Evidence or reference:** Project reasoning and the contextual maintenance
+  guidance in [R-006].
+- **Evaluation:** A builder can reduce noisy repetition, but it can also hide the
+  values responsible for a test result. Small fixtures do not require another
+  abstraction merely to follow a pattern.
+- **Status:** Rejected
+- **Correction or final wording:** Start with explicit test data and introduce a
+  factory or builder when repeated valid setup materially obscures test intent.
+- **Impact on research:** Section 8.4 treats factories as optional tools whose
+  value depends on actual repetition.
+
+### V-056 - Not Every Decision Must Precede the First TDD Cycle
+
+- **AI claim:** Every future project decision must be finalized before the first
+  TDD cycle can begin.
+- **Category:** Decision timing and incremental development.
+- **Validation method:** Compared the confirmed title-creation contract with
+  later decisions about filters, updates, output, and concurrency.
+- **Evidence or reference:** Incremental TDD workflow in [R-001] and [R-002],
+  plus the recorded project requirements.
+- **Evaluation:** The first domain behavior needs a clear local contract, but it
+  does not depend on filter grammar, full status transitions, exact output, or
+  concurrency policy.
+- **Status:** Rejected
+- **Correction or final wording:** Resolve the decisions required for the next
+  behavior, record remaining questions, and decide each before tests rely on it.
+- **Impact on research:** Sections 8.5 and 8.6 place decisions before their
+  relevant phases without blocking all development.
+
+### V-057 - Implementation Must Not Decide Requirements Accidentally
+
+- **AI claim:** An unresolved requirement can always be decided implicitly by
+  whichever implementation is written first.
+- **Category:** Requirement ownership.
+- **Validation method:** Compared implementation behavior with the authority
+  needed to select missing-file, status, filter, ordering, and exit contracts.
+- **Evidence or reference:** Existing ambiguity finding [V-039] and the Chapter
+  8 decision register.
+- **Evaluation:** Code can embody one interpretation, but its existence does not
+  confirm that stakeholders intended that policy. Tests copied from it can then
+  preserve an accidental decision.
+- **Status:** Rejected
+- **Correction or final wording:** Keep the item unresolved until the developer
+  records an authorized project decision, then write expectations for that
+  contract.
+- **Impact on research:** Section 8.6 keeps required decisions separate from
+  accepted strategy and confirmed behavior.
+
+### V-058 - CLI Command Order Is Not the Only Development Order
+
+- **AI claim:** The implementation must follow the visible CLI command list in
+  exact order, starting with an E2E test for every command.
+- **Category:** Implementation sequencing and test boundary.
+- **Validation method:** Compared command-list order with dependency order,
+  focused TDD feedback, and the evidence supplied by unit, repository, and
+  process boundaries.
+- **Evidence or reference:** [R-001], [R-003], [R-006], and existing boundary
+  placement finding [V-023].
+- **Evaluation:** Public commands depend on domain, parsing, use-case, and
+  persistence behavior. Driving each rule first through a subprocess would
+  broaden feedback without necessarily adding evidence.
+- **Status:** Rejected
+- **Correction or final wording:** Choose small increments from dependency and
+  risk context, then add E2E evidence when the relevant public journey exists.
+- **Impact on research:** Section 8.5 proposes a contextual phase order rather
+  than treating the command list as mandatory sequencing.
+
+### V-059 - Local File Success Does Not Establish Platform Support
+
+- **AI claim:** Platform-specific file failures can be ignored because the
+  persistence tests pass on one developer machine.
+- **Category:** Environment and portability evidence.
+- **Validation method:** Compared one local path and permission environment with
+  the platform variation documented for subprocess and file-system mechanisms.
+- **Evidence or reference:** [R-004], [R-017].
+- **Evaluation:** Paths, permissions, process behavior, and reproducible failure
+  setup can differ across operating systems and CI environments. One passing
+  environment supplies evidence only for that environment and case.
+- **Status:** Rejected
+- **Correction or final wording:** Define supported platforms, prefer portable
+  failure cases, and record or condition platform-specific evidence where it is
+  relevant.
+- **Impact on research:** Sections 8.2, 8.4, and 8.6 retain platform support as a
+  contextual decision and limitation.
+
+### V-060 - A Test Plan Is Not Execution Evidence
+
+- **AI claim:** A complete-looking test plan proves that the future
+  implementation will be reliable.
+- **Category:** Planning versus observed evidence.
+- **Validation method:** Compared proposed cases and boundaries with the results,
+  environment, implementation, assertions, and maintenance data that do not yet
+  exist.
+- **Evidence or reference:** Testing limits in [R-013] and existing reliability
+  finding [V-030].
+- **Evaluation:** A plan can organize risks and intended evidence, but it cannot
+  demonstrate behavior, test quality, duration, flakiness, portability, or the
+  absence of defects before implementation and execution.
+- **Status:** Rejected
+- **Correction or final wording:** Treat Chapter 8 as a prioritized starting
+  strategy and revise it using reviewed implementation and actual test results.
+- **Impact on research:** Section 8.7 explicitly states that the plan has not
+  been executed and must be revisited with Week 2 measurements.

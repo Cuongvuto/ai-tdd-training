@@ -1543,27 +1543,318 @@ support future changes without rewriting history.
 
 ### 8.1 Proposed Unit Tests
 
-_Not started._
+The initial unit portfolio should provide the fastest evidence for domain,
+parsing, and use-case behavior while keeping the file system and process out of
+scope. A unit is a deliberately narrow behavioral boundary, not necessarily one
+class or function [R-015]. Test doubles are appropriate when the claim concerns
+the caller rather than real persistence [R-005].
+
+**Domain behavior — Initial.** Start with the confirmed creation contract:
+trim a valid title, reject an empty or whitespace-only title, and assign initial
+status `open`. Keep the real domain object and replace nothing. These tests can
+establish domain results and errors, but not parsing, identifier generation,
+JSON, or public CLI behavior.
+
+**Command input and parsing — Initial, then Next.** First distinguish a missing
+title from a supplied blank title and reject both before persistence. Next cover
+missing and malformed IDs, a missing update-status value, and focused parser
+handling for unknown commands or unsupported options where that logic has a
+public surface. Repeated-option behavior remains undecided; its tests belong in
+`Later after requirement decision` rather than encoding first-wins, last-wins,
+or rejection accidentally.
+
+**Use-case behavior — Initial and Next.** A fake repository can show that create
+offers one normalized `open` ticket for persistence, invalid input makes no
+storage call, and a simulated repository failure does not become false success.
+Controlled collections can support list behavior; a fake can return an existing
+ticket or no match for show; and a stateful or throwing double can support update
+coordination after the status contract is known. These tests establish caller
+decisions and relevant collaborator arguments, not real JSON or executable
+wiring.
+
+**Filtering behavior — Later after requirement decision.** Status, priority,
+tag, combined-filter, and order-sensitive cases are conditional future tests.
+They require the allowed fields, values, grammar, combination semantics, and
+ordering contract before their expected results can be treated as requirements.
+
+| Unit-test area | Example behavior | Priority | Main evidence | Not proven |
+| --- | --- | --- | --- | --- |
+| Domain creation | Trim title and assign initial `open` | Initial | Confirmed public domain result | Parser, identifier, JSON, or CLI behavior |
+| Domain validation | Reject empty and whitespace-only title | Initial | Domain error for meaningful input partitions | Public message, stream, or process result |
+| Create parsing | Reject missing and blank `--title` before storage | Initial | Focused input classification and no persistence call | Executable routing or real storage |
+| ID parsing | Distinguish missing and malformed ID | Next | Usage categories before lookup | Well-formed not-found or public error format |
+| Create use case | Send one normalized ticket to a fake repository | Initial | Result and caller/repository coordination | JSON serialization or file safety |
+| List use case | Return controlled empty and multiple-ticket collections | Next | Collection semantics without an ordering assumption | Real JSON read or table rendering |
+| Show use case | Return an existing ticket; distinguish a well-formed unknown ID | Next | Found versus not-found decision | ID grammar, storage failure, or CLI output |
+| Failure mapping | Propagate or map a throwing repository without false success | Next | Use-case failure category and relevant side effects | Portable real file-system failure |
+| Update use case | Change one ticket and preserve unrelated fake state | Later after requirement decision | Coordination under the agreed status contract | Real-file preservation or public command wiring |
+| Filters and ordering | Apply an agreed predicate or ordering rule | Later after requirement decision | Confirmed filter/order behavior | Any policy not yet selected |
+
+This prioritization is a Week 2 starting proposal. A discovered risk can move a
+case earlier, but test count alone does not establish completion [R-013].
 
 ### 8.2 Proposed Integration Tests
 
-_Not started._
+Integration tests should target the real JSON repository or adapter in a unique
+temporary directory. A fake repository remains useful for its caller, but it
+replaces serialization, paths, and file I/O and therefore cannot support a real
+persistence claim [R-005]. Node.js `mkdtemp` supplies a mechanism for unique
+temporary directories; it is one isolation control rather than a guarantee of
+determinism [R-017].
+
+The reader and writer need independent evidence. A writer test should inspect
+the produced text as syntactically valid JSON and verify relevant stored fields.
+A reader test should seed known JSON without using the production writer. A
+round trip adds collaboration evidence, but by itself it can pass when reader
+and writer share a compatible defect.
+
+Every case should receive its own directory and explicit storage path, avoid
+real user data, and clean up in teardown after both successful and failed test
+runs [R-019]. Parallel and repeated runs must not share one mutable file. Tests
+for invalid paths or selected file-system failures should prefer portable setup;
+permission behavior can differ across Windows, macOS, Linux, containers, and
+CI environments.
+
+| Integration area | Real boundary | Priority | Evidence | Main risk |
+| --- | --- | --- | --- | --- |
+| Fixture isolation | Unique temporary directory and explicit storage path | Initial | Test does not target shared or user storage | Hidden environment, clock, random, or process coupling |
+| Independent reader | Read an externally seeded valid JSON file | Initial | Deserialization works without using the writer | Writer and reader mask the same defect |
+| Independent writer | Write one ticket and parse the resulting file | Initial | Syntactically valid JSON and required stored fields | In-memory success differs from on-disk content |
+| Round trip | Save and retrieve one ticket | Next | Reader/writer collaboration at the real seam | Correlated reader/writer defect if used alone |
+| Multiple records | Preserve several records across writes | Next | Collection persistence without silent replacement | Existing data is lost during create |
+| One-record update | Update the target while unrelated tickets survive | Next, after update contract | Real-file state preservation | Whole collection or unrelated fields are overwritten |
+| Malformed JSON | Read corrupted or malformed storage | Later after requirement decision | Selected persistence error or recovery contract | Silent destructive recovery or false empty result |
+| First use | Open a path with no storage file | Later after requirement decision | Selected initialization or error policy | Missing file gains accidental semantics |
+| Invalid path or portable failure | Exercise a reproducible real file-system failure | Next where portable | Failure is surfaced without false success | Local-only behavior hides infrastructure errors |
+| Cleanup and rerun | Teardown after pass/fail; run fixtures independently | Initial | Repeatable and parallel-safe storage scope | Leaked files and order-dependent failures |
+
+Detailed title partitions should remain at unit level; repeating every domain
+case through the file system would add cost without new persistence evidence.
+Missing-file and corrupted-file recovery remain decisions, not assumptions.
 
 ### 8.3 Proposed End-to-End Tests
 
-_Not started._
+For this project, an E2E test must invoke the public CLI in a separate process
+with actual arguments and isolated temporary JSON storage. Relevant observations
+can include stdout, stderr, success-versus-failure process semantics, and stored
+state when the journey claims a persistence effect. Node.js child-process APIs
+expose these boundaries, but their existence does not prescribe exact messages
+or numerical exit codes [R-004].
+
+The minimal initial suite should prove selected public wiring rather than repeat
+the complete unit matrix. A create-then-list journey crosses command routing,
+domain creation, JSON persistence, and later public reading. One invalid-create
+journey establishes representative public validation and absence of false
+success. One unknown-command journey checks the executable/router boundary.
+Show, update, and a portable persistence-failure journey can be added after
+their focused requirements and lower-boundary evidence exist.
+
+| E2E journey | Initial or later | Public evidence | Broader risk covered |
+| --- | --- | --- | --- |
+| Create a ticket, then list it | Initial | Actual arguments; stable created/listed fields; agreed success semantics; stored ticket | Entry point, routing, use case, and JSON adapter do not connect |
+| Reject one representative invalid create | Initial | Relevant error stream/meaning; failure semantics; no storage mutation or false success | Domain/parser rejection is lost at the public boundary |
+| Report an unknown command | Initial | Unknown-command meaning on the selected stream; failure semantics | Executable accepts or misroutes unsupported input |
+| Show an existing seeded ticket | Later | Requested identity and stable public fields | Public lookup wiring or rendering is broken |
+| Update and verify the stored result | Later after requirement decision | Public update result plus later observable state | CLI reports an update that was not persisted |
+| Report one portable persistence failure | Later where reproducible | Failure meaning without success output; relevant state preservation | Infrastructure failure becomes success or data loss |
+
+Exact decorative output should be asserted only after it becomes a public
+contract. Detailed blank-title partitions, malformed-ID variants, filtering
+rules, and use-case failure permutations usually stay at unit level because a
+subprocess adds no new evidence for those local rules. An E2E test is selected
+for a real public journey, not merely because it is broader.
 
 ### 8.4 Test Data and Isolation
 
-_Not started._
+Focused tests should prefer small, explicit, readable data: fixed IDs such as
+`ticket-1`, deterministic titles, and the confirmed initial status `open`.
+Fixed values make failure output reproducible and keep each test's intent
+visible. Random data is not automatically stronger; when randomness is useful,
+the seed and failing input must be recorded so the case can be replayed.
+
+A small inline fixture is preferable while setup remains clear. A factory or
+builder becomes useful when repeated valid defaults obscure the behavior under
+test, but it is a tool rather than mandatory project architecture. Overrides
+should remain explicit enough that the input responsible for the expected
+result is visible.
+
+Reader integration tests should independently seed JSON rather than rely only
+on production writing. Every real-file and E2E case should use a separate
+temporary directory, an explicitly injected or configured storage path, and
+teardown that removes only that test's fixture. Tests must never discover or
+write the current user's real tickets or a production-style default path.
+
+Isolation also requires control of every dependency that affects the claim:
+clock, random ID generation, environment variables, working directory, command
+arguments, process configuration, and platform-specific paths or permissions.
+A temporary directory does not control these automatically. Tests should not
+depend on execution order or shared mutable fixtures, and repeated or parallel
+runs should produce separate storage scopes.
+
+Test-isolation checklist:
+
+- [ ] The case has a small fixture whose meaningful values are visible.
+- [ ] IDs, time, and randomness are fixed or reproducibly controlled when used.
+- [ ] A reader test seeds JSON independently from the production writer.
+- [ ] Every real-file or subprocess case has its own temporary directory.
+- [ ] The storage path is explicit and cannot resolve to user data.
+- [ ] Environment, working directory, and process arguments are set deliberately.
+- [ ] Teardown targets only the fixture created by that test and runs after
+      failures where the framework permits.
+- [ ] The case can run repeatedly, in another order, and in parallel without a
+      shared mutable file.
+- [ ] Platform-specific setup is isolated or conditional and its limitation is
+      recorded.
 
 ### 8.5 Recommended Development Order
 
-_Not started._
+The following order is a contextual proposal for small TDD increments, not the
+only valid implementation sequence. Each phase should clarify only the contract
+needed for its next behavior, observe a focused Red for the expected reason,
+apply minimum Green, run relevant regressions, and add broader evidence when a
+real boundary becomes part of the claim [R-001] [R-002] [R-012].
+
+**Phase 0 — Confirm Only the Next Required Contract.**
+
+Before each development phase, confirm only the decisions needed by the next
+behavior.
+
+Before the first domain cycle, the existing title and initial-status behavior
+is sufficient. ID representation, storage-path configuration, missing-file
+behavior, public error categories, output formatting, and process semantics do
+not need to block that first cycle.
+
+Those decisions should instead be confirmed immediately before the phase that
+depends on them:
+
+- decide storage-path and missing-file behavior before repository development
+- decide ID representation before persisted lookup behavior
+- decide the minimum status vocabulary before status update
+- decide public output and process semantics before the corresponding E2E tests
+
+**Phase 1 — Domain creation behavior.** Drive trimmed title, blank-title
+rejection, and initial `open` one behavior at a time. Each focused test should
+fail because that rule is missing, then pass with minimum domain code. Run all
+creation regressions after refactoring. No file or E2E evidence is required for
+these domain-only claims. Completion evidence is reviewed Red/Green output and
+a refactored public domain result; later status behavior remains recorded as
+unresolved rather than entering the minimum Green.
+
+**Phase 2 — Repository foundation.** Select the missing-file behavior required
+for first use, then develop one real-file behavior at a time: initial read, one
+valid write, an independently seeded read, multiple-record preservation, and
+malformed storage after its policy is selected. Focused repository tests supply
+Red; the minimum Green implements only the selected file behavior, while domain
+and earlier repository regressions remain green. Completion evidence includes
+the missing/corrupted-file assumptions or decisions, isolated real files,
+inspected JSON/state, cleanup, and recorded platform limits.
+
+**Phase 3 — Create command/use case.** Clarify the minimum create syntax and
+public error meaning. First drive use-case coordination with a fake repository,
+then connect the real adapter. A focused parser/use-case Red should lead to the
+minimum coordination Green; parser, domain, use-case, and repository regressions
+keep failures locally diagnosable. Add one real create-persistence integration
+path, but defer create-then-list E2E until focused list behavior exists in Phase
+4. Completion evidence combines clarified create assumptions, focused results,
+relevant regressions, and inspected real storage.
+
+**Phase 4 — List and show behavior.** Drive empty/multiple list results and
+existing/not-found show behavior from focused Red to minimum Green with
+controlled collections, then run creation and repository regressions and add
+seeded-JSON evidence. Define ID grammar before malformed-ID expectations and
+record filters and ordering as unresolved rather than implementing them
+prematurely. After both create and list are available, add the initial
+create-then-list public journey; a selected show E2E case remains optional where
+it adds distinct wiring evidence. Completion evidence distinguishes malformed,
+well-formed unknown, and storage errors without claiming exact undecided output.
+
+**Phase 5 — Status update.** Define the minimum status vocabulary and allowed
+transition needed by the assignment before writing update expectations. Drive
+target selection and one agreed state change from focused Red to minimum Green,
+then run domain, repository, create/list/show regressions and verify in a real
+multi-record file that unrelated data survives. Add one public update journey
+after lower boundaries are green. Completion evidence includes the recorded
+status decision and remaining lifecycle assumptions, focused results,
+preservation evidence, and relevant regressions.
+
+**Phase 6 — Selected public journeys.** Review which critical behaviors still
+need process-level evidence. Keep only journeys that establish executable,
+routing, stream, process, or end-to-end storage behavior not already supplied
+more narrowly. For each selected journey, observe Red for missing public wiring,
+add only the minimum routing/output/process connection needed for Green, and
+rerun its focused and real-file regressions. Record public-contract assumptions.
+Completion evidence is a small documented E2E set with isolated storage and
+meaningful public assertions.
+
+**Phase 7 — Refactor and expand.** Review duplication, failure diagnosis, test
+speed, flakiness, uncovered risks, and whether integration/E2E tests add distinct
+evidence. Refactor while focused and regression tests remain green; add or
+remove tests based on risk rather than count. A newly selected behavior begins
+another focused Red/Green cycle; a structure-only refactor introduces no new
+behavioral Green. Rerun the relevant layered regressions, record environment and
+portfolio assumptions, and add broader evidence only for an uncovered real
+boundary. Completion evidence includes the reviewed diff, rerun results,
+measured observations, corrections, and residual risks.
+
+| Phase | Main behavior | Primary test level | Broader evidence | Exit criterion |
+| --- | --- | --- | --- | --- |
+| 0. Confirm next contract | Decide only what the next behavior requires | Reviewable test proposal | None yet | The next behavior, expected Red, and currently unresolved decisions are recorded |
+| 1. Domain creation | Trim, reject blank, initial `open` | Unit | None for domain-only claims | Focused Red/Green and creation regressions reviewed |
+| 2. Repository foundation | Selected first-use, read, write, preservation, malformed storage | Integration | Independent reader plus inspected file state | Isolated real-file evidence and cleanup recorded |
+| 3. Create command/use case | Parser, creation coordination, persistence | Unit, then integration | Public journey deferred until list exists | Focused layers green and one real create-persistence path observed |
+| 4. List and show | Collections, lookup, distinct error categories | Unit | Seeded JSON, initial create-then-list, and optional show E2E | Found/not-found/input/storage meanings remain distinguishable |
+| 5. Status update | Agreed status change and record preservation | Unit | Multi-record integration and one update E2E | Status decision recorded; target and unrelated data verified |
+| 6. Public journeys | Critical executable behavior | E2E | Real process and isolated storage | Small suite adds distinct public evidence |
+| 7. Refactor and expand | Maintainability and residual risk | Relevant focused suites | Re-run only justified broader tests | Green evidence, measurements, review findings, and residual risks recorded |
 
 ### 8.6 Contextual Decisions
 
-_Not started._
+The register below separates accepted strategy, confirmed behavior, required
+decisions, and items that can wait. `Decision required` means the topic must be
+settled before tests claim its relevant behavior; it does not mean all such
+decisions must block the first domain cycle.
+
+| Topic | Current state | Needed before | Evidence or reason |
+| --- | --- | --- | --- |
+| Balanced layered portfolio | Accepted project strategy | Week 2 test planning | Human evaluation selected focused unit, targeted real-file integration, and small process-level E2E layers |
+| Domain logic mainly at a focused boundary | Accepted project strategy | Domain implementation | Fast, local evidence; broader boundaries add no evidence to title rules |
+| Real temporary JSON for persistence claims | Accepted project strategy | Claiming serialization, path, or file behavior | A fake replaces the boundary being claimed |
+| Small process-level E2E suite | Accepted project strategy | Claiming public executable journeys | Handler calls do not cross the process boundary |
+| No fixed test-level percentages | Accepted project strategy | Portfolio review | Boundaries follow evidence and risk rather than a universal ratio |
+| Human acceptance of AI changes | Accepted project strategy | Accepting generated code or tests | AI proposals require requirement, diff, evidence, and residual-risk review |
+| Trim a valid title | Confirmed behavior | First domain cycle | Recorded creation contract |
+| Reject empty or whitespace-only title | Confirmed behavior | First domain cycle | Recorded creation contract |
+| Initial status `open` | Confirmed behavior | First domain cycle | Recorded creation contract; no later lifecycle implied |
+| ID representation and grammar | Decision required | Public create identity and show/update parsing | Missing, malformed, and well-formed unknown IDs need separate expectations |
+| Minimum status vocabulary and transitions | Decision required | Update tests and implementation | Only initial `open` is confirmed |
+| Repeated-option behavior | Decision required | Parser precedence/rejection tests | First-wins, last-wins, and reject are different contracts |
+| Filter grammar | Decision required | Status, priority, or tag filter tests | Candidate filters do not define syntax |
+| Combined-filter semantics | Decision required | Multiple-filter tests | AND, OR, and precedence cannot be inferred |
+| List ordering | Decision required | Order-sensitive assertions | No ordering guarantee exists |
+| Missing-file policy | Decision required | Initial repository read | Empty initialization and storage error are different behaviors |
+| Corrupted-file recovery | Decision required | Malformed-JSON recovery tests | Silent replacement or recovery must not be assumed |
+| Storage-path configuration | Decision required | Safe integration and E2E fixtures | Tests need an explicit path that cannot reach user data |
+| Stdout/stderr and process semantics | Decision required | Public failure/success assertions | Meaningful streams and success/failure must be selected before exact E2E expectations |
+| Exact output format and numerical exit codes | Can be deferred | Declaring formatting or numeric values as public contracts | Not needed for first domain or repository Red-Green cycles |
+| Platform-support expectations | Can be deferred | Claiming portable path or permission behavior | Local success does not establish behavior on every supported environment |
+| Concurrency or file locking | Can be deferred | Concurrent writes if they enter scope | No concurrency requirement is currently confirmed |
+| Priority, tags, and advanced filters | Illustrative assumption only | Their requirements and tests | Candidate features must not block confirmed title behavior |
+
+### 8.7 Closing Strategy Summary
+
+The proposed Week 2 starting portfolio is many focused unit tests, targeted
+real-file integration tests, and a small number of process-level E2E journeys.
+The first TDD increments should establish trimmed titles, blank-title rejection,
+and initial `open`. Real-file evidence should be added when development reaches
+JSON reading, writing, preservation, paths, or storage failures. Process-level
+evidence should be added only for selected public routing and user journeys.
+
+ID grammar, update statuses, filters, ordering, missing/corrupted-file policies,
+storage-path configuration, public streams and formatting, numerical exit codes,
+and platform/concurrency expectations remain decisions at the times identified
+in the register. This plan has not been executed. Its distribution and order
+should be revisited after Week 2 supplies actual duration, failure-diagnosis,
+flakiness, platform, and maintenance evidence.
 
 ---
 
