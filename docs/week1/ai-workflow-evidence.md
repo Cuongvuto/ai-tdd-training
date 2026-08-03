@@ -849,4 +849,169 @@ accepting any eventual commit.
 
 ## 5. Lessons Learned
 
-_Not started._
+### 5.1 Lessons from Layered Questioning
+
+The sequence `Research → Brief → Practical Example → Validation → Human
+Evaluation` made each stage easier to challenge than one broad answer. Research
+created the evidence base, but breadth alone did not show which claims were
+essential or which assumptions would affect the Ticket Manager. The Brief made
+the core TDD concepts easier to inspect, and the practical example exposed the
+unsupported implication that one initial `open` value defined a complete status
+lifecycle.
+
+Validation then separated supported explanations from empirical
+overstatements, while Human Evaluation decided which corrections were accepted.
+Later stages preserved historical workflow snapshots and added temporal
+qualifiers instead of rewriting them as though they described the current
+repository. For the same reason, the historical `docs/week-1/` path mismatch
+remains disclosed evidence rather than being silently rewritten; current
+navigation uses `docs/week1/`.
+
+### 5.2 Lessons from Solution Exploration
+
+Comparing unit-heavy, balanced, and E2E-heavy options prevented the first AI
+suggestion from becoming an automatic project decision. No portfolio is
+universally correct, and a fixed testing percentage would ignore the behavior,
+boundary, feedback speed, diagnostic value, and maintenance cost relevant to
+this local file-backed CLI.
+
+The selected balanced layered strategy is therefore a contextual starting
+point:
+
+- many focused unit tests for business rules, validation, and use cases;
+- targeted integration tests that exercise real JSON files in isolated
+  temporary directories;
+- a small process-level E2E suite for selected public CLI journeys.
+
+This distribution remains revisable when implementation supplies actual
+duration, flakiness, portability, duplication, and maintenance evidence.
+
+### 5.3 Lessons from Iterative Refinement
+
+The actual sequence was `Initial Review → Human Evaluation → Pass 1 → Pass 2 →
+Pass 3 → Initial Final Validation → Authorized Correction → Final Validation
+Rerun`. Findings were not applied automatically: correctness and traceability
+issues were separated from optional readability preferences, human decisions
+set the authorized scope, and small passes kept each change reviewable.
+
+Representative outcomes show why the sequence mattered. `IR-F01` corrected a
+stale introduction, `IR-F02` made workflow status honest, and `IR-F03` repaired
+README rendering. `IR-F06` added reciprocal validation links without erasing or
+renumbering the audit history. `IR-F10` kept supplementary-note housekeeping in
+its own pass, while `IR-F15` recorded source-access limits instead of claiming
+uniform full-text verification.
+
+The initial Final Validation `Fail` was useful evidence because it exposed a
+real contradiction in the Chapter 10 conclusion. Keeping that result visible,
+applying a separately authorized correction, and recording a validation rerun
+provided stronger evidence than silently editing the failed review. The rerun
+result `Pass with limitation` is more accurate than forcing a perfect `Pass`
+while source-access and historical-reconstruction limitations remain.
+
+### 5.4 Lessons about Human Critical Thinking
+
+The assignment demonstrated that the human remains responsible for:
+
+- accepting, rejecting, deferring, preserving, or treating an AI suggestion as
+  optional;
+- checking requirements instead of allowing implementation convenience to
+  define behavior;
+- distinguishing a present-state contradiction from an accurate historical
+  workflow snapshot;
+- deciding whether repetition and citation density help the intended audience;
+- requiring empirical and source-access limitations to remain visible;
+- reviewing prompt provenance, Git status, and diffs before committing;
+- preventing AI-generated output from approving itself.
+
+AI suggestions were never treated as automatic project decisions. Human
+Evaluation authorized the refinements, protected no-change decisions, and kept
+mentor approval separate from AI-produced documentation.
+
+### 5.5 Lessons about TDD and Testing Evidence
+
+The most important testing lessons are:
+
+- TDD is the complete Red-Green-Refactor cycle, not merely writing a test before
+  implementation.
+- Red must fail for the expected missing-behavior reason; a syntax, dependency,
+  or environment failure is different evidence.
+- Green should add the smallest responsible implementation that satisfies the
+  current behavior without inventing future requirements.
+- Refactor must preserve observable behavior while the relevant tests remain
+  Green.
+- Tests provide evidence only for the exercised behavior, inputs, dependencies,
+  environment, and assertions; they do not prove complete correctness.
+- Unit, integration, and E2E tests answer different questions. Mocks do not
+  prove real JSON persistence (`V-017`, `V-037`), and direct handler calls do not
+  prove process-level CLI behavior.
+- A weak assertion such as only `not.toThrow()` does not establish the required
+  result or side effect (`V-021`, `V-036`).
+- Coverage, test count, and a detailed test plan do not establish test quality
+  or execution evidence (`V-060`).
+
+Empirical conclusions about TDD quality, productivity, adoption, and design
+remain qualified by study context, task, team, experience, and process
+adherence.
+
+### 5.6 Lessons for Working with AI
+
+Effective AI collaboration requires controlled, reviewable requests:
+
+- ask for one focused task at a time and define explicit allowed-file scope;
+- preserve prompts so decisions and changes remain traceable;
+- request alternatives before selecting a strategy;
+- ask AI to expose assumptions, unresolved decisions, and limitations;
+- review generated implementation separately from generated tests;
+- inspect assertions, edge cases, failure paths, and the final diff;
+- do not treat the same AI output as independent validation of itself;
+- use AI for exploration, synthesis, and refinement rather than final authority;
+- preserve failed reviews and authorized corrections as evidence of critical
+  thinking.
+
+A professional-looking answer can still be stale, unsupported, internally
+inconsistent, or incorrect. Presentation quality does not replace evidence.
+
+### 5.7 Lessons for Week 2
+
+Week 2 should begin with one confirmed behavior and one focused test. The
+confirmed Ticket Manager behavior remains limited to:
+
+- title trimming;
+- blank-title rejection;
+- initial status `open`.
+
+For each increment, write or review the focused test, observe that Red fails for
+the intended reason, implement the minimum responsible Green, and review the
+code and test diffs separately. Run relevant regressions before refactoring.
+When persistence is introduced, add evidence against real temporary JSON files;
+add subprocess E2E evidence only for selected public CLI journeys.
+
+Record each newly authorized decision without resolving the remaining status,
+filter, ordering, file-policy, output, exit-code, platform, or concurrency
+questions by accident. Capture actual results, failures, duration, flakiness,
+and platform observations, then revise the testing strategy using that observed
+evidence.
+
+### 5.8 Remaining Limitations
+
+Week 1 still does not provide:
+
+- a complete Ticket Manager implementation;
+- executable automated tests or installed test infrastructure;
+- observed Red/Green cycles;
+- coverage, duration, or flakiness measurements;
+- verified portability or production reliability;
+- proof that no defects remain;
+- mentor-review findings or mentor approval.
+
+Source access also remains limited. `R-001` is verified at bibliographic and
+preview level, `R-007` at bibliographic and abstract level, and the complete
+historical limited-access source set cannot be reconstructed with certainty.
+These limitations do not invalidate the documented research and workflow
+evidence, but they constrain the implementation, execution, empirical, and
+reliability conclusions that may be claimed.
+
+**Closing reflection.** The most important Week 1 lesson was not simply learning
+TDD terminology. It was learning to use AI through structured questioning,
+option comparison, human evaluation, controlled refinement, and honest
+validation while keeping final technical responsibility with the human.
