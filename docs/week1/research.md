@@ -1208,35 +1208,334 @@ reviews the diff, and decides whether the residual risk is acceptable.
 
 ### 7.1 Blindly Trusting AI-Generated Tests
 
-_Not started._
+Blind trust means accepting an AI-generated test because it looks detailed,
+compiles, or passes, without checking whether its expected result comes from a
+confirmed requirement. Generated tests can be useful proposals, but the
+measured strengths and limitations of generated test oracles do not make any
+particular proposal correct by default [R-022].
+
+The risk is correlated error. If one AI interprets the requirement, proposes
+the implementation, writes the test, and supplies the expected result, all four
+artifacts can repeat the same misunderstanding. A test may then pass while both
+code and oracle accept a whitespace-only title, invent an undocumented status
+transition, collapse malformed and unknown IDs, assume an ordering rule, or
+claim that a repository mock proves real JSON persistence. Professional naming
+and extensive setup do not repair a wrong oracle.
+
+Warning signs include a test that:
+
+- cites no requirement for its expected result;
+- uses an API or matcher not present in the repository or framework contract;
+- passes immediately against code it was meant to drive;
+- covers only success or asserts only that a value exists;
+- replaces JSON or the subprocess boundary while claiming to validate it;
+- copies the implementation's condition into the test; or
+- introduces status, filter, ordering, output, or exit-code behavior that the
+  project has not decided.
+
+A human review should answer the following before accepting the proposal:
+
+1. Which confirmed requirement authorizes the expectation?
+2. Would a plausible faulty implementation make the test fail?
+3. Is the selected unit, integration, or E2E boundary able to support the
+   claim?
+4. Are assertions strong enough to distinguish the required outcome from false
+   success?
+5. Are validation, not-found, persistence, and relevant edge paths represented?
+6. Do mocks remove the dependency named in the test's claim?
+7. Was Red observed for the intended missing behavior?
+8. Does every proposed API and rule match the repository and recorded project
+   decisions?
+
+The developer should correct or reject a test that cannot answer these
+questions. Passing generated tests remain scoped evidence and do not replace
+requirement review, code review, or broader validation [R-013] [R-020].
 
 ### 7.2 Testing Implementation Details
 
-_Not started._
+A test is coupled to an implementation detail when it requires one private way
+of producing a result even though the public behavior permits other correct
+implementations. The useful distinctions are:
+
+| Observation | Appropriate focus |
+| --- | --- |
+| Observable behavior | Result, error, state, output, or other effect visible through the selected boundary |
+| Public contract | Confirmed API or CLI semantics that callers may rely on |
+| Relevant collaborator interaction | Argument, count, or absence of a call when coordination is itself part of the behavior |
+| Private implementation detail | Helper name, local variable, loop, internal collection, or incidental call order not promised to callers |
+
+Brittle tests call private helpers directly, assert internal variable names,
+require a particular loop or array algorithm, demand an exact sequence of
+internal method calls without a contract, snapshot internal objects
+unnecessarily, or couple repository tests to private JSON transformation
+functions. Such tests can fail during a behavior-preserving refactor and can
+also pass while the public outcome is wrong. The problem is the unsupported
+coupling, not the mere presence of more than one object in a unit test
+[R-015].
+
+For the Ticket Manager, test `Ticket.create()` through its public result rather
+than a private trimming helper. After an update, assert that the target changed
+and unrelated tickets survived instead of prescribing an array-mutation
+algorithm. At E2E level, observe public output and process semantics rather than
+parser internals. For JSON claims, call the repository's public interface and
+inspect the real temporary file rather than its private serializer.
+
+Not every interaction assertion is wrong. It is meaningful to check that blank
+input causes no repository save, that a use case sends the normalized ticket
+once, or that a persistence failure is not converted into success. The check
+should express an architectural or behavioral contract, not freeze incidental
+call choreography [R-005].
+
+This before-and-after example assumes the proposed `Ticket` API. It is
+conceptual TypeScript with Vitest-style assertions and was not executed:
+
+```ts
+// Brittle: couples the test to a proposed private helper.
+expect((Ticket as any).trimTitle('  Fix login  ')).toBe('Fix login');
+
+// Better: observes the public creation behavior.
+const ticket = Ticket.create('  Fix login  ');
+expect(ticket).toMatchObject({ title: 'Fix login', status: 'open' });
+```
+
+This example does not define identifier generation, persistence, or any status
+transition beyond the confirmed initial `open` value.
 
 ### 7.3 Weak or Meaningless Assertions
 
-_Not started._
+A weak assertion can pass even when the defect named by the test remains. It
+often checks existence, truthiness, absence of an exception, or one incidental
+interaction instead of the smallest observable evidence that distinguishes the
+required behavior from a plausible failure.
+
+| Weak assertion when used alone | Plausible false pass | Stronger evidence |
+| --- | --- | --- |
+| `expect(result).toBeDefined()` | A wrong ticket or error-shaped result is defined | Normalized title, initial `open`, identity, and result category |
+| `expect(value).toBeTruthy()` | Any non-empty wrong value passes | The required semantic value or object fields |
+| `expect(command).not.toThrow()` | The command can do nothing or print false success | Intended result/output and required state or collaborator effect |
+| `expect(exitCode).toBe(0)` | Routing, output, or persistence can still be wrong | Agreed success semantics plus relevant stdout and stored state |
+| `expect(mock.save).toHaveBeenCalled()` | Wrong argument or repeated saves pass | Expected argument and call count when coordination matters |
+| `expect(tickets.length).toBeGreaterThan(0)` | Wrong tickets, duplicates, or omitted records pass | Expected identities and count without inventing an order |
+
+The stronger assertion depends on the claim. Domain creation should show a
+trimmed title and initial `open`; show/update behavior should preserve the
+expected identity and error category; persistence tests should parse real JSON
+and verify unrelated records; public error tests should distinguish false
+success through the eventual stdout, stderr, and process contract. Exact
+decorative formatting and every internal field should not be asserted unless
+they are intentionally part of the public contract.
+
+This conceptual and unexecuted Vitest-style example uses a proposed list use
+case with a fake repository. It validates returned behavior but makes no claim
+about real JSON or ordering:
+
+```ts
+// Weak: any non-empty collection passes.
+const tickets = await listTickets(repository);
+expect(tickets.length).toBeGreaterThan(0);
+
+// Stronger: checks the required records without inventing list order.
+expect(tickets).toHaveLength(2);
+expect(tickets).toEqual(expect.arrayContaining([
+  expect.objectContaining({ id: 'ticket-1', title: 'Fix login', status: 'open' }),
+  expect.objectContaining({ id: 'ticket-2', title: 'Write tests', status: 'open' }),
+]));
+```
+
+The reviewer should be able to name the plausible defect each assertion would
+detect. If the assertion cannot fail for a relevant wrong result, it adds little
+acceptance evidence even when the test passes [R-013] [R-018].
 
 ### 7.4 Excessive Mocking
 
-_Not started._
+Excessive mocking means replacing more real behavior than the focused claim
+requires, or prescribing every internal interaction until the test mainly
+verifies its own setup. Test doubles are legitimate tools for controlling a
+dependency; they are not evidence about the behavior they replace [R-005].
+
+Warning signs include mocks that reproduce production algorithms, verify every
+internal call, require setup more complex than the use case, replace simple
+deterministic collaborators, or assert only choreography instead of outcomes.
+A fake repository can also drift from the real JSON adapter. The unit tests may
+remain green while serialization, path handling, malformed JSON, or record
+preservation is broken.
+
+Doubles remain useful when they provide focused evidence:
+
+- isolate domain/use-case coordination for fast TDD feedback;
+- make a repository throw to exercise persistence-error mapping;
+- prove invalid input does not trigger storage;
+- control time, randomness, or another difficult dependency when relevant; or
+- inspect a collaborator argument and call count that form part of the
+  architectural contract.
+
+For this project, a fake repository is appropriate for a create or update use
+case. Real JSON claims require the real adapter in a unique temporary directory
+[R-017]. Public CLI claims require a subprocess with selected real wiring
+[R-004]. A balanced suite can use all three without treating one boundary as a
+universal substitute for the others.
+
+To prevent over-mocking, start with the behavior being claimed, name the real
+seam, and replace only dependencies that would otherwise obscure or slow the
+focused evidence. Prefer state or public-result assertions when interaction is
+incidental. If a mock removes the exact risk in the test name, move that claim
+to an integration or E2E boundary.
 
 ### 7.5 Over-Testing
 
-_Not started._
+Over-testing is not the same as having many useful tests. It is spending suite
+cost on cases or assertions that do not add meaningful evidence. Common forms
+include repeating one scenario at unit, integration, and E2E levels without a
+new boundary claim; testing language or framework behavior; fixing decorative
+output character by character; testing private choices; generating many
+near-duplicates; retaining obsolete expectations; and using a subprocess for
+every small rule merely to increase count or coverage.
+
+The cost can appear as slower feedback, duplicated failures, greater fixture
+and environment maintenance, resistance to safe refactoring, and an unclear
+suite purpose. These costs do not prove a broad test is bad; they mean its
+additional evidence should justify its broader setup and failure surface. The
+testing pyramid is a contextual cost-and-feedback heuristic rather than a
+mandatory ratio [R-006].
+
+The Chapter 5 matrix applies the rule: **use the narrowest boundary that
+provides the required evidence**. Title partitions belong mainly at the domain
+boundary; JSON shape and preservation cross the real file seam; a few critical
+journeys cross the executable boundary. Purposeful overlap is valuable when
+each level answers a different question—for example, create normalization at
+unit level, serialization at integration level, and create-then-list wiring at
+E2E level.
+
+Warning signs are identical expected outcomes repeated across levels, broad
+fixtures for a local rule, failures that provide no new diagnosis, and tests
+whose only stated purpose is a larger count or percentage. Before adding a
+case, record the risk, behavior, boundary, and assertion it contributes. Remove
+or rewrite obsolete and brittle coverage only after checking that important
+behavior remains protected; deleting one poor test does not automatically
+reduce quality.
 
 ### 7.6 Ignoring Failure Paths and Edge Cases
 
-_Not started._
+Happy-path-only testing is risky for a CLI backed by files because user input,
+process routing, parsing, paths, permissions, JSON content, and partial updates
+all introduce failure modes. A successful create case cannot establish what
+happens when validation or persistence fails, and a successful list cannot
+show that corrupted storage is not silently treated as an empty collection.
+
+The review inventory for the Ticket Manager includes:
+
+- empty and whitespace-only titles;
+- missing arguments, malformed IDs, and well-formed unknown IDs;
+- empty collections and no filter matches;
+- unsupported filters or statuses after their definitions exist;
+- missing storage, corrupted JSON, invalid paths, and selected portable
+  persistence failures;
+- failure during create or update, including whether unrelated records remain
+  preserved after the failure;
+- repeated execution and independently isolated parallel tests; and
+- platform-specific path or permission behavior where it materially affects
+  the supported environment.
+
+Useful discovery techniques are input partitioning, boundary analysis,
+reviewing every conditional branch, listing dependency failure modes, comparing
+state before and after an unsuccessful operation, and considering a deliberately
+faulty implementation. For example, if an update implementation replaced the
+whole collection, would the assertions notice the lost unrelated ticket? The
+Chapter 5 matrix supplies a starting inventory, not a completeness guarantee
+[R-013].
+
+Cases should be placed at the boundary that can reproduce the risk: parser or
+domain tests for input partitions, throwing doubles for use-case coordination,
+real temporary files for JSON/path behavior, and selected subprocess tests for
+public streams and process semantics [R-003] [R-017].
+
+The checklist must not invent the answer. Missing-file policy, corrupted-file
+recovery, status vocabulary and transitions, filter grammar and combination,
+list ordering, exact output layout, and numerical exit codes remain unresolved
+until the developer records a project decision.
 
 ### 7.7 Confusing Code Coverage with Test Quality
 
-_Not started._
+Code coverage reports show which configured source locations were executed
+during a test run. Vitest can collect runtime coverage through V8 or
+instrumented coverage through Istanbul, and its include/exclude configuration
+affects which files appear in a report [R-023]. This information can reveal unexecuted statements,
+unvisited branches, or areas worth investigating.
+
+Coverage does not inspect whether the requirement, expected result, or
+assertion is correct. It does not prove that relevant input partitions are
+complete, a mock behaves like JSON, users observe the intended CLI semantics,
+security risks are addressed, or defects are absent [R-013]. Statement and
+branch percentages are therefore diagnostic signals, not acceptance criteria
+by themselves; this research introduces no universal target percentage.
+
+Examples of misleading confidence include:
+
+- `createTicket()` executes while the test asserts only `toBeDefined()`;
+- the corrupted-JSON branch executes while the oracle accepts silent data loss;
+- every parser branch executes while malformed and unknown IDs are assigned the
+  same wrong result; and
+- a fake repository gives the use case full coverage while no real JSON file is
+  written or read.
+
+The reviewer should use a coverage gap to ask which risk or behavior lacks
+execution, then add a meaningful test only when it supplies missing evidence.
+High coverage with weak assertions requires stronger oracles; low coverage in a
+high-risk branch may justify a new case; uncovered generated or unreachable
+code may require a code decision rather than a test. Acceptance still depends
+on requirements, assertions, appropriate real boundaries, review, and observed
+results.
 
 ### 7.8 Writing Tests After the Implementation and Calling It TDD
 
-_Not started._
+Tests written after implementation can be valuable, but they did not drive the
+already-written design and should not be presented as evidence that the
+original work followed test-first TDD [R-001] [R-002]. The distinction concerns
+workflow and evidence, not whether the later tests should be discarded.
+
+| Practice | What it establishes |
+| --- | --- |
+| Test-first TDD | One reviewed behavior produces an expected Red, minimum Green, and behavior-preserving refactor |
+| Tests added after implementation | Current code is checked after its design already exists; the tests may still add regression evidence |
+| Characterization tests | Current observable behavior is recorded, especially before changing unfamiliar or legacy code; it is not automatically the desired requirement |
+| Regression tests | Previously accepted behavior is protected against a later change |
+| Bug-reproduction tests | A known defect is made observable before applying its fix |
+
+AI-assisted work can accidentally become test-after when the developer asks for
+an entire feature, accepts the implementation, asks the same AI for tests that
+match it, and labels the passing result TDD. This sequence increases correlated-
+assumption risk and loses the design feedback of a meaningful Red step.
+
+The corrected future workflow is:
+
+```text
+Clarify one behavior
+→ review a focused test
+→ observe expected Red
+→ request minimal implementation
+→ observe Green
+→ refactor
+```
+
+Red must fail because the intended behavior is missing. A syntax error,
+unavailable dependency, broken import, or environment failure does not provide
+that evidence; a test that passes immediately does not demonstrate Red either
+[R-010] [R-012]. If implementation already exists, describe the honest purpose
+of the new test—characterization, regression, or bug reproduction—and use it to
+support future changes without rewriting history.
+
+### 7.9 Chapter 7 Summary
+
+| Mistake | Main risk | Ticket Manager example | Better practice |
+| --- | --- | --- | --- |
+| Blindly trusting AI-generated tests | Code and oracle share an invented requirement | Mock-backed test claims JSON persistence | Trace expectations to confirmed requirements and review both artifacts |
+| Testing implementation details | Safe refactors break tests while public defects escape | Assert a private trimming or serialization helper | Assert public domain, repository, or CLI behavior |
+| Weak or meaningless assertions | Plausible wrong results still pass | `toBeDefined()` accepts a ticket with wrong fields | Check the smallest meaningful value, error, state, or interaction |
+| Excessive mocking | Replaced dependencies are never validated | Fake repository hides broken JSON handling | Use doubles for coordination and real boundaries for boundary claims |
+| Over-testing | Cost and brittleness grow without new evidence | Repeat every title case through a subprocess | Use the narrowest sufficient boundary and overlap only for distinct evidence |
+| Ignoring failure paths and edge cases | False success or data loss remains hidden | Update failure removes unrelated tickets | Partition inputs and exercise dependency and state-preservation risks |
+| Confusing coverage with quality | Execution counts are mistaken for correct oracles | Full use-case coverage uses only weak mocks | Treat coverage as a diagnostic signal and inspect assertions and boundaries |
+| Calling tests-after TDD | Workflow history and design evidence are misstated | Generate code first, then matching tests | Observe intended Red before minimum Green; label later tests honestly |
 
 ---
 

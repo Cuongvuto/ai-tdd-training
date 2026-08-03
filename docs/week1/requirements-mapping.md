@@ -10,7 +10,7 @@
 | Provide Ticket Manager CLI test examples | `research.md`, Section 5 | `validation-log.md` | Completed |
 | Explain testing of file storage and errors | `research.md`, Section 5 | `references.md` | Completed |
 | Explain how tests validate AI-generated code | `research.md`, Section 6 | `validation-log.md` | Completed |
-| Explain common testing mistakes | `research.md`, Section 7 | `validation-log.md` | In progress |
+| Explain common testing mistakes | `research.md`, Section 7 | `validation-log.md` | Completed |
 | Apply Layered Questioning | `ai-workflow-evidence.md`, Section 2 | `prompts/` | Completed |
 | Apply Solution Exploration | `ai-workflow-evidence.md`, Section 3 | `prompts/` | Completed |
 | Apply Iterative Refinement | `ai-workflow-evidence.md`, Section 4 | `prompts/` | Not started |

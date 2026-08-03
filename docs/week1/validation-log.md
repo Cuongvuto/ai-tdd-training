@@ -760,3 +760,172 @@ technical reasoning.
   only reviewed changes supported by relevant static and runtime evidence.
 - **Impact on research:** Section 6.7 requires code and diff review before test
   execution can lead to acceptance or commit.
+
+### V-045 - Private Access Does Not Improve Behavioral Evidence
+
+- **AI claim:** Tests should call private methods directly to maximize coverage
+  because private implementation details are stable testing contracts.
+- **Category:** Public behavior versus implementation coupling.
+- **Validation method:** Compared the evidence visible through a unit's public
+  boundary with failures caused only by renaming, extracting, or replacing a
+  private algorithm.
+- **Evidence or reference:** [R-015], [R-013], and existing coverage correction
+  [V-034].
+- **Evaluation:** Direct private access can execute more code while freezing an
+  incidental design. It may fail after a behavior-preserving refactor and does
+  not establish that callers receive the correct result.
+- **Status:** Rejected
+- **Correction or final wording:** Test observable behavior through a deliberate
+  public boundary; assert a collaborator interaction only when that interaction
+  is itself an agreed contract.
+- **Impact on research:** Section 7.2 distinguishes public behavior, relevant
+  collaboration, and private implementation details.
+
+### V-046 - Verifying Every Mock Interaction Does Not Strengthen a Test
+
+- **AI claim:** Verifying every mock interaction always makes a test stronger.
+- **Category:** Interaction overspecification.
+- **Validation method:** Compared required outcomes with internal call sequences
+  that could change without altering the behavior.
+- **Evidence or reference:** [R-005] and project reasoning about the documented
+  use-case/repository boundary.
+- **Evaluation:** Assertions about every call can make the test mirror one
+  implementation and fail during safe refactoring. They add evidence only when
+  an argument, count, or absence of a call is behaviorally relevant.
+- **Status:** Rejected
+- **Correction or final wording:** Prefer observable outcomes and verify only
+  interactions that express a requirement or architectural contract.
+- **Impact on research:** Sections 7.2 and 7.4 explain when interaction checks
+  are useful and when they are brittle.
+
+### V-047 - More Mocks Do Not Automatically Improve Isolation
+
+- **AI claim:** Adding more mocks always makes tests faster and better isolated.
+- **Category:** Test-double selection.
+- **Validation method:** Compared a focused dependency replacement with setup
+  complexity, behavioral drift, and the real boundaries removed by additional
+  mocks.
+- **Evidence or reference:** [R-005], [R-006], and existing persistence findings
+  [V-017] and [V-037].
+- **Evaluation:** A double can control a difficult dependency, but unnecessary
+  doubles can duplicate production logic, obscure the scenario, and remove the
+  JSON or process evidence the test claims to supply.
+- **Status:** Rejected
+- **Correction or final wording:** Replace only dependencies needed for the
+  focused claim, and retain real-file or subprocess tests for risks at those
+  boundaries.
+- **Impact on research:** Section 7.4 presents mocks contextually instead of as
+  universally good or harmful.
+
+### V-048 - Branch Coverage Does Not Establish Edge-Case Completeness
+
+- **AI claim:** High or complete branch coverage proves that all important edge
+  cases have been tested.
+- **Category:** Coverage interpretation.
+- **Validation method:** Compared branch execution counts with input partitions,
+  dependency failures, state preservation, and assertion adequacy.
+- **Evidence or reference:** [R-023], [R-013], and existing coverage finding
+  [V-034].
+- **Evaluation:** One input can execute a branch without representing every
+  meaningful value in that branch, and a weak oracle can accept the wrong
+  outcome after execution.
+- **Status:** Rejected
+- **Correction or final wording:** Use branch coverage to locate unvisited code,
+  then derive meaningful cases from requirements and risks rather than treating
+  the metric as a completeness proof.
+- **Impact on research:** Section 7.7 separates diagnostic coverage signals from
+  edge-case and requirement quality.
+
+### V-049 - Tests Added After Implementation Are Not Retrospective TDD
+
+- **AI claim:** Tests written after an implementation was accepted show that the
+  original implementation followed TDD.
+- **Category:** Development-process classification.
+- **Validation method:** Compared the observed work order with the test-first
+  Red-Green-Refactor sequence.
+- **Evidence or reference:** [R-001], [R-002], [R-010].
+- **Evaluation:** Later tests may document behavior, reproduce defects, and add
+  regression protection, but they did not drive an implementation that already
+  existed.
+- **Status:** Rejected
+- **Correction or final wording:** Describe later tests by their actual purpose;
+  claim TDD only when an expected failing test preceded and guided the minimum
+  implementation.
+- **Impact on research:** Section 7.8 distinguishes TDD, tests-after,
+  characterization, regression, and bug-reproduction tests.
+
+### V-050 - Immediate Green Is Not the Red Step
+
+- **AI claim:** A new test that passes immediately can be accepted as the Red
+  step of TDD.
+- **Category:** Red evidence.
+- **Validation method:** Compared immediate success with the purpose of observing
+  a failure caused by intentionally missing behavior.
+- **Evidence or reference:** [R-002], [R-012], and existing Red correction
+  [V-002].
+- **Evaluation:** Immediate Green may mean the behavior already exists, the test
+  is weak, or the test does not reach the intended path. It provides no observed
+  missing-behavior failure.
+- **Status:** Rejected
+- **Correction or final wording:** Confirm a meaningful failure for the expected
+  reason before implementation; separately investigate syntax, dependency, and
+  environment failures because they are not the intended Red.
+- **Impact on research:** Section 7.8 states the evidence required before calling
+  a step Red.
+
+### V-051 - A Snapshot Is Not Automatically a Meaningful Oracle
+
+- **AI claim:** Creating a snapshot automatically gives a test a meaningful
+  assertion.
+- **Category:** Oracle quality and maintenance.
+- **Validation method:** Compared recorded output with confirmed semantic
+  requirements and plausible wrong values that a reviewer might approve by
+  updating the snapshot.
+- **Evidence or reference:** Testing limits in [R-013] and the contextual exact-
+  output finding [V-026].
+- **Evaluation:** A snapshot can preserve approved output, but it can also freeze
+  decorative details, internal objects, or an already-wrong result without
+  explaining which behavior matters.
+- **Status:** Rejected
+- **Correction or final wording:** Use a snapshot only for deliberately selected
+  stable output and review its semantic changes; prefer focused assertions when
+  only a few fields define the contract.
+- **Impact on research:** Sections 7.2, 7.3, and 7.5 treat snapshot and exact-
+  output checks as contextual choices.
+
+### V-052 - Replacing a Brittle Test Can Improve Quality
+
+- **AI claim:** Removing a brittle test always reduces test-suite quality.
+- **Category:** Suite maintenance.
+- **Validation method:** Compared the risk protected by a test with failures
+  caused only by private structure or obsolete expectations.
+- **Evidence or reference:** [R-006], [R-015], and project reasoning about
+  behavior-preserving refactoring.
+- **Evaluation:** Deleting protection for required behavior is risky, but
+  removing or replacing a redundant, obsolete, or implementation-coupled test
+  can reduce noise while preserving stronger behavioral evidence.
+- **Status:** Rejected
+- **Correction or final wording:** Identify the behavior and risk before removal;
+  retain or replace meaningful protection rather than preserving brittleness by
+  test count alone.
+- **Impact on research:** Section 7.5 evaluates test value by distinct evidence,
+  not mere presence.
+
+### V-053 - Duplicate Tests Have Real Maintenance Cost
+
+- **AI claim:** Test duplication is harmless because tests are not production
+  code.
+- **Category:** Test-suite maintainability.
+- **Validation method:** Compared repeated evidence with execution cost,
+  fixture maintenance, change amplification, and duplicate failure signals.
+- **Evidence or reference:** [R-006] and existing boundary placement finding
+  [V-023].
+- **Evaluation:** Tests are executable project code. Near-duplicates can slow
+  feedback and require coordinated updates without covering another risk,
+  although purposeful overlap across boundaries can be justified.
+- **Status:** Rejected
+- **Correction or final wording:** Keep a duplicate-looking case only when it
+  supplies distinct evidence, risk coverage, or boundary confidence; otherwise
+  consolidate it.
+- **Impact on research:** Section 7.5 distinguishes wasteful duplication from
+  purposeful multi-level overlap.

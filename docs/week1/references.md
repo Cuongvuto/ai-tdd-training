@@ -315,3 +315,18 @@ technical statements can be traced back to their sources.
   135 Java projects, evaluated across multiple open-source LLMs and prompts.
   Results are not treated as proof for TypeScript, proprietary models, complex
   oracles, or a particular generated test in this repository.
+
+### R-023
+
+- **Title:** _Coverage_
+- **Author or organization:** Vitest maintainers; VoidZero Inc. and Vitest
+  contributors
+- **Source type:** Official test-framework guide.
+- **URL:** https://vitest.dev/guide/coverage.html
+- **Accessed:** 2026-08-03
+- **Used for:** Vitest coverage providers, runtime collection, reports, and the
+  effect of include/exclude configuration on reported files.
+- **Reliability notes:** Authoritative for current Vitest coverage mechanics.
+  It describes measurement and configuration; it is not treated as evidence
+  that a coverage percentage proves requirement correctness, assertion quality,
+  or absence of defects.
