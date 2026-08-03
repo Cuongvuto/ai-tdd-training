@@ -610,7 +610,32 @@ re-verified, and no implementation was compiled or test executed.
 
 ### 4.7 Refinement Pass 3
 
-_Not started._
+Pass 3 applied only the separate supplementary-note housekeeping authorized by
+the Human Evaluation decision for `IR-F10`. In `note/README.md`, the current
+navigation path was corrected from `docs/week-1/` to `docs/week1/`, and the
+missing closing `text` fence was added immediately after that path so the
+following explanation renders as normal Markdown. The note remains personal
+supporting material rather than an official Week 1 deliverable.
+
+| Finding | Scope | Decision applied | Result |
+| --- | --- | --- | --- |
+| IR-F07 | Chapter 9 citation density | No change | Existing traceability retained |
+| IR-F08 | Repeated chapter summaries | No change | Existing scope reinforcement retained |
+| IR-F10 | `note/README.md` housekeeping | Applied | Fence repaired and canonical path restored |
+| IR-F15 | Source verification levels | Deferred | Final Validation will evaluate verification depth |
+
+Historical prompt-path evidence, including records of the old `docs/week-1/`
+path, was not rewritten. `IR-F07` and `IR-F08` remain no-change decisions, and
+`IR-F15` remains deferred to Final Validation. No research conclusion,
+requirement, reference, or validation entry changed. No external source was
+re-verified, no implementation was created or compiled, and no test was
+executed.
+
+#### Content Deliberately Preserved
+
+Pass 3 does not modify `research.md`, `references.md`, `validation-log.md`,
+`requirements-mapping.md`, official prompt history, Ticket Manager
+requirements, mentor-review status, or any implementation or execution claim.
 
 ### 4.8 Final Validation Prompt
 
