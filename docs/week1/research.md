@@ -585,12 +585,14 @@ purposeful overlap when each test supplies different evidence; duplicating the
 same large matrix at every boundary would add cost without equal diagnostic
 value.
 
-For the future file-backed CLI, the provisional research direction is many
-focused unit tests, targeted real-file integration tests, and a small set of
-process-level E2E journeys. That resembles a balanced layered strategy, but it
-is not yet a project decision. The developer still needs to evaluate expected
-risks, toolchain speed, platform support, and maintenance experience before
-accepting a distribution or designing the Chapter 5 test suite.
+For the future file-backed CLI, the selected contextual starting strategy is
+many focused unit tests, targeted real-file integration tests, and a small set
+of process-level end-to-end journeys.
+
+This balanced layered strategy is a project-specific starting point rather than
+a universal testing ratio. The distribution should be revisited after the team
+can measure toolchain speed, platform behavior, test reliability, and
+maintenance cost during implementation.
 
 ---
 
@@ -609,39 +611,336 @@ tickets update <id>
 
 ### 5.2 Testing Domain and Business Rules
 
-_Not started._
+Domain tests should describe ticket behavior without depending on CLI text,
+argument syntax, or JSON representation. The confirmed creation rules are
+deliberately small: a title is required, whitespace is trimmed, a title that is
+empty after trimming is rejected, and a new ticket starts with status `open`.
+These rules fit focused unit tests because neither a real process nor a real
+file can add useful evidence to the claim [R-003] [R-015].
+
+`priority`, `tags`, and further status behavior must be handled differently.
+They are candidate fields, not confirmed rule sets. A priority vocabulary,
+case-sensitivity rule, duplicate-tag policy, or transition from `open` to
+another status may be explored only as an **illustrative assumption** and must
+be revised when the requirements are agreed. Keeping those decisions inside a
+domain surface also prevents CLI formatting or the JSON adapter from becoming
+the accidental source of business rules.
+
+The following example reuses the proposed `Ticket.create` surface from Section
+3.5. It is conceptual TypeScript with Vitest-style `it` and `it.each` syntax
+[R-018]; no import, package configuration, or execution currently exists.
+
+```ts
+// Conceptual Vitest-style unit test; not executed in this repository.
+import { describe, expect, it } from 'vitest';
+import { DomainValidationError, Ticket } from './ticket';
+
+describe('Ticket.create', () => {
+  it('trims a valid title and assigns the initial open status', () => {
+    const ticket = Ticket.create('  Fix login  ');
+
+    expect(ticket.title).toBe('Fix login');
+    expect(ticket.status).toBe('open');
+  });
+
+  it.each(['', '   ', '\t\n'])('rejects blank title %j', (title) => {
+    expect(() => Ticket.create(title)).toThrow(DomainValidationError);
+  });
+});
+```
+
+These assertions observe public domain behavior rather than private helpers.
+They do not prove identifier generation, persistence, CLI output, or a complete
+status lifecycle.
 
 ### 5.3 Testing Command Input Validation
 
-_Not started._
+Command validation has two useful boundaries. A parser or validation function
+can be called directly in unit tests to cover a dense set of arguments quickly.
+The public executable needs only representative process-level tests to prove
+that the actual entry point routes arguments, help, and unknown commands as
+intended. Directly invoking a command handler remains an in-process test; it is
+not E2E because it does not cross the process boundary [R-004].
+
+Direct tests should distinguish missing required arguments or options from
+values that are present but blank. They should also cover malformed IDs,
+unsupported values, repeated options, and invalid option combinations. The
+expected rule for repeated options—reject, first wins, or last wins—is an
+**unresolved project decision**. Likewise, allowed priority values, tag syntax,
+ID grammar, and conflicting-filter semantics must be defined before a test can
+claim one behavior is correct.
+
+Help requests and unknown commands should additionally be observed through a
+subprocess because their contract includes command routing and user-facing
+streams. Assertions should check stable semantic evidence, such as the presence
+of usage guidance or an unknown-command explanation, without coupling every
+space, line break, or table border unless exact formatting is later declared a
+contract.
+
+This small conceptual unit example assumes a proposed `parseCreateArgs`
+function and a proposed `UsageError`; neither API is implemented here:
+
+```ts
+// Conceptual Vitest-style unit test; not executed in this repository.
+import { describe, expect, it } from 'vitest';
+import { parseCreateArgs, UsageError } from './create-args';
+
+describe('parseCreateArgs', () => {
+  it.each([[], ['--title', '   ']])(
+    'rejects a missing or blank title from %j',
+    (args) => {
+      expect(() => parseCreateArgs(args)).toThrow(UsageError);
+    },
+  );
+});
+```
 
 ### 5.4 Testing the Create Command
 
-_Not started._
+Create crosses several responsibilities, so its cases should be split by the
+evidence required:
+
+- **Unit:** The domain or create use case accepts a valid title, normalizes it,
+  produces initial status `open`, and passes the intended ticket to a fake
+  repository. A blank title is rejected before saving. A throwing repository
+  can verify that a storage failure is propagated or mapped and that the
+  command does not report success.
+- **Integration:** The real JSON repository writes a created ticket to a unique
+  temporary directory and can retrieve it. A selected real storage failure can
+  check that the operation is not presented as successful and that previously
+  stored data is not silently replaced.
+- **End-to-end:** One critical journey invokes `tickets create` through the
+  executable, checks stable output identifying the created ticket, observes a
+  successful process result under the eventual exit-status contract, and
+  confirms the observable storage result. A representative blank-title journey
+  can establish public usage behavior without reproducing every domain case.
+
+Output assertions should verify meaningful fields, such as the normalized title
+and `open` status, rather than an entire decorative layout. When persistence
+fails, there must be no success message or returned success result. Whether all
+possible low-level write failures guarantee byte-for-byte atomic preservation
+is a separate persistence-policy decision; tests must reflect the guarantee the
+implementation actually adopts.
 
 ### 5.5 Testing the List Command
 
-_Not started._
+List behavior begins with collection and filtering decisions, which can be
+tested cheaply against in-memory tickets. Cases should cover an empty
+collection, several tickets, no matching tickets, invalid filter values, and a
+persistence read failure. Status, priority, and tag filters are requested areas
+for exploration, but their allowed values and syntax remain **illustrative
+assumptions** until confirmed. Combined filters also need a project decision on
+whether conditions use AND, OR, or another rule.
+
+Focused unit tests should pass controlled collections to filter predicates or
+the list use case and assert returned identities and fields, not complete CLI
+table rendering. A fake repository that throws can verify error mapping for a
+read failure, but it cannot prove JSON reading works. Targeted repository
+integration tests cover the real read boundary; a small E2E list journey proves
+that public options reach the selected filtering behavior.
+
+No ordering guarantee has been established. Tests may compare a set of ticket
+identities when order is irrelevant. If stable creation order, priority order,
+or another sort is desired, it must first be recorded as a project decision
+before order-sensitive assertions are added. The exact empty-list and no-match
+messages are likewise public-contract decisions, even though both paths should
+remain distinguishable during use-case testing.
 
 ### 5.6 Testing the Show Command
 
-_Not started._
+Show tests should preserve three separate failure meanings:
+
+- **Invalid input:** the ID argument is missing or fails the agreed ID grammar,
+  so the request should be rejected before repository lookup.
+- **Ticket not found:** the ID is well formed and a successful repository read
+  returns no matching ticket.
+- **Storage unavailable:** the repository cannot complete the lookup because of
+  malformed JSON, an inaccessible path, or another persistence failure.
+
+Unit tests can cover missing/malformed parsing, the found/not-found use-case
+decision, and infrastructure-error mapping with fakes. Repository integration
+tests establish whether a seeded JSON record is read and whether corrupt
+storage produces the intended persistence error. A small process-level test for
+an existing ticket should verify that `tickets show <id>` routes correctly and
+emits the stable fields in the public contract. The currently established
+fields are title and status; identifiers implied by the command and any future
+description, priority, or tags require an agreed schema.
+
+The public response should allow a user or caller to distinguish invalid input,
+absence, and unavailable storage. Exact wording and numerical exit codes remain
+unresolved, so the documentation does not collapse these cases or assign them
+fixed values.
 
 ### 5.7 Testing the Update Command
 
-_Not started._
+The assignment requires status update behavior, but only the initial `open`
+status is currently established. Examples that update to `closed`, `done`, or
+another value are therefore **illustrative assumptions pending confirmation**
+of the status vocabulary. No complex transition graph should be tested until
+the allowed transitions are defined.
+
+At unit level, test an existing ticket update, missing ID, missing new-status
+value, malformed ID, unsupported status after the allowed set is defined, and a
+well-formed but unknown ID. A fake repository can make persistence fail and
+allow the test to verify that no success output is produced and that its
+pre-operation snapshot remains unchanged. This checks use-case coordination;
+it does not establish real-file safety.
+
+At integration level, seed multiple records in an isolated real file, update
+one record, then verify that its other fields and all unrelated records remain
+present. A selected failure-path integration test should check the documented
+preservation guarantee. At E2E level, one representative successful status
+change can verify argument routing, public output, process result, and the
+subsequent observable stored value. The exact success format, supported status
+set, transition rules, and exit codes remain project decisions.
 
 ### 5.8 Testing File Storage
 
-_Not started._
+Real JSON persistence requires integration tests that call the repository or
+adapter against a unique temporary directory. A mock repository is appropriate
+for testing its caller, but because it replaces encoding, paths, and file I/O,
+it cannot prove that JSON persistence works [R-005]. Node.js `mkdtemp` creates a
+unique temporary directory and is suitable for independent fixtures [R-017].
+
+The integration suite should cover:
+
+- first use when the storage file does not exist;
+- writing syntactically valid JSON and reading an externally seeded valid file;
+- reading back a saved ticket as a separate round-trip check;
+- preserving several records across writes;
+- updating one record without losing or changing unrelated records;
+- malformed or corrupted JSON;
+- an invalid path and selected permission or file-system failures;
+- cleanup after every test, including failed assertions;
+- separate directories for parallel and repeated tests.
+
+Missing-file behavior is an **unresolved project decision**: it might initialize
+an empty collection, or it might report a storage error. Corrupted-file policy
+also needs an explicit decision; a test should not silently assume destructive
+recovery. Permission failures are platform-specific and may not be reproducible
+with the same setup on Windows, macOS, and Linux, so such cases should use
+portable invalid-path checks where possible and platform-conditional tests only
+when justified.
+
+A temporary directory prevents tests from sharing user data, but it does not
+automatically control time, random IDs, process environment, concurrency, or
+every platform behavior. Isolation is one contributor to determinism, not proof
+of it.
+
+The following conceptual integration example assumes proposed repository APIs
+and an illustrative on-disk location. It uses real temporary storage but was not
+created or executed. Its per-test setup and teardown use Vitest lifecycle-hook
+syntax [R-019]:
+
+```ts
+// Conceptual Vitest-style integration test; not executed in this repository.
+import { afterEach, beforeEach, expect, it } from 'vitest';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { JsonTicketRepository } from './json-ticket-repository';
+
+let directory: string;
+let storagePath: string;
+let repository: JsonTicketRepository;
+
+beforeEach(async () => {
+  directory = await mkdtemp(join(tmpdir(), 'tickets-test-'));
+  storagePath = join(directory, 'tickets.json');
+  repository = new JsonTicketRepository(storagePath);
+});
+
+afterEach(async () => {
+  await rm(directory, { recursive: true, force: true });
+});
+
+it('writes valid JSON and reads the saved ticket', async () => {
+  await repository.save({ id: 'ticket-1', title: 'Fix login', status: 'open' });
+
+  const raw = await readFile(storagePath, 'utf8');
+  expect(() => JSON.parse(raw)).not.toThrow();
+  await expect(repository.findById('ticket-1')).resolves.toMatchObject({
+    title: 'Fix login',
+    status: 'open',
+  });
+});
+```
+
+This round-trip example is not sufficient by itself. A separate read test
+should seed JSON without using the repository's write path, so the writer cannot
+mask a matching defect in the reader.
 
 ### 5.9 Testing Error Handling
 
-_Not started._
+Errors should be classified by origin because each category suggests different
+recovery, public evidence, and test boundary:
+
+| Error category | Examples | Focused evidence | Broader evidence |
+| --- | --- | --- | --- |
+| Input or usage | Missing option, malformed ID, unknown command | Parser rejects before use-case or storage work | CLI uses the intended stream, process result, and does not modify storage |
+| Domain validation | Blank title; unsupported status after the status set is defined | Domain error and unchanged collaborator state | Representative CLI response without false success |
+| Ticket not found | Well-formed ID absent from a successful read | Distinct not-found result, not a syntax error | Public response remains distinguishable from invalid input |
+| Persistence or infrastructure | Corrupt JSON, invalid path, denied operation | Use case maps a repository failure without claiming success | Real-file integration reproduces the selected failure and checks stored data |
+| Unexpected internal | Unanticipated programming or runtime error | Error is not silently converted into success | CLI reports failure without exposing details beyond the eventual public policy |
+
+At the public boundary, relevant observations can include standard output,
+standard error, zero versus non-zero success semantics, and whether storage was
+modified. Node.js subprocess APIs expose these channels separately [R-004]. No
+exact numerical exit codes are assigned here because the project has not
+defined that contract.
+
+Checking only a message can miss an incorrect success exit status or an
+unintended file mutation. Checking only the exit status can miss the wrong error
+category, misleading output, or partial persistence. Strong failure-path tests
+therefore combine the smallest meaningful set of observations for the claim.
+They also cover validation and storage failures rather than documenting only
+happy paths. Even a large passing suite remains scoped evidence and cannot by
+itself prove the absence of defects [R-013].
 
 ### 5.10 Example Test Matrix
 
-_Not started._
+The following matrix is a proposed portfolio, not an executable suite. A row is
+placed at the narrowest boundary that supplies its main evidence; selected E2E
+rows intentionally add confidence in public wiring without repeating the full
+unit matrix.
+
+| Area | Scenario | Test level | Real dependencies | Expected evidence | Main risk covered |
+| --- | --- | --- | --- | --- | --- |
+| Domain | Trim a valid title and assign initial `open` | Unit | Real domain object only | Normalized title and `open` status | Creation rule implemented incorrectly |
+| Domain | Reject empty and whitespace-only titles | Unit | Real domain object only | Domain validation error for each boundary case | Invalid ticket enters the system |
+| Domain | **Illustrative assumption:** validate priority or tag rules after definition | Unit | Real domain object only | Agreed values accepted and rejected precisely | Candidate fields gain accidental rules |
+| Input | Missing versus blank create title | Unit | Parser or validator only | Distinct inputs both produce the agreed usage error | Presence check misses whitespace |
+| Input | Missing ID versus malformed ID for show/update | Unit | Parser or validator only | Both rejected before repository lookup and remain distinguishable | Invalid requests reach storage |
+| Input | **Decision:** repeated options and invalid combinations | Unit | Parser or validator only | Behavior matches the chosen reject/precedence rule | Parser silently chooses unintended input |
+| Input | **Decision:** help request | End-to-end | CLI subprocess; no user storage | Stable usage guidance and agreed process semantics | Help is not wired at the public entry point |
+| Input | Unknown command | End-to-end | CLI subprocess; isolated storage | Unknown-command evidence and no storage mutation | Router accepts or misroutes invalid command |
+| Create | Valid use case with normalized title | Unit | Fake repository | One intended ticket is offered for save; result contains title and `open` | Coordination differs from domain result |
+| Create | Repository rejects the save | Unit | Throwing repository double | Failure is mapped; no success response is produced | False or partial success is reported |
+| Create | Persist a created ticket | Integration | Real JSON file in a temporary directory | Stored and independently readable normalized ticket | Serialization or path defect |
+| Create/List | Critical create-then-list journey | End-to-end | CLI subprocess and temporary JSON storage | Created ticket appears through public list behavior | Executable, routing, and persistence do not connect |
+| List | Empty and multiple-ticket collections | Unit | Fake repository | Correct semantic results without assuming display order | Collection edge cases mishandled |
+| List | **Illustrative assumption:** filter by status | Unit | In-memory ticket collection | Only matching identities returned | Status predicate is wrong |
+| List | **Illustrative assumption:** filter by priority and tags | Unit | In-memory ticket collection | Each agreed predicate selects expected identities | Candidate filter semantics drift |
+| List | **Decision:** combine filters | Unit | In-memory ticket collection | Result follows the chosen AND/OR rule | Combination is implemented inconsistently |
+| List | No matches and invalid filter value | Unit | Parser plus list use case | Empty result differs from invalid-filter error | Absence and invalid input are collapsed |
+| List | Repository read failure | Unit | Throwing repository double | Persistence error propagated or mapped; no normal list result | Failure is presented as an empty collection |
+| Show | Existing well-formed ticket ID | Unit | Fake repository | Intended public fields returned | Wrong ticket or incomplete projection |
+| Show | Missing/malformed ID variants | Unit | Parser or validator only | Usage failure occurs without repository call | Syntax errors become not-found errors |
+| Show | Well-formed but unknown ID | Unit | Fake repository returning no match | Distinct ticket-not-found result | Unknown record is treated as invalid syntax |
+| Show | Storage unavailable | Unit | Throwing repository double | Infrastructure result distinct from not found | Operational failure is hidden |
+| Show | Existing ticket through public command | End-to-end | CLI subprocess and seeded temporary storage | Stable title/status fields appear for requested ID | Public show routing or rendering is broken |
+| Update | **Illustrative assumption:** change `open` to an agreed second status | Unit | Stateful fake repository | Target status changes and unrelated fields remain | Update mutates the wrong state |
+| Update | Missing status or unsupported status after vocabulary is defined | Unit | Parser or validator only | Request rejected before save | Invalid status reaches persistence |
+| Update | Unknown ID and persistence-failure variants | Unit | Stateful/throwing repository doubles | Not-found remains distinct; failed save leaves snapshot unchanged | Update loses data or reports false success |
+| Update | Representative successful public update | End-to-end | CLI subprocess and temporary JSON storage | Output and later stored value show the agreed new status | CLI reports an update that was not persisted |
+| Storage | **Decision:** first use with no storage file | Integration | Unique temporary directory | Empty initialization or storage error matches chosen policy | Missing file is interpreted accidentally |
+| Storage | Valid seeded read, round trip, multiple records, and one-record update | Integration | Real temporary JSON file | Reader accepts external JSON; writes stay valid; unrelated records survive | Writer/reader agree incorrectly or overwrite data |
+| Storage | Corrupted JSON, invalid path, and portable selected file-system failure | Integration | Real temporary file system | Defined persistence errors; no silent destructive recovery | Infrastructure failure corrupts or hides data |
+
+The matrix contains 30 rows. It intentionally leaves exact filter grammar,
+ordering, missing-file policy, status vocabulary and transitions, output layout,
+and numerical exit codes unresolved until the developer records those project
+decisions.
 
 ---
 

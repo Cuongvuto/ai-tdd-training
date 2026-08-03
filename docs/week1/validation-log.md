@@ -331,3 +331,209 @@ technical reasoning.
   for one journey, not proof of complete correctness.
 - **Impact on research:** Sections 4.3 and 4.4 state the confidence boundary of
   process-level tests explicitly.
+
+### V-019 - A Handler Test Is Not Automatically End-to-End
+
+- **AI claim:** Calling a command handler directly is automatically an
+  end-to-end CLI test.
+- **Category:** Testing boundary classification.
+- **Validation method:** Compared the invoked boundary with the documented CLI
+  subprocess boundary and formal test-level purposes.
+- **Evidence or reference:** [R-003], [R-004], [R-016].
+- **Evaluation:** A direct handler call remains in the test process and bypasses
+  executable startup, argument routing, environment, streams, and process exit.
+  It may be a unit or integration test depending on its real collaborators.
+- **Status:** Rejected
+- **Correction or final wording:** Call a handler directly for focused behavior;
+  call the public executable in a separate process for this project's E2E
+  boundary.
+- **Impact on research:** Sections 5.3 and 5.10 classify parser/handler checks
+  separately from subprocess journeys.
+
+### V-020 - Repository Doubles Do Not Exercise JSON Files
+
+- **AI claim:** A mocked repository proves that tickets are persisted correctly
+  in a JSON file.
+- **Category:** Test doubles and persistence evidence.
+- **Validation method:** Compared what a double replaces with the real temporary
+  file boundary required by the claim.
+- **Evidence or reference:** [R-005], [R-017].
+- **Evaluation:** A mock can check caller interactions and simulated failures,
+  but it does not execute serialization, paths, encoding, or real file I/O.
+- **Status:** Rejected
+- **Correction or final wording:** Use a real repository in an isolated
+  temporary directory when claiming evidence about JSON persistence.
+- **Impact on research:** Sections 5.4, 5.5, 5.8, and the matrix distinguish
+  coordination tests from real-file integration tests.
+
+### V-021 - Does Not Throw Is Incomplete Evidence
+
+- **AI claim:** Checking only that a command does not throw is sufficient to
+  establish correct behavior.
+- **Category:** Assertion quality.
+- **Validation method:** Examined which expected outputs and state changes remain
+  unobserved by a no-throw assertion.
+- **Evidence or reference:** Technical reasoning and the limits of test evidence
+  in [R-013].
+- **Evaluation:** The command could return the wrong ticket, emit an error,
+  silently skip persistence, or modify the wrong record without throwing.
+- **Status:** Rejected
+- **Correction or final wording:** Assert the smallest meaningful result, output,
+  collaborator effect, or stored-state change required by the behavior.
+- **Impact on research:** Sections 5.4 through 5.10 specify observable evidence
+  instead of relying on absence of exceptions.
+
+### V-022 - Exit Status Alone Does Not Prove CLI Behavior
+
+- **AI claim:** A correct exit status proves the CLI command behaved correctly.
+- **Category:** Public-boundary assertion quality.
+- **Validation method:** Compared process status with the independent stdout,
+  stderr, and storage observations available at the subprocess boundary.
+- **Evidence or reference:** [R-004].
+- **Evaluation:** A process can return the expected status while printing a
+  misleading response, routing the wrong command, or mutating storage
+  incorrectly.
+- **Status:** Rejected
+- **Correction or final wording:** Combine exit semantics with the output and
+  storage observations relevant to the particular command claim.
+- **Impact on research:** Sections 5.4 and 5.9 require multi-signal evidence for
+  selected public success and failure paths.
+
+### V-023 - Every Scenario Need Not Be Repeated at Every Level
+
+- **AI claim:** Every scenario should be duplicated as unit, integration, and
+  end-to-end tests.
+- **Category:** Test portfolio design.
+- **Validation method:** Evaluated the duplication against the testing-pyramid
+  heuristic and the distinct evidence supplied by each boundary.
+- **Evidence or reference:** [R-006].
+- **Evaluation:** Repetition adds execution and maintenance cost without equal
+  value when the wider boundary supplies no new evidence. Selected critical
+  behavior may appear at multiple levels for different purposes.
+- **Status:** Rejected
+- **Correction or final wording:** Place a case at the narrowest sufficient
+  boundary and add broader coverage only for a real seam or public-journey risk.
+- **Impact on research:** Section 5.10 gives each matrix row a main risk and
+  avoids a three-level copy of every behavior.
+
+### V-024 - Temporary Directories Do Not Guarantee Determinism
+
+- **AI claim:** Using a temporary directory automatically makes every file test
+  deterministic.
+- **Category:** Test isolation and reliability.
+- **Validation method:** Compared the isolation provided by a unique directory
+  with other uncontrolled inputs and platform behavior.
+- **Evidence or reference:** [R-017].
+- **Evaluation:** A unique directory reduces shared-file interference, but time,
+  random IDs, process environment, concurrency, cleanup, and platform-specific
+  file behavior can still vary.
+- **Status:** Corrected
+- **Correction or final wording:** Use a unique temporary directory as one
+  isolation control and separately manage every nondeterministic dependency
+  relevant to the test.
+- **Impact on research:** Section 5.8 states the remaining controls and limits
+  explicitly.
+
+### V-025 - Missing, Malformed, and Unknown IDs Are Distinct
+
+- **AI claim:** A missing ID, malformed ID, and well-formed unknown ID are
+  equivalent errors.
+- **Category:** Input and domain error taxonomy.
+- **Validation method:** Traced where each condition can be known and whether a
+  repository lookup is meaningful.
+- **Evidence or reference:** Project command context and boundary reasoning from
+  [R-003].
+- **Evaluation:** Missing and malformed IDs are usage failures detectable before
+  lookup. An unknown ID is a not-found result after valid input and a successful
+  lookup. Storage unavailability is a fourth distinct condition.
+- **Status:** Rejected
+- **Correction or final wording:** Preserve the error categories while leaving
+  exact messages and exit codes for the public-contract decision.
+- **Impact on research:** Sections 5.6, 5.7, 5.9, and the matrix test the
+  categories separately.
+
+### V-026 - Exact CLI Formatting Is a Contextual Contract
+
+- **AI claim:** Every CLI test should assert the complete output character for
+  character.
+- **Category:** Assertion brittleness and public contract.
+- **Validation method:** Compared semantic behavior assertions with the
+  maintenance cost of coupling tests to decorative formatting.
+- **Evidence or reference:** Broad-test brittleness guidance in [R-006].
+- **Evaluation:** Exact comparison is valuable when formatting itself is a
+  documented machine- or user-facing contract. It is unnecessary for domain and
+  filtering claims and can make unrelated layout changes break tests.
+- **Status:** Contextual
+- **Correction or final wording:** Assert stable semantic fields by default and
+  use exact output checks only for explicitly selected formatting contracts.
+- **Impact on research:** Sections 5.3 through 5.7 avoid whole-table assertions
+  for business behavior.
+
+### V-027 - A Write Test Does Not Prove the Reader
+
+- **AI claim:** If a write test passes, the JSON read implementation is proven
+  correct.
+- **Category:** Persistence test design.
+- **Validation method:** Separated writer behavior from reader behavior and
+  considered correlated defects in a round-trip test.
+- **Evidence or reference:** File-boundary mechanics in [R-017] and testing
+  limits in [R-013].
+- **Evaluation:** A writer and reader can share the same incorrect assumption,
+  allowing a round trip to pass. A write-only assertion does not execute the
+  reader at all.
+- **Status:** Rejected
+- **Correction or final wording:** Check valid written JSON and independently
+  seed known JSON when testing the reader; keep a round-trip test as additional
+  collaboration evidence.
+- **Impact on research:** Section 5.8 and the storage matrix explicitly require
+  both independent and round-trip cases.
+
+### V-028 - Tests Must Not Share One Mutable JSON Fixture
+
+- **AI claim:** File tests can safely share one mutable JSON file across cases.
+- **Category:** Test isolation.
+- **Validation method:** Evaluated execution-order, parallelism, cleanup, and
+  failure contamination risks against unique-directory support.
+- **Evidence or reference:** [R-017].
+- **Evaluation:** One test can leave state that changes another test's starting
+  condition, especially after failure or parallel execution. The outcome then
+  depends on order rather than the documented fixture.
+- **Status:** Rejected
+- **Correction or final wording:** Give each test an independently created
+  temporary directory and clean it in teardown without touching user data.
+- **Impact on research:** Section 5.8 and each real-file matrix row require
+  isolated temporary storage.
+
+### V-029 - Failure Paths Are Required Evidence
+
+- **AI claim:** Successful command paths are sufficient; validation and storage
+  failures do not need tests.
+- **Category:** Coverage quality.
+- **Validation method:** Compared happy-path evidence with the documented error
+  categories and their possible storage effects.
+- **Evidence or reference:** Test-level purposes in [R-003] and assurance limits
+  in [R-013].
+- **Evaluation:** Success cases cannot show that invalid data is rejected, errors
+  remain distinguishable, false success is avoided, or prior data survives a
+  persistence failure.
+- **Status:** Rejected
+- **Correction or final wording:** Add representative domain, usage,
+  not-found, persistence, and unexpected failure paths at suitable boundaries.
+- **Impact on research:** Sections 5.4 through 5.10 include both successful and
+  failure-path evidence.
+
+### V-030 - Test Count Does Not Establish Reliability
+
+- **AI claim:** A large number of passing tests proves the CLI is reliable.
+- **Category:** Evidence and test quality.
+- **Validation method:** Compared raw test count with requirement relevance,
+  assertion strength, boundary coverage, and the general limits of testing.
+- **Evidence or reference:** [R-013].
+- **Evaluation:** Many redundant or weak tests can miss the same requirement,
+  real dependency, failure path, or platform risk. Passing selected examples
+  does not prove the absence of defects.
+- **Status:** Rejected
+- **Correction or final wording:** Evaluate the risks, behaviors, boundaries,
+  assertions, and failure modes covered rather than using count as proof.
+- **Impact on research:** Section 5.10 justifies boundaries and main risks for
+  the proposed cases instead of presenting quantity as assurance.

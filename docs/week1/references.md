@@ -243,3 +243,29 @@ technical statements can be traced back to their sources.
 - **Reliability notes:** Authoritative for the documented Node.js API and its
   platform-specific path behavior. It supports fixture mechanics, not a claim
   that temporary directories alone make a test deterministic.
+
+### R-018
+
+- **Title:** _Test API Reference_
+- **Author or organization:** Vitest maintainers
+- **Source type:** Official test-framework API documentation.
+- **URL:** https://vitest.dev/api/test.html
+- **Accessed:** 2026-08-03
+- **Used for:** Conceptual TypeScript examples using Vitest-style `it`,
+  `it.each`, and expectation callbacks.
+- **Reliability notes:** Authoritative for current Vitest test syntax. It
+  supports the illustrative API usage only; it does not imply that Vitest is
+  installed or configured in this repository.
+
+### R-019
+
+- **Title:** _Hooks API Reference_
+- **Author or organization:** Vitest maintainers
+- **Source type:** Official test-framework API documentation.
+- **URL:** https://vitest.dev/api/hooks.html
+- **Accessed:** 2026-08-03
+- **Used for:** Conceptual per-test setup and cleanup with `beforeEach` and
+  `afterEach` in the temporary-file integration example.
+- **Reliability notes:** Authoritative for Vitest lifecycle-hook behavior. It is
+  used only to support the illustrative syntax and does not claim that the
+  repository currently has a runnable Vitest environment.
