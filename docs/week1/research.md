@@ -948,31 +948,259 @@ decisions.
 
 ### 6.1 Risks of AI-Generated Implementation
 
-_Not started._
+AI-generated code is an implementation proposal, not evidence that a
+requirement has been met. It can be useful and still be wrong in a way that
+looks plausible. A peer-reviewed study found insecure Copilot suggestions in
+the security scenarios it evaluated; that result demonstrates a concrete risk,
+but its measured frequency must not be generalized to every model, prompt, or
+Ticket Manager change [R-020].
+
+Important review risks for this CLI include:
+
+- **Repository and dependency mismatch:** The proposal may invent APIs, assume
+  a package version that is not installed, ignore an existing interface, or
+  use naming and domain types inconsistent with the repository. Stale knowledge
+  about a CLI or file API can produce code that looks idiomatic but does not fit
+  the actual project.
+- **Behavioral mismatch:** Code can type-check while accepting a blank title,
+  assigning the wrong initial status, treating malformed and unknown IDs as the
+  same condition, or implementing an undocumented status transition. Static
+  checking evaluates types before execution; it is different evidence from the
+  runtime behavior required by the project [R-021].
+- **Incomplete paths:** A generated solution may handle only success, perform
+  shallow validation, print an error but return success semantics, or convert a
+  persistence exception into an empty collection. These failures are possible,
+  not inevitable.
+- **Data and asynchronous faults:** An update may replace the full collection,
+  lose unrelated tickets, report success before an awaited write completes, or
+  silently overwrite corrupted JSON. A generated test may then miss the stored
+  state that exposes the problem.
+- **Environment and safety assumptions:** Hard-coded paths, platform-specific
+  permission behavior, or tests pointed at real user data are unsuitable for
+  the isolated temporary-storage strategy. Error output may also expose
+  sensitive internal paths or stack details unless the public policy permits
+  them.
+- **Unnecessary scope:** Extra abstractions, speculative fields, unsupported
+  filters, or a complete status lifecycle can add complexity and requirements
+  that were never requested.
+
+Compilation, type checking, and linting can reject important classes of
+mistakes, but code that passes them can still implement the wrong contract.
+The developer must compare the proposal with repository state, the intended
+behavior, and the evidence required at each boundary.
 
 ### 6.2 Tests as Executable Validation
 
-_Not started._
+A focused test translates an intended behavior into executable evidence. The
+requirement remains the source of the expected result; neither the generated
+implementation nor a generated test is allowed to redefine it. A disciplined
+validation sequence is:
+
+1. State one confirmed behavior before accepting implementation.
+2. Review a focused test that represents that behavior.
+3. Observe Red and confirm the failure is caused by the missing behavior.
+4. Apply the smallest reviewed AI-generated implementation proposal.
+5. Rerun the focused test and inspect the resulting evidence.
+6. Run relevant regression tests for established behavior.
+7. Add a real-file integration or subprocess E2E check when the risk crosses
+   that boundary.
+8. Reject code that passes only an irrelevant, disabled, or weak test.
+
+This extends Red-Green-Refactor rather than replacing it [R-001] [R-002]. A
+unit test can validate title normalization or a use-case decision. An
+integration test can validate actual JSON and file behavior. An E2E test can
+validate a selected public CLI journey [R-003]. A fake-repository test supplies
+caller evidence only; it does not exercise real JSON serialization, paths, or
+file I/O [R-005] [R-017].
+
+The following conceptual and unexecuted example shows how a focused test would
+detect an AI proposal that checks length before trimming. It is consistent with
+the confirmed blank-title rule and uses Vitest-style syntax [R-018]:
+
+```ts
+// Conceptual AI implementation proposal; not executed in this repository.
+import { expect, it } from 'vitest';
+import { DomainValidationError } from './ticket';
+
+function createTicket(title: string) {
+  if (title.length === 0) throw new DomainValidationError();
+  return { title: title.trim(), status: 'open' };
+}
+
+// Conceptual Vitest-style validation test; not executed in this repository.
+it('rejects a title that is blank after trimming', () => {
+  expect(() => createTicket('   ')).toThrow(DomainValidationError);
+});
+```
+
+Conceptually, the proposal returns a ticket with an empty normalized title, so
+the assertion would fail instead of throwing. No test was run here; the example
+demonstrates the evidence the future test must produce. After correction, the
+focused test and relevant creation regressions would be required before the
+proposal could be considered for acceptance.
 
 ### 6.3 Reviewing AI-Generated Tests
 
-_Not started._
+AI-generated tests are proposals too. Research on LLM-generated test oracles
+shows that they can add useful fault-detection value in the studied Java corpus,
+while also reporting compilation failures, false positives, and limitations in
+complex oracle generation [R-022]. This is evidence to evaluate generated tests,
+not permission to accept them on appearance.
+
+For every proposed test, the developer should ask:
+
+- Does its expected result come from the actual requirement?
+- Would it fail if the behavior were absent or replaced by a plausible faulty
+  implementation?
+- Was Red observed, and did it fail for the expected reason?
+- Do the assertions check meaningful public behavior rather than private
+  helpers or incidental structure?
+- Are validation, not-found, persistence, and other relevant failure paths
+  represented?
+- Is the boundary appropriate for the claim?
+- Does a mock replace the dependency the test claims to validate?
+- Is setup isolated from user data, shared mutable files, execution order, and
+  avoidable platform assumptions?
+- Does the case add evidence rather than duplicate an existing test?
+- Does the test name describe what its assertions actually establish?
+- Has the AI invented an API, field, status, filter, ordering rule, output
+  format, or exit-code contract?
+
+When the same AI sees the same incomplete requirement and generates both code
+and tests, both proposals can encode the same mistaken assumption. Agreement
+between them is therefore not automatically independent validation. The human
+review compares each proposal separately with the original requirement,
+repository interfaces, and external source documentation—not merely code
+against its generated tests.
 
 ### 6.4 Detecting Weak Assertions
 
-_Not started._
+An assertion is weak when it can pass despite a defect relevant to the test's
+name or requirement.
+
+| Weak assertion when used alone | What it misses | Stronger evidence for this CLI |
+| --- | --- | --- |
+| `expect(result).toBeDefined()` | Wrong ticket values or an error-shaped result can still be defined | Normalized title, initial `open`, identity, and relevant result category |
+| `expect(command).not.toThrow()` | The command may do nothing, print an error, or mutate the wrong record | Intended return/output plus required storage or collaborator effect |
+| `expect(exitCode).toBe(0)` | Output, routing, and stored state may be wrong despite success semantics | Stable stdout/stderr meaning, process semantics, and observable storage effect |
+| `expect(mock.save).toHaveBeenCalled()` | The wrong ticket or call count may pass; real JSON is not exercised | Expected argument and count for coordination, plus a separate real-file test for persistence |
+
+The goal is not to assert every internal field or formatting character. It is
+to check the smallest observable evidence that would distinguish the required
+behavior from a plausible defect: exact ticket identity where relevant, the
+normalized title, `open` status, error category, valid JSON, preservation of
+unrelated records, the appropriate output stream, and absence of false success.
+
+This conceptual before-and-after example assumes proposed `createTicket` and
+repository APIs. It was not created or executed:
+
+```ts
+// Weak AI-generated test: passes for many wrong results.
+const result = await createTicket('  Fix login  ', repository);
+expect(result).toBeDefined();
+expect(repository.save).toHaveBeenCalled();
+
+// Human-reviewed, strengthened unit evidence.
+expect(result).toMatchObject({ title: 'Fix login', status: 'open' });
+expect(repository.save).toHaveBeenCalledTimes(1);
+expect(repository.save).toHaveBeenCalledWith(
+  expect.objectContaining({ title: 'Fix login', status: 'open' }),
+);
+```
+
+The stronger version validates use-case coordination with a test double; it
+still makes no claim about real JSON persistence.
 
 ### 6.5 Detecting Missing Edge Cases
 
-_Not started._
+Generated tests often emphasize the example named in a prompt. Review should
+expand that example into meaningful partitions rather than requesting an
+arbitrary number of cases:
+
+- valid and typical input;
+- boundary, blank, and whitespace-only input;
+- malformed input versus well-formed but unknown input;
+- empty collections, multiple records, and no-match results;
+- dependency failure, corrupted storage, and partial-operation risk;
+- repeated execution and preservation of pre-existing state;
+- platform-specific behavior and test isolation; and
+- concurrency only where the project actually permits or risks it.
+
+For this CLI, the review checklist includes blank title after trimming; missing,
+malformed, and unknown IDs; missing status; unsupported status after its
+vocabulary is defined; empty and no-match lists; missing or corrupted storage;
+invalid paths; a failure while updating one ticket; preservation of unrelated
+records; and separate temporary storage for concurrently or repeatedly run
+tests.
+
+The reviewer can discover cases by deriving them from each requirement,
+partitioning inputs, inspecting every conditional branch, listing real
+dependencies and their failure modes, comparing success with failure paths,
+and asking which state must remain unchanged after failure. The Chapter 5 test
+matrix supplies a boundary-aware checklist. A deliberate faulty implementation
+is also useful: if replacing all tickets during one update would still pass,
+the preservation assertion is missing.
+
+This process must not invent answers to ambiguous requirements. Missing-file
+policy, ordering, filter grammar, status vocabulary and transitions, exact
+output layout, and numerical exit codes remain project decisions. A checklist
+can reveal omitted categories, but it cannot guarantee completeness [R-013].
 
 ### 6.6 Tests Do Not Prove Complete Correctness
 
-_Not started._
+Passing tests provide strong but scoped evidence for the selected inputs,
+environment, dependencies, and assertions. They do not generally demonstrate
+the absence of defects [R-013]. Their limits include:
+
+- the examples may omit important partitions or failure paths;
+- assertions may be weak or may encode a misunderstood requirement;
+- generated code and tests may share the same wrong assumption;
+- mocks may behave differently from JSON, a filesystem, or a process;
+- platforms, permissions, timing, and concurrency may differ from the test
+  environment;
+- security, usability, performance, and operational risks may be outside the
+  functional suite; and
+- a regression suite or coverage metric can become stale while still passing.
+
+Type checking and test execution provide complementary evidence. TypeScript
+checks type relationships before runtime and erases type information from the
+emitted JavaScript; it does not decide whether `open` is the required initial
+status or whether an update preserved unrelated tickets [R-021]. Tests execute
+selected behavior, but they do not prove that the requirements or selection are
+complete.
+
+The correct response is not to dismiss tests. They give rapid, repeatable
+feedback, protect known behavior, and expose many plausible defects. Their
+evidence should be combined with human diff and code review, static analysis and
+type checking, source verification, requirement clarification, exploratory
+testing, appropriate integration and E2E checks, security review where
+relevant, and measurement in representative execution environments.
 
 ### 6.7 Recommended AI-Assisted Development Workflow
 
-_Not started._
+The following workflow is proposed for future Week 2 implementation. It applies
+TDD, layered evidence, and human accountability; it does not describe actions
+executed during this documentation task [R-001] [R-002] [R-012].
+
+| Step | AI contribution | Human responsibility | Evidence to record |
+| --- | --- | --- | --- |
+| 1. Clarify one behavior | Identify ambiguities and propose examples | Confirm the requirement and reject invented rules | Requirement, open questions, and explicit assumptions |
+| 2. Define acceptance evidence | Suggest observable outcomes and likely boundary | Choose what result would actually demonstrate the behavior | Expected values, errors, state, dependencies, and test level |
+| 3. Propose a focused test | Draft concise TypeScript/Vitest-style test code | Check API fit, requirement fidelity, isolation, and assertion strength | Reviewed test proposal and rationale |
+| 4. Correct the test | Offer alternatives for identified weaknesses | Edit or reject generated expectations and remove unsupported behavior | Review notes and corrected test diff |
+| 5. Observe Red | Help interpret the failure output | Run the test and confirm it fails for the intentionally missing behavior | Command, relevant failure, and expected-reason decision |
+| 6. Propose minimum implementation | Generate the smallest change aimed at Green | Prevent speculative features and check repository contracts | Proposed production diff and assumptions |
+| 7. Review code before acceptance | Explain code paths and flag possible risks | Inspect the complete diff, dependencies, errors, data safety, and async behavior | Human review findings and corrections |
+| 8. Run the focused test | Help diagnose a failure without redefining the requirement | Execute and inspect the meaningful assertion result | Focused test command and result |
+| 9. Run regressions | Suggest the relevant existing suites | Confirm established behavior still has passing evidence and investigate failures | Regression commands, scope, and results |
+| 10. Cross real boundaries | Propose integration or E2E cases for the identified seam | Decide whether real JSON, filesystem, or subprocess evidence is required | Boundary, real dependencies, and observed outputs/state |
+| 11. Refactor while green | Suggest small structure improvements | Preserve observable behavior and rerun focused and regression tests | Refactor diff and green evidence |
+| 12. Record residual risk | Summarize assumptions, corrections, and uncovered risks | Verify the summary and keep unresolved decisions open | Validation log, decisions, limitations, and follow-ups |
+| 13. Commit reviewed work | Draft a concise change summary | Stage only intended files and commit only after review and validation | Final diff, clean scope, checks, and commit reference |
+
+At no point does the AI approve its own implementation or tests. The developer
+owns the requirement, interprets Red and Green, selects broader evidence,
+reviews the diff, and decides whether the residual risk is acceptable.
 
 ---
 

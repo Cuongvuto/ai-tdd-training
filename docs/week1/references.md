@@ -269,3 +269,49 @@ technical statements can be traced back to their sources.
 - **Reliability notes:** Authoritative for Vitest lifecycle-hook behavior. It is
   used only to support the illustrative syntax and does not claim that the
   repository currently has a runnable Vitest environment.
+
+### R-020
+
+- **Title:** _Asleep at the Keyboard? Assessing the Security of GitHub Copilot's
+  Code Contributions_
+- **Author or organization:** Hammond Pearce, Baleegh Ahmad, Benjamin Tan,
+  Brendan Dolan-Gavitt, and Ramesh Karri
+- **Source type:** Peer-reviewed empirical study, 2022 IEEE Symposium on
+  Security and Privacy, 754-768.
+- **URL:** https://doi.org/10.1109/SP46214.2022.9833571
+- **Accessed:** 2026-08-03
+- **Used for:** Evidence that AI code-generation proposals can contain security
+  weaknesses and therefore require contextual review and validation.
+- **Reliability notes:** Primary empirical research over 1,689 generated
+  programs in 89 security-oriented scenarios. Its findings are not generalized
+  to every model, prompt, programming language, or ordinary CLI behavior.
+
+### R-021
+
+- **Title:** _TypeScript for the New Programmer_
+- **Author or organization:** TypeScript team, Microsoft
+- **Source type:** Official language documentation.
+- **URL:** https://www.typescriptlang.org/docs/handbook/typescript-from-scratch.html
+- **Accessed:** 2026-08-03
+- **Used for:** Distinguishing static type checking before execution from
+  runtime behavior and automated-test evidence.
+- **Reliability notes:** Authoritative for TypeScript's type-checking and type-
+  erasure model. It does not claim that type checking validates application
+  requirements.
+
+### R-022
+
+- **Title:** _Do LLMs Generate Useful Test Oracles? An Empirical Study with an
+  Unbiased Dataset_
+- **Author or organization:** Davide Molinelli, Luca Di Grazia, Alberto
+  Martin-Lopez, Michael D. Ernst, and Mauro Pezzè
+- **Source type:** Peer-reviewed empirical study, 2025 IEEE/ACM International
+  Conference on Automated Software Engineering, 278-290.
+- **URL:** https://doi.org/10.1109/ASE63991.2025.00031
+- **Accessed:** 2026-08-03
+- **Used for:** The potential value and measured limitations of LLM-generated
+  test oracles.
+- **Reliability notes:** Large primary study of 13,866 recent test oracles from
+  135 Java projects, evaluated across multiple open-source LLMs and prompts.
+  Results are not treated as proof for TypeScript, proprietary models, complex
+  oracles, or a particular generated test in this repository.
