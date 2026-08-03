@@ -578,7 +578,35 @@ executed. This pass was performed only after the recorded human authorization.
 
 ### 4.6 Refinement Pass 2
 
-_Not started._
+Pass 2 was authorized by the Human Evaluation decision for `IR-F06`. It reviewed
+two clusters of related validation entries and added reciprocal cross-references
+without treating contextually distinct audit records as duplicates.
+
+| Cluster | Validation entries | Relationship | Refinement applied | Why entries remain separate |
+| --- | --- | --- | --- | --- |
+| Doubles and real JSON persistence | `V-017`, `V-020`, `V-037` | Mocks, fakes, and other doubles can verify caller behavior but do not execute real JSON serialization, paths, or file I/O. | Added a `Related validations` field to each entry linking it to the other two. | `V-017` arose from testing-level boundary classification in Chapter 4, `V-020` shaped the Ticket Manager persistence strategy in Chapter 5, and `V-037` reviews mock-based evidence in AI-generated tests in Chapter 6. |
+| Weak `not.toThrow()` evidence | `V-021`, `V-036` | Absence of an exception does not establish the required output, result, collaborator effect, or state change. | Added reciprocal `Related validations` fields between the two entries. | `V-021` established general command-test evidence for Chapter 5, while `V-036` applies the same limit when reviewing AI-generated tests in Chapter 6. |
+
+Nearby entries `V-018`, `V-019`, `V-022`, `V-035`, and `V-038` were inspected
+but not cross-linked. They address broader assurance, handler classification,
+exit-status evidence, missing failure paths, or code-review accountability
+rather than the same two validation relationships.
+
+All five entries retain their original IDs, titles, claims, categories,
+validation methods, evidence, evaluations, statuses, correction wording,
+impacts, and order. No validation was merged, removed, or renumbered; no status
+or correction conclusion changed; and no new validation entry was created. The
+sequence remains `V-001` through `V-060`.
+
+#### Content Deliberately Preserved
+
+Pass 2 does not change Chapter 9 citation density, repeated chapter summaries,
+the supplementary Vietnamese notes, reference verification levels, Ticket
+Manager requirements, or any implementation and test-execution claim.
+`IR-F07` and `IR-F08` remain no-change decisions, `IR-F10` remains separate
+housekeeping, and `IR-F15` remains deferred to Final Validation. The content
+protected by `IR-F11` through `IR-F14` is unchanged. No external source was
+re-verified, and no implementation was compiled or test executed.
 
 ### 4.7 Refinement Pass 3
 

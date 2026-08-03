@@ -305,6 +305,7 @@ technical reasoning.
 - **Validation method:** Compared what a test double replaces with the real file
   API and fixture required to cross the storage boundary.
 - **Evidence or reference:** [R-005], [R-017].
+- **Related validations:** [V-020], [V-037].
 - **Evaluation:** A mock can verify the caller's interaction with its assumed
   contract. It does not execute encoding, paths, permissions, or real
   read/write behavior.
@@ -358,6 +359,7 @@ technical reasoning.
 - **Validation method:** Compared what a double replaces with the real temporary
   file boundary required by the claim.
 - **Evidence or reference:** [R-005], [R-017].
+- **Related validations:** [V-017], [V-037].
 - **Evaluation:** A mock can check caller interactions and simulated failures,
   but it does not execute serialization, paths, encoding, or real file I/O.
 - **Status:** Rejected
@@ -375,6 +377,7 @@ technical reasoning.
   unobserved by a no-throw assertion.
 - **Evidence or reference:** Technical reasoning and the limits of test evidence
   in [R-013].
+- **Related validations:** [V-036].
 - **Evaluation:** The command could return the wrong ticket, emit an error,
   silently skip persistence, or modify the wrong record without throwing.
 - **Status:** Rejected
@@ -626,6 +629,7 @@ technical reasoning.
 - **Validation method:** Listed plausible wrong outputs and state changes that do
   not require an exception.
 - **Evidence or reference:** Testing limits in [R-013].
+- **Related validations:** [V-021].
 - **Evaluation:** A command can silently do nothing, return the wrong result,
   print an error, or mutate the wrong ticket without throwing.
 - **Status:** Rejected
@@ -641,6 +645,7 @@ technical reasoning.
 - **Validation method:** Compared mock observations with the replaced
   serialization, path, and file-system behavior.
 - **Evidence or reference:** [R-005], [R-017].
+- **Related validations:** [V-017], [V-020].
 - **Evaluation:** A mock records an assumed interaction; it does not write,
   parse, preserve, or recover a real JSON file.
 - **Status:** Rejected
