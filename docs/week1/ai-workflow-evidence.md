@@ -422,11 +422,100 @@ Review and improve the research through several controlled refinement passes.
 
 ### 4.2 Initial Review Prompt
 
-_Not started._
+The initial review request is recorded at
+[Iterative Refinement - Initial Review Prompt](prompts/iterative-refinement-initial-review.md),
+with the repository path
+`docs/week1/prompts/iterative-refinement-initial-review.md`.
+
+The request asks for a repository-based review of `README.md`, the complete
+Week 1 research, references, validation log, workflow evidence, requirements
+mapping, all available prompts, and the supplementary `note/README.md`. The
+review dimensions are correctness and internal consistency, structure and
+readability, evidence and traceability, Ticket Manager scope, workflow evidence,
+and the boundary of the Week 1 assignment.
+
+This stage produces findings only. It explicitly performs no refinement,
+external source re-verification, implementation, or test execution. The human
+developer remains responsible for accepting, rejecting, or modifying every
+suggestion before any later document change.
 
 ### 4.3 Initial AI Feedback
 
-_Not started._
+The review inspected the current repository documentation and prompt inventory
+without re-verifying external sources. Findings distinguish correctness and
+traceability concerns from optional readability preferences. A positive finding
+uses `No change recommended` only when the inspected wording or evidence should
+be preserved.
+
+| ID | Severity | Location | Finding | Proposed refinement | Basis |
+| --- | --- | --- | --- | --- | --- |
+| IR-F01 | Important | `docs/week1/research.md`, `### 1.1 Background` | The introduction says the document “does not yet select a complete CLI testing strategy,” but Sections 8.6–8.7 and 10.2 now record an accepted contextual starting strategy. This is a current-state contradiction rather than a historical workflow snapshot. | In a later accepted refinement, replace the stale sentence with wording that reflects the completed research while retaining that implementation and execution remain future work. | Repository consistency |
+| IR-F02 | Important | `docs/week1/requirements-mapping.md`, `Apply Iterative Refinement` row; `docs/week1/ai-workflow-evidence.md`, Sections 4.2–4.3 | Once this prompt and initial feedback are recorded, `Not started` no longer describes the Iterative Refinement workflow accurately. The workflow has started, although no refinement pass or human evaluation is complete. | After human review authorizes a mapping change, set the workflow to an honest in-progress status and cite the completed initial-review evidence; do not mark it completed. | Requirement mapping |
+| IR-F03 | Important | `README.md`, `## Deliverables` | The opening `text` fence for the deliverables tree has no closing fence. As rendered Markdown, the main-document descriptions, Scope, Acceptance Criteria, and Project Status can all be swallowed into one code block, obscuring the assignment state. | Close the tree fence after `prompts/` and restore explicit Markdown headings and lists for the following material. | Readability judgment; repository consistency |
+| IR-F04 | Important | `docs/week1/prompts/iterative-refinement-initial-review.md`, `# Iterative Refinement — Initial Review Prompt`; `docs/week1/ai-workflow-evidence.md`, `### 4.2 Initial Review Prompt` | The evidence now points to the correct prompt path, but that prompt is currently untracked. A commit containing only the evidence file would leave its traceability target absent from the committed repository. Git does not establish who created the file. | Have the developer review the prompt provenance and decide whether to include the unmodified prompt in the same later change set. | Repository consistency; project scope |
+| IR-F05 | Minor | `docs/week1/ai-workflow-evidence.md`, `### 2.5 Brief Result` and `### 2.10 Human Evaluation and Corrections` | These historical stage records say later chapters, testing-level work, AI-code validation, and Solution Exploration “remain” unfinished, although those activities are now documented. The surrounding workflow order implies a snapshot, but present-tense wording can look stale when read independently. | Preserve the historical evidence but add an explicit temporal qualifier such as “At the end of this stage” rather than rewriting the recorded outcome as if later work had already existed. | Repository consistency; readability judgment |
+| IR-F06 | Minor | `docs/week1/validation-log.md`, `V-017`, `V-020`, `V-037`, `V-021`, and `V-036` | The log contains semantically overlapping corrections about doubles not proving real JSON persistence and `not.toThrow()` not proving command correctness. The entries arose in different stages and have distinct impact fields, but their conclusions substantially overlap and increase maintenance cost. | Let the human decide whether audit-history value justifies keeping all entries; if retained, add cross-links or an explicit “related validation” note instead of renumbering IDs. | Existing validation entry; readability judgment |
+| IR-F07 | Optional | `docs/week1/research.md`, `### 9.1 Key Findings` and `### 9.2 Important Corrections to AI Suggestions` | Chapter 9 uses 69 validation-ID mentions in addition to 19 reference mentions. This is highly traceable, but clusters of IDs can interrupt the synthesis and make the chapter read like an index to the validation log. | If the mentor does not need claim-by-claim IDs inline, keep representative IDs near each conclusion and move exhaustive traceability to the correction table or validation log. | Readability judgment |
+| IR-F08 | Optional | `docs/week1/research.md`, `### 8.7 Closing Strategy Summary`, `### 9.4 Chapter 9 Closing Statement`, and Sections 10.5–10.6 | The layered portfolio, unresolved decisions, and “produced versus not produced” boundary are repeated across three consecutive chapter endings. The repetition reinforces scope for a mentor reader but creates several places that must remain synchronized. | Ask the human reviewer whether repetition is useful for the intended audience; if not, retain the full conclusion and shorten earlier closing statements to focused transitions. | Readability judgment |
+| IR-F09 | Minor | `docs/week1/requirements-mapping.md`, `Explain findings during mentor review` row | Supporting evidence is described as “Vietnamese notes later,” but no exact future artifact is named and `note/README.md` explicitly says that `note/` is supplementary rather than an official deliverable. The status is correctly `Not started`, but the evidence path may mislead a reviewer. | Keep the status unfinished and replace the provisional supporting-evidence text only after an actual mentor-review artifact and location are authorized. | Requirement mapping; project scope |
+| IR-F10 | Minor | `note/README.md`, `# Personal Vietnamese Notes` | The supplementary note uses the historical path `docs/week-1/` instead of the actual `docs/week1/` path and also leaves its `text` fence unclosed. It is not an official deliverable, so this does not invalidate the Week 1 research, but it can misdirect personal review. | Treat this as a separate, human-approved housekeeping change; do not silently rewrite the supporting note as part of research refinement. | Repository consistency; project scope |
+| IR-F11 | No change recommended | `docs/week1/research.md`, Chapter 4 and Sections 5.8, 8.1–8.3, and 10.2 | Testing levels are classified by the boundary and real dependency exercised: focused in-process behavior for unit tests, a named real seam for integration tests, and the public CLI in a separate process for this project's E2E tests. No handler test or mock is mislabeled as proof of the broader boundary. | Preserve the boundary-based classification and the narrowest-sufficient-evidence principle. | Existing reference; existing validation entry |
+| IR-F12 | No change recommended | `docs/week1/research.md`, Sections 5.2–5.10, 8.6, 9.1, and 10.4 | Confirmed behavior remains limited to title trimming, blank-title rejection, and initial `open`. ID, later statuses, filters, ordering, file policies, output, exit codes, platform support, and concurrency remain decisions or illustrative assumptions. | Preserve the explicit labels and do not promote an illustrative example into a requirement during refinement. | Repository consistency; project scope |
+| IR-F13 | No change recommended | `docs/week1/research.md`, Sections 2.4–2.7, 6.6, 9.1, and 10.1; `docs/week1/references.md`, `R-007`–`R-009` and `R-013` | TDD benefits and empirical results retain their contextual limitations, and tests are consistently described as scoped evidence rather than proof of defect absence, universal design improvement, or universal productivity gain. | Preserve the qualified claims and the separation between practitioner reasoning and empirical evidence. | Existing reference; existing validation entry |
+| IR-F14 | No change recommended | `docs/week1/ai-workflow-evidence.md`, Sections 2.9–2.10 and 3.5–3.8; `docs/week1/requirements-mapping.md` | Layered Questioning includes validation and an explicit human acceptance; Solution Exploration includes alternatives, provisional AI advice, Human Evaluation, Contextual Decision, and limitations. The historical `docs/week-1/` prompt path is disclosed, and neither workflow is falsely presented as implementation evidence. | Preserve these human-decision and provenance records; do not invent a missing evaluation or silently rewrite the historical prompt. | Repository consistency; requirement mapping |
+| IR-F15 | Minor | `docs/week1/ai-workflow-evidence.md`, `### 2.9 Validation Result`; `docs/week1/references.md`, `### R-001` and source reliability notes | The validation result records that some claims received only bibliographic or abstract-level checks because full text was unavailable, but it does not identify every affected reference ID. `R-001` explicitly records a preview, while the other affected IDs cannot be recovered from this summary alone. | During a later authorized Final Validation, identify the affected IDs and their verification level, then decide which sources require re-verification; do not claim that this initial review performed it. | Existing reference; repository consistency |
+
+#### Strongest Parts
+
+- The TDD account separates Red, minimum responsible Green, and
+  behavior-preserving Refactor while rejecting universal correctness, design,
+  and productivity claims.
+- Testing levels are consistently tied to observable boundaries and the real
+  dependency exercised, not to incidental object counts.
+- Ticket Manager examples carefully distinguish confirmed behavior,
+  illustrative assumptions, and unresolved decisions.
+- AI-generated code and tests remain separate reviewable proposals, with human
+  diff review and requirement ownership preserved.
+- The documentation repeatedly distinguishes conceptual plans from execution
+  evidence and explicitly records missing measurements.
+
+#### Highest-Priority Candidates
+
+The most valuable candidates for human evaluation are `IR-F01`, `IR-F02`,
+`IR-F03`, `IR-F04`, and `IR-F05`. They address a current research contradiction,
+workflow-status accuracy, README rendering, prompt traceability, and historical
+stage wording. None is accepted automatically by this review.
+
+#### Suggestions That Are Optional
+
+`IR-F07` and `IR-F08` are presentation choices rather than correctness fixes.
+Reducing citation density or repeated summaries could improve reading and
+maintenance, but the existing detail may be useful during mentor review.
+
+#### Items Requiring Human Decision
+
+- Whether and when the requirements mapping should move Iterative Refinement
+  from `Not started` to an in-progress status.
+- Whether the untracked initial-review prompt should be included in a later
+  reviewed change set.
+- Whether overlapping validation entries should remain separate as an audit
+  history or gain cross-links.
+- Which references had limited-content verification and whether Final
+  Validation should re-verify them.
+- How much citation density and repeated scope explanation the mentor audience
+  needs.
+- Whether the supplementary Vietnamese note should receive a separate
+  housekeeping correction.
+
+#### Review Limitations
+
+No research, reference, validation, mapping, prompt, or earlier workflow content
+was refined in response to these findings. No external source was re-verified,
+and no implementation was compiled or test executed. The findings are review
+proposals for human evaluation, not accepted changes. A polished-looking
+document is not automatically correct, and this repository-only review cannot
+supply the implementation and execution evidence that Week 1 intentionally
+lacks.
 
 ### 4.4 Human Evaluation
 
