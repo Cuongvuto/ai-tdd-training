@@ -762,6 +762,89 @@ the result, authorizing any correction to the protected research conclusion,
 reviewing the eventual prompt/evidence commit, and deciding when another Final
 Validation justifies requirement completion.
 
+#### Final Validation Rerun After Authorized Correction
+
+The initial Final Validation above remains preserved as historical evidence.
+It failed because `research.md` Section 10.5 omitted Iterative Refinement from
+the produced workflow evidence and Section 10.6 broadly said Iterative
+Refinement and Final Validation were incomplete. The separately authorized
+correction at
+`docs/week1/prompts/iterative-refinement-final-validation-correction.md` changed
+only Sections 10.5–10.6. This rerun is recorded from
+`docs/week1/prompts/iterative-refinement-final-validation-rerun.md` and does not
+rewrite or conceal the original `Fail` result.
+
+##### Rerun Overall Result
+
+**Pass with limitation.** The authorized correction resolves the only
+`Important` contradiction reported by the initial run, and the rerun found no
+remaining `Blocker` or `Important` defect. The result is limited by the
+previously disclosed preview-, abstract-, and historical-reconstruction
+constraints; it does not upgrade source access or supply implementation and
+test-execution evidence.
+
+##### Correction Verification
+
+| Check | Evidence | Result |
+| --- | --- | --- |
+| Original defect | The preserved initial result identifies the omission of Iterative Refinement in Section 10.5 and the stale broad-incomplete statement in Section 10.6. | Confirmed |
+| Authorized correction | The correction prompt permits changes only to `research.md`, Sections 10.5–10.6; the current diff follows that scope. | Confirmed |
+| Section 10.5 comparison | Section 10.5 now names Layered Questioning, Solution Exploration, and Iterative Refinement and records Initial Review, Initial AI Feedback, Human Evaluation, three refinement passes, and a Final Validation record. | Contradiction resolved |
+| Section 10.6 comparison | Section 10.6 preserves implementation and execution limitations, keeps mentor review and Lessons Learned unfinished, and delegates changing workflow status to this evidence file and `requirements-mapping.md`. | Contradiction resolved |
+| Completion blocker | The corrected conclusion agrees with Sections 4.8–4.9 and the requirement decision below without claiming that the initial validation passed. | Resolved |
+
+##### Rerun Validation Summary
+
+| Area | Result | Evidence | Limitation or follow-up |
+| --- | --- | --- | --- |
+| A. Assignment and requirements coverage | Pass | Every mapping evidence path exists; the three workflows and validation/correction records support their completed rows; mentor review remains `Not started`. | Lessons Learned and mentor review remain outside workflow completion. |
+| B. Research completion | Pass | Chapters 1–10 exist with no unfinished placeholder; Sections 10.5–10.6 now agree with workflow evidence, include all three workflows, and preserve implementation and execution limitations. | No new contradiction was found. |
+| C. Workflow evidence | Pass | Layered Questioning contains Research, Brief, Practical Example, Validation, Human Evaluation, and accepted corrections; Solution Exploration contains alternatives, comparison, provisional recommendation, Human Evaluation, Contextual Decision, assumptions, and limitations; Iterative Refinement contains Initial Review, Initial AI Feedback, Human Evaluation, three passes, the initial Final Validation, the authorized correction, and this rerun. | Workflow documentation is not implementation evidence. |
+| D. Prompt traceability | Pass with limitation | All earlier completed workflow prompts and the initial Final Validation prompt exist and are tracked; the correction and rerun prompts exist at canonical paths. Historical `docs/week-1/` evidence remains intentionally historical. | The correction and rerun prompts are currently untracked and must be included in the eventual reviewed commit. The reporting prompt is not workflow-result evidence. |
+| E. Reference audit | Pass with limitation | `R-001`–`R-023` remain unique and sequential; all 177 research citation mentions resolve; no reference changed during correction; the original verification record remains usable. | `R-001` remains preview/bibliographic level and `R-007` remains abstract/bibliographic level. |
+| F. `IR-F15` verification-level review | Pass with limitation | The preserved initial table records `R-001` as bibliographic metadata and preview, `R-007` as metadata and abstract, and `R-008`–`R-009` as full text. | The exact historical limited-access set beyond the recorded evidence cannot be reconstructed with certainty. |
+| G. Validation-log audit | Pass | `V-001`–`V-060` remain unique and sequential; all required fields are present; statuses remain 52 `Rejected`, 4 `Corrected`, and 4 `Contextual`; five related-entry links resolve reciprocally; no `V-061` exists and correction changed no validation. | No new validation ID is needed for this workflow event. |
+| H. Iterative Refinement finding audit | Pass | The preserved disposition table contains every `IR-F01`–`IR-F15`; correction and rerun are recorded as workflow events rather than a new numbered finding. | Existing human decisions and dispositions remain unchanged. |
+| I. Markdown and repository integrity | Pass | All 26 Markdown files are valid UTF-8; fences are balanced; tables have consistent columns; relative links resolve; reference and validation IDs resolve; no unexpected placeholder or prohibited implementation/package file exists. | Section 5 intentionally retains `_Not started._`. |
+| J. Scope and execution claims | Pass | The corrected conclusion and existing documentation continue to deny implementation, executable tests, installed infrastructure, compilation, passing tests, observed Red/Green, measurements, portability proof, production reliability, and proof of no defects. | Documentation and rerun review provide no execution evidence. |
+| K. Git and change audit | Pass with limitation | Branch `docs/week1-tdd-research` is at `0a7286f`; tracked changes are the authorized research correction plus this rerun evidence and mapping decision; no file is staged and no prohibited artifact exists. | The working tree is not clean; the correction, rerun, and reporting prompts are untracked, and the first two must be included in the eventual reviewed commit. |
+
+##### Preserved Source-Verification Limitations
+
+- `R-001` remains verified through bibliographic metadata and preview, not full
+  text.
+- `R-007` remains verified through bibliographic metadata and abstract, not
+  full text.
+- `R-008` and `R-009` retain their recorded full-text verification level.
+- The exact historical limited-access set beyond the evidence preserved in
+  Section 2.9 cannot be reconstructed with certainty.
+- This rerun performed no unnecessary external retrieval and does not claim a
+  stronger verification level than the initial Final Validation record.
+
+##### Requirement Completion Decision
+
+Because the rerun result is `Pass with limitation`, the corrected conclusion
+and complete workflow record now justify changing `Apply Iterative Refinement`
+and `Record AI validation and corrections` to `Completed` in
+`requirements-mapping.md`. `Explain findings during mentor review` remains
+`Not started` because no mentor-review artifact exists.
+
+##### Work Still Not Completed
+
+- Section 5, Lessons Learned;
+- mentor review and any mentor-review artifact;
+- Ticket Manager production implementation;
+- executable automated tests and installed test infrastructure;
+- observed Red/Green, compilation, coverage, duration, flakiness, portability,
+  maintenance, and production-reliability evidence.
+
+##### Human Acceptance
+
+This rerun records a validation decision but does not approve its own changes.
+A human remains responsible for accepting the rerun result, reviewing the
+correction and rerun prompts with the evidence and mapping changes, and
+accepting any eventual commit.
+
 ---
 
 ## 5. Lessons Learned

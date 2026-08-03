@@ -2228,7 +2228,14 @@ Week 1 research produced:
 - guidance on common testing mistakes
 - a prioritized Week 2 testing strategy
 - a traceable reference set and validation log
-- evidence of Layered Questioning and Solution Exploration
+- traceable evidence for all three required AI workflows: Layered Questioning,
+  Solution Exploration, and Iterative Refinement
+
+The Iterative Refinement evidence includes an Initial Review, Initial AI Feedback,
+recorded Human Evaluation, and three authorized refinement passes. It also
+includes a Final Validation record. The current validation result and
+workflow-completion state are maintained in `ai-workflow-evidence.md` and
+`requirements-mapping.md`.
 
 These outputs organize current knowledge, corrections, risks, and planned
 evidence. They are documentation and preparation, not execution results.
@@ -2242,10 +2249,11 @@ measured. Platform portability and production reliability have not been
 verified, and the documentation does not prove that no defects remain
 [V-059] [V-060].
 
-Mentor-review findings, Iterative Refinement, and Final Validation are also not
-complete. Planned Week 2 work must not be reported as completed Week 1 evidence,
-and the current strategy remains subject to developer evaluation and later
-human approval.
+Mentor-review findings and Lessons Learned are not complete. The current
+Iterative Refinement and validation status is recorded in
+`ai-workflow-evidence.md` and `requirements-mapping.md`. Planned Week 2 work
+must not be reported as completed Week 1 evidence, and the current strategy
+remains subject to developer evaluation and later human approval.
 
 ### 10.7 Week 2 Direction
 
