@@ -2122,4 +2122,144 @@ they cannot be supplied by this synthesis.
 
 ## 10. Conclusion
 
-_Not started._
+### 10.1 Overall Research Conclusion
+
+This research concludes that Test-Driven Development is a disciplined feedback
+process built around a repeated cycle:
+
+```text
+Red
+-> Green
+-> Refactor
+```
+
+Red must fail because the intended behavior is genuinely missing, rather than
+because of an unrelated syntax, fixture, dependency, or environment problem.
+Green supplies the smallest responsible implementation that satisfies the
+current behavior without adding speculative features. Refactor then improves
+the internal structure while preserving observable behavior [R-001] [R-002]
+[R-011]. Together, these steps support incremental learning, regression
+feedback, and controlled design change.
+
+The resulting tests are scoped evidence, not proof of complete correctness. A
+passing suite can still omit an important case, encode a misunderstood
+requirement, or use an assertion that cannot detect a plausible defect
+[R-013] [V-005]. TDD's effectiveness therefore depends on context, feedback
+speed, risk, developer skill, and test quality. The empirical and practitioner
+evidence does not establish that TDD guarantees defect-free software, better
+design, or higher productivity in every project; reported outcomes and
+adoption costs vary across settings [R-007] [R-008] [R-009].
+
+### 10.2 Testing Strategy Conclusion
+
+For the future file-backed Ticket Manager CLI, the accepted contextual starting
+strategy is:
+
+```text
+Many focused unit tests
++ targeted real-file integration tests
++ a small process-level end-to-end suite
+```
+
+Unit tests should provide fast, localized feedback for domain rules, parsing,
+validation, and use-case behavior. Targeted integration tests should exercise
+the real JSON adapter and file system with isolated temporary storage. A small
+E2E suite should invoke the public CLI as a separate process for selected
+user-visible journeys and observe only the streams, process result, and stored
+state relevant to each claim [R-003] [R-004] [R-017].
+
+The governing principle is: use the narrowest boundary that supplies the
+required evidence, then add a broader test when the risk crosses a real
+file-system or public-process boundary [V-017] [V-023]. This strategy is not a
+fixed ratio, and it does not require every scenario at every level [R-006]. It
+is a research-based starting point that may change after implementation
+provides actual evidence about speed, diagnosis, maintenance, flakiness, and
+platform behavior.
+
+### 10.3 AI-Assisted Development Conclusion
+
+AI can assist with research exploration, focused examples, comparison of
+alternative strategies, proposed tests and implementation increments, edge-case
+discovery, and documentation refinement. These uses can shorten exploration
+and expose options, but they do not transfer technical accountability to the
+model.
+
+AI cannot establish that its own output is correct, independently validate code
+and tests produced from the same assumptions, resolve ambiguous requirements
+without an authorized decision, replace source verification or human diff
+review, or approve final project changes. Generated tests may contain weak or
+incorrect oracles, while generated code may compile and pass those tests yet
+still implement the wrong contract [R-020] [R-022] [V-031] [V-032]. Code and
+tests must therefore be reviewed as separate artifacts and each compared with
+the original requirement, repository constraints, and relevant evidence. Human
+review remains necessary even after focused, regression, or E2E tests pass
+[V-033] [V-044].
+
+### 10.4 Ticket Manager Scope
+
+The confirmed Ticket Manager behavior remains deliberately small:
+
+- a valid title is trimmed
+- a blank or whitespace-only title is rejected
+- a newly created ticket starts with status `open`
+
+These rules do not define identifier representation, the complete status
+vocabulary, status transitions, priority or tag behavior, filter grammar, list
+ordering, missing-file behavior, corrupted-file recovery, exact output
+formatting, stdout/stderr details, numerical exit codes, or platform and
+concurrency policies. Those items remain unresolved project decisions or
+illustrative assumptions. A future implementation or AI-generated test must not
+silently convert one interpretation into an accepted requirement [V-008]
+[V-039] [V-057].
+
+### 10.5 What Week 1 Produced
+
+Week 1 research produced:
+
+- a documented understanding of TDD and its limitations
+- a conceptual Red-Green-Refactor example
+- a comparison of unit, integration, and E2E testing
+- a balanced layered testing decision
+- conceptual Ticket Manager test examples and a test matrix
+- JSON storage and error-testing guidance
+- an evaluation workflow for AI-generated code and tests
+- guidance on common testing mistakes
+- a prioritized Week 2 testing strategy
+- a traceable reference set and validation log
+- evidence of Layered Questioning and Solution Exploration
+
+These outputs organize current knowledge, corrections, risks, and planned
+evidence. They are documentation and preparation, not execution results.
+
+### 10.6 What Week 1 Did Not Produce
+
+The research did not produce a complete Ticket Manager CLI, executable
+production code, executable automated tests, or installed test infrastructure.
+No Red or Green result was observed, and no test duration or flakiness was
+measured. Platform portability and production reliability have not been
+verified, and the documentation does not prove that no defects remain
+[V-059] [V-060].
+
+Mentor-review findings, Iterative Refinement, and Final Validation are also not
+complete. Planned Week 2 work must not be reported as completed Week 1 evidence,
+and the current strategy remains subject to developer evaluation and later
+human approval.
+
+### 10.7 Week 2 Direction
+
+Week 2 should begin with one confirmed domain behavior. The developer should
+review a focused test against that requirement, run it, and confirm the expected
+Red before requesting or writing the minimum Green implementation. The code and
+test diff should then be reviewed separately, relevant regressions run, and the
+structure refactored only while observable behavior remains stable.
+
+When persistence enters the increment, targeted tests should add real-file
+evidence in isolated storage. Process-level checks should follow for selected
+public CLI journeys rather than becoming the default boundary for every rule.
+Throughout the work, the developer should record decisions, assumptions,
+failures, corrections, remaining risks, and the evidence behind each accepted
+change. The layered strategy should then be revisited using actual feedback
+speed, maintenance cost, failure-diagnosis, flakiness, and platform observations.
+This transition preserves the central conclusion of Week 1: confidence must be
+earned incrementally through relevant evidence and critical human review, not
+inferred from a plan, a test count, or AI agreement.
