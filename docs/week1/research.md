@@ -1862,15 +1862,261 @@ flakiness, platform, and maintenance evidence.
 
 ### 9.1 Key Findings
 
-_Not started._
+#### TDD findings
+
+- **Research finding:** TDD is a repeated Red-Green-Refactor discipline, not
+  merely writing tests before code. Red must fail because the intended behavior
+  is missing; Green supplies the smallest responsible implementation for that
+  behavior; Refactor improves structure while preserving observable behavior
+  [R-001] [R-002].
+- **Practitioner recommendation:** Inspect the reason for Red, keep behavior
+  increments small, rerun relevant regressions, and separate refactoring from a
+  new behavior cycle [R-010] [R-012]. These practices support feedback and
+  diagnosis; they do not prove complete correctness [R-013].
+- **Empirical finding with limitations:** The cited meta-analysis, industrial
+  cases, and adoption review report context-dependent quality, productivity,
+  and adoption outcomes [R-007] [R-008] [R-009]. Differences among teams,
+  methods, skills, and study settings prevent treating those observations as a
+  guarantee that TDD always improves design, productivity, or defect rates.
+- **Research finding:** Suitability depends on risk, feedback speed, maintenance
+  cost, legacy constraints, and developer skill. Strict TDD is therefore a
+  contextual engineering choice rather than a universal rule [V-005] [V-006]
+  [V-007].
+
+#### Testing-level findings
+
+- **Research finding:** Unit, integration, and E2E tests provide different
+  evidence. Classification follows the behavioral boundary and real dependency
+  exercised, not the number of functions or objects in the test [R-003]
+  [R-015] [R-016].
+- **Research finding:** A direct handler call remains in-process. The selected
+  Ticket Manager E2E boundary invokes the public CLI as a separate process with
+  actual arguments and observes relevant streams, process semantics, and state
+  [R-004] [V-019].
+- **Research finding:** A repository double can validate caller coordination,
+  but it replaces encoding, paths, and file I/O. Persistence claims require the
+  real adapter and isolated temporary storage [R-005] [R-017]. Reader and writer
+  also need independent checks because a round trip can hide compatible defects
+  [V-027].
+- **Practitioner recommendation:** Use the narrowest boundary that supplies the
+  required evidence, then cross a real seam or public boundary when the risk
+  exists there. Broader tests are not automatically more valuable, and
+  purposeful overlap is justified only when levels answer different questions
+  [R-006] [V-014] [V-023]. No fixed test-level percentage is required.
+
+#### AI-assisted development findings
+
+- **Research finding:** AI-generated code and tests are proposals requiring
+  human review. Compilation or type checking can reject type errors while code
+  still implements the wrong requirement [R-021] [V-031].
+- **Research finding:** Generated tests can use weak assertions, invented APIs,
+  unsupported rules, or the wrong boundary. Empirical oracle research shows
+  potential value and measured limitations in its studied Java corpus; it does
+  not prove a particular TypeScript test correct [R-022].
+- **Research finding:** When the same AI interprets the requirement and produces
+  code, tests, and expected results, the artifacts can share the same mistake.
+  Agreement is not automatically independent validation [V-032] [V-033].
+- **Practitioner recommendation:** Review each expectation against the original
+  requirement, inspect the complete intended diff, and retain human acceptance
+  even when focused and regression tests pass [V-041] [V-044]. AI can assist
+  with exploration, examples, comparisons, and small proposals; it does not
+  approve its own final output.
+
+#### Ticket Manager strategy findings
+
+- **Confirmed project behavior:** A valid title is trimmed, an empty or
+  whitespace-only title is rejected, and a new ticket starts with status
+  `open`. These statements do not define identifier generation or a complete
+  status lifecycle.
+- **Accepted project strategy:** Start with many focused unit tests, targeted
+  real-file integration tests, and a small process-level E2E suite. This is a
+  contextual portfolio, not a fixed ratio or permanent architecture decision.
+- **Research finding:** Unique temporary directories reduce shared-file risk but
+  do not control clock, randomness, environment, working directory, process
+  configuration, or every platform behavior [R-017] [V-024]. Tests must avoid
+  real user data and independently isolate each mutable storage fixture.
+- **Research finding:** Invalid input, well-formed not-found, persistence
+  failure, and unexpected errors should remain distinguishable. Assertions need
+  the smallest meaningful combination of result, output, process semantics, and
+  stored-state evidence for the selected claim.
+- **Unresolved project decision:** ID grammar, status transitions, filters,
+  ordering, missing/corrupted-file policies, storage-path configuration, exact
+  output, numerical exit codes, platform support, and concurrency remain open
+  until an authorized decision is recorded.
+- **Illustrative assumption:** Priority, tags, advanced filters, and any status
+  beyond initial `open` remain candidate examples only. They are not requirements
+  and must not enter tests or implementation before their contracts are agreed.
+- **Future execution evidence:** Chapter 8 is a plan. No Week 2 implementation,
+  Red/Green result, duration, flakiness, portability, or maintenance measurement
+  currently validates its proposed distribution [V-060].
+
+#### Testing-quality findings
+
+- **Research finding:** Assertion strength matters more than detailed or
+  professional-looking syntax. A test should fail for a plausible defect in the
+  behavior named by the test [V-021] [V-042].
+- **Research finding:** Excessive mocking can preserve fast feedback while
+  removing the real dependency named in the claim. Interaction assertions are
+  useful only when the argument, count, or absence of a call is behaviorally or
+  architecturally relevant [V-037] [V-046].
+- **Research finding:** Over-testing concerns duplicated evidence, brittleness,
+  broad setup, and maintenance cost—not simply a high test count. Purposeful
+  overlap can remain when it supplies distinct boundary evidence [V-030]
+  [V-053].
+- **Research finding:** Coverage identifies executed statements or branches; it
+  does not evaluate the requirement or oracle. Failure paths, meaningful input
+  partitions, and state-preservation checks remain necessary [R-023] [V-034]
+  [V-048].
+- **Research finding:** Tests written after implementation can document current
+  behavior, reproduce bugs, and protect regressions, but they did not drive the
+  already-written implementation and are not retrospective TDD [V-049].
+
+| Theme | Main finding | Practical implication |
+| --- | --- | --- |
+| TDD | Red-Green-Refactor supplies disciplined feedback, not a correctness guarantee | Drive one behavior, inspect Red, implement minimum Green, and refactor while behavior stays stable |
+| Test boundaries | Levels supply different evidence at different real boundaries | Choose the narrowest sufficient level and add broader evidence for real seams or public journeys |
+| AI assistance | Generated code and tests remain correlated, reviewable proposals | Trace expectations to requirements, inspect the diff, and keep human acceptance |
+| Ticket Manager | Confirmed rules are small; the accepted portfolio is balanced and layered | Start with title behavior, add real JSON evidence at persistence, and reserve E2E for selected wiring |
+| Test quality | Assertions, failure paths, isolation, and distinct evidence matter more than count or coverage | Review what each test can detect and what its doubles or boundary leave unproven |
 
 ### 9.2 Important Corrections to AI Suggestions
 
-_Not started._
+#### TDD corrections
+
+The weak suggestions reduced TDD to test-first order, accepted any failure as
+Red, treated Green as final design, and implied that passing tests or TDD prove
+defect-free software. These claims ignored failure cause, incremental design,
+and testing limits. The corrected conclusion is Red for the expected missing
+behavior, minimum Green, behavior-preserving Refactor, and scoped evidence—not
+proof. This correction shaped the workflow and prevented guaranteed productivity
+or design claims [V-001] [V-002] [V-003] [V-004] [V-005] [V-006].
+
+#### Test-boundary corrections
+
+The rejected suggestions defined a unit as exactly one class/function, called
+multiple real objects integration, restricted integration to databases, called
+a handler test E2E, and treated mocks as JSON evidence. They classified tests
+by incidental structure instead of the real boundary. The corrected conclusion
+names the system under test and dependency exercised: focused behavior for unit,
+real component/file seam for integration, and separate public process for this
+project's E2E boundary. This correction produced the layered portfolio and
+separated caller, JSON, and CLI evidence [V-009] [V-010] [V-011] [V-017]
+[V-019] [V-020].
+
+#### Assertion and evidence corrections
+
+The weak suggestions treated `not.toThrow()`, exit status, snapshots, detailed
+appearance, test count, coverage, round trips, or regression success as complete
+evidence. Each can pass while values, errors, state, requirements, or real
+dependencies are wrong. The corrected conclusion selects meaningful behavioral
+assertions, independently checks reader and writer, and treats metrics and
+regressions as scoped signals. This correction added stronger-oracle guidance,
+failure-path cases, and explicit `Not proven` columns [V-021] [V-022] [V-027]
+[V-030] [V-034] [V-041] [V-042] [V-051].
+
+#### AI-assisted-development corrections
+
+The rejected suggestions equated compilation with correctness, generated tests
+with proof, the same generator with independence, and passing tests with
+permission to skip diff review. Tests were also asked to resolve ambiguous
+requirements. The corrected conclusion reviews code and tests separately against
+the authorized requirement, retains unresolved decisions, and requires human
+diff and risk review. This correction established the Chapter 6 workflow and
+the Chapter 8 decision register [V-031] [V-032] [V-033] [V-039] [V-044].
+
+#### Strategy corrections
+
+The weak suggestions required fixed ratios, repeated every case at every level,
+preferred random data universally, required builders, blocked TDD until every
+decision was complete, followed command-list order, or treated a complete plan
+as reliability proof. These rules ignored project context, dependency order,
+reproducibility, and the absence of execution. The corrected strategy uses
+evidence-based boundaries, explicit fixtures, just-in-time decisions, small
+increments, and later measurement. This correction made Chapter 8 a revisable
+starting plan rather than an approved or executed implementation [V-015]
+[V-023] [V-054] [V-055] [V-056] [V-058] [V-060].
+
+| Incorrect or weak suggestion | Corrected conclusion | Impact |
+| --- | --- | --- |
+| Any failure is an acceptable Red | Confirm failure is caused by the intentionally missing behavior [V-002] | Prevents syntax or environment failures from driving implementation |
+| Passing tests prove defect-free software | Treat results as scoped evidence [V-005] | Keeps review and broader validation necessary |
+| A unit must be one class/function | Define a narrow behavioral boundary contextually [V-009] | Avoids structural misclassification |
+| A handler call is E2E | Invoke the selected public CLI in a separate process [V-019] | Preserves executable and routing evidence |
+| A repository mock proves JSON persistence | Use an isolated real-file integration test [V-017] | Exercises serialization, paths, and file I/O |
+| Exit status alone proves CLI behavior | Combine relevant process, output, and state observations [V-022] | Detects false or misleading success |
+| Coverage proves requirement quality | Use coverage to locate execution gaps [V-034] | Directs investigation without replacing oracles |
+| Generated tests prove generated code | Review both proposals against the original requirement [V-032] | Reduces correlated-assumption risk |
+| Tests can decide ambiguous requirements | Obtain and record a human project decision first [V-039] | Prevents accidental policies |
+| Every scenario belongs at every level | Use the narrowest sufficient boundary and purposeful overlap [V-023] | Reduces duplicate cost while retaining distinct evidence |
+| Random data is always stronger | Prefer readable cases; record seed and failing value when randomizing [V-054] | Preserves reproducibility and diagnosis |
+| A complete test plan proves reliability | Treat the plan as unexecuted and revise it with results [V-060] | Separates preparation from observed evidence |
 
 ### 9.3 Lessons for Week 2
 
-_Not started._
+1. **Clarify one behavior before generating code.** Separate confirmed behavior,
+   illustrative assumptions, and unresolved decisions. Record the contract
+   needed for the next increment; do not let the first implementation silently
+   choose status, filter, file, output, or exit behavior [V-057].
+2. **Review the focused test before implementation.** Trace its expectation to
+   the requirement, ask which plausible defect it detects, justify its boundary,
+   and know why the initial Red should fail. A passing or irrelevant test cannot
+   supply the intended Red evidence [V-050].
+3. **Ask AI for one small proposal.** Request a focused test or minimum
+   implementation increment. Reject speculative fields, statuses, filters,
+   abstractions, dependencies, and full-feature rewrites. Inspect the complete
+   proposed diff before acceptance.
+4. **Use layered evidence.** Keep domain, parser, and use-case behavior focused;
+   use the real adapter and unique temporary storage for JSON claims; invoke a
+   subprocess for selected public CLI journeys. Do not repeat every edge case at
+   all levels.
+5. **Preserve data and failure semantics.** Distinguish invalid input,
+   well-formed not-found, persistence failure, and unexpected errors. Check for
+   false success, unchanged or preserved unrelated records, independent reader
+   and writer behavior, and isolation from real user storage.
+6. **Keep tests maintainable.** Assert meaningful public behavior, avoid private
+   implementation coupling, use doubles only for relevant focused evidence, and
+   avoid shared mutable fixtures. Do not freeze decorative output without a
+   contract or use coverage as an acceptance target.
+7. **Record actual evidence.** For every increment, retain the command and
+   relevant expected Red output, why the failure is valid, Green result,
+   regression scope/result, integration or E2E result where needed, changed
+   files, decisions and assumptions, human review findings, and remaining risks.
+   Record duration, flakiness, and platform observations when they become
+   available.
+8. **Revisit the strategy.** Chapter 8 is an initial plan. Adjust its order and
+   distribution using measured feedback speed, failure diagnosis, maintenance
+   burden, platform differences, flaky behavior, duplicate evidence, missed
+   risks, and the architecture that actually emerges.
+
+Week 2 readiness checklist:
+
+- [ ] The next behavior is clear.
+- [ ] The expected public evidence is clear.
+- [ ] Unresolved decisions are recorded.
+- [ ] The test boundary is justified.
+- [ ] The proposed test has meaningful assertions.
+- [ ] The expected Red reason is known.
+- [ ] AI-generated code will be reviewed before acceptance.
+- [ ] Real-file evidence is planned when persistence is involved.
+- [ ] Process-level evidence is planned only for public CLI risks.
+- [ ] User data and shared mutable fixtures are excluded.
+- [ ] Failure paths and unchanged-state expectations are identified.
+- [ ] The final diff and test evidence will be recorded.
+
+This checklist reduces avoidable omissions but does not guarantee correctness.
+
+### 9.4 Chapter 9 Closing Statement
+
+Week 1 produced a source-traceable understanding of TDD and its limits, a
+contextual layered testing strategy, conceptual examples and a Ticket Manager
+test matrix, corrections to unreliable AI suggestions, and a prioritized Week
+2 starting plan. The strategy and findings remain subject to developer review
+and the unresolved decisions recorded above.
+
+Week 1 did not produce a complete Ticket Manager CLI, executable tests,
+observed Red or Green results, performance or flakiness data, or proof of
+reliability. Those claims require future implementation and actual evidence;
+they cannot be supplied by this synthesis.
 
 ---
 

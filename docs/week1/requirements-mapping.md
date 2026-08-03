@@ -15,4 +15,4 @@
 | Apply Solution Exploration | `ai-workflow-evidence.md`, Section 3 | `prompts/` | Completed |
 | Apply Iterative Refinement | `ai-workflow-evidence.md`, Section 4 | `prompts/` | Not started |
 | Record AI validation and corrections | `validation-log.md` | `ai-workflow-evidence.md` | In progress |
-| Explain findings during mentor review | `research.md`, Sections 9-10 | Vietnamese notes later | Not started |
+| Explain findings during mentor review | Mentor-review findings to be added | Vietnamese notes later | Not started |
