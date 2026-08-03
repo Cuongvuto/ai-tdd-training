@@ -61,11 +61,73 @@ passes.
 
 ### 2.4 Brief Prompt
 
-_Not started._
+The repository-aware prompt for this stage is recorded at
+[Layered Questioning - Brief Prompt](prompts/layered-questioning-brief.md).
+It requests a concise synthesis of the completed Research stage without adding
+new claims, sources, reference IDs, or validation entries.
 
 ### 2.5 Brief Result
 
-_Not started._
+Test-Driven Development (TDD) is a development technique in which a developer
+repeatedly describes the next desired behavior with an automated test, observes
+that test fail, writes enough production code to make it pass, and then improves
+the structure while keeping the tests green [R-001] [R-002]. Its mindset is
+incremental and feedback-oriented: clarify one behavior, obtain evidence
+quickly, avoid speculative implementation, and continuously remove unnecessary
+complexity. Writing a test first is therefore necessary in canonical TDD but is
+not the whole practice. Without the short cycle, minimal implementation, and
+refactoring, test-first ordering alone does not provide the complete discipline
+[R-002] [R-010].
+
+The cycle has three closely connected steps. In **Red**, the developer chooses
+one unsupported behavior, writes a focused test, runs it, and confirms that it
+fails because the behavior is missing. Inspecting the failure matters: a broken
+fixture, unavailable dependency, or unrelated error does not demonstrate that
+the test detects the intended gap. An expected compilation failure can be a
+valid early Red when it directly represents a deliberately missing type or
+operation [R-001] [R-012]. In **Green**, the developer writes the smallest
+responsible production change that makes the new test pass and reruns relevant
+existing tests. Green is not a demand for the final design; speculative code is
+deferred and structural cleanup follows [R-001] [R-010]. In **Refactor**, the
+developer removes duplication and improves names, control flow, and boundaries
+through small changes. Refactoring preserves externally observable behavior;
+an intentional behavior change belongs in a new Red-Green cycle [R-011].
+
+Potential benefits include fast feedback, a growing regression suite, clearer
+thinking about interfaces, controlled implementation scope, and a safer basis
+for structural improvement [R-001] [R-002] [R-012]. Evidence should be stated
+carefully. A meta-analysis found a small overall positive effect on external
+quality and little to no discernible overall productivity effect, with results
+varying across settings [R-007]. A four-team industrial study reported lower
+pre-release defect density alongside increased initial development time, but
+those observations are contextual rather than guaranteed outcomes [R-008].
+
+TDD also has costs. Developers must design useful tests, maintain the suite,
+and preserve fast, trustworthy feedback. Reported adoption barriers include
+limited TDD or test-writing skill, legacy code, additional development time,
+and domain or tooling constraints [R-009]. A passing suite checks only the cases
+and expectations it expresses; it cannot generally prove that no defects or
+misunderstood requirements remain [R-013]. TDD therefore complements rather
+than replaces broader testing, review, security analysis, and design judgment.
+
+As a contextual recommendation, TDD is well suited to behavior that can be
+expressed in small, observable, deterministic examples, such as business rules,
+validation, transformations, parsers, calculations, and reproducible defect
+fixes. It can be disproportionate for short-lived exploration, poorly understood
+behavior, slow or unstable automation, hardware-dependent work, or tightly
+coupled legacy systems [R-009]. Teams should decide based on risk, feedback
+speed, maintainability needs, and capability rather than treating strict TDD as
+a universal requirement [R-007] [R-009].
+
+The Research stage corrected several misconceptions: TDD is more than writing
+tests first; Green is not the final design; refactoring does not intentionally
+change observable behavior; TDD does not guarantee defect-free software,
+better design, or higher productivity; tests written after implementation can
+be valuable without having driven that implementation; and high coverage does
+not prove correctness [R-002] [R-007] [R-011] [R-013]. Practical
+Red-Green-Refactor examples, testing-level comparisons, Ticket Manager CLI test
+design, AI-generated-code validation, later research chapters, and the Example
+and Validation stages remain intentionally unfinished.
 
 ### 2.6 Practical Example Prompt
 
