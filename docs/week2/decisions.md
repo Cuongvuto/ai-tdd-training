@@ -129,6 +129,74 @@ No description length limit has been approved at this stage.
 
 ---
 
+## W2-D06 — Ticket Priority
+
+**Status:** `Approved`
+
+### Allowed Values
+
+Ticket priority uses exactly:
+
+- `low`
+- `medium`
+- `high`
+
+### Normalization
+
+When priority is provided:
+
+- Leading and trailing whitespace is removed.
+- The value is normalized to lowercase.
+
+### Examples
+
+```text
+" HIGH " → "high"
+" Low "  → "low"
+```
+
+### Default
+
+When priority is omitted:
+
+```text
+priority = "medium"
+```
+
+### Validation
+
+Any normalized value outside:
+
+```text
+low | medium | high
+```
+
+must be rejected.
+
+The exact custom error type and error message are not yet defined.
+
+---
+
+## W2-D07 — Cycle 05 Scope
+
+**Status:** `Approved`
+
+Cycle 05 covers only the default value for an omitted priority:
+
+```text
+priority omitted
+→ priority = "medium"
+```
+
+Cycle 05 does not cover:
+
+- Normalizing values such as `"HIGH"`
+- Rejecting invalid priority values
+
+These behaviors will be introduced through separate TDD cycles.
+
+---
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`
@@ -138,7 +206,6 @@ The following decisions have not yet been approved:
 - ID format and generation
 - Complete status vocabulary
 - Allowed status transitions
-- Priority values
 - Description length limits
 - Tag syntax and normalization
 - Filter semantics

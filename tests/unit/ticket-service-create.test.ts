@@ -28,4 +28,10 @@ describe('createTicket', () => {
 
     expect(ticket.description).toBe('');
   });
+
+  it('defaults an omitted priority to medium', () => {
+    const ticket = createTicket({ title: 'Fix login' });
+
+    expect(ticket.priority).toBe('medium');
+  });
 });

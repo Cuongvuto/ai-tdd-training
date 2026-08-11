@@ -624,3 +624,93 @@ Existing Cycle 01–03 behaviors remain unchanged.
 - Existing behavior preserved: Yes
 - Speculative behavior introduced: No
 - Cycle status: Completed
+---
+
+## Cycle 05 — Default Omitted Priority
+
+### Requirement
+
+When priority is omitted:
+
+```text
+priority = "medium"
+```
+
+### RED
+
+Test added:
+
+```ts
+it('defaults an omitted priority to medium', () => {
+  const ticket = createTicket({ title: 'Fix login' });
+
+  expect(ticket.priority).toBe('medium');
+});
+```
+
+Observed result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 4 passed (5)
+Duration    577ms
+Exit code   1
+```
+
+Failure:
+
+```text
+AssertionError: expected undefined to be 'medium'
+```
+
+The Red was accepted because the previous four tests passed and only the new
+default-priority behavior was missing.
+
+### GREEN
+
+The minimum implementation added:
+
+```ts
+priority: 'medium'
+```
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       5 passed (5)
+Duration    647ms
+Exit code   0
+```
+
+### REFACTOR REVIEW
+
+Decision:
+
+```text
+No-op refactor review
+```
+
+Reason:
+
+The implementation is already minimal and readable. No structural improvement
+is justified at this stage.
+
+No production or test code was changed during the refactor review.
+
+### Final Cycle 05 Behavior
+
+```text
+priority omitted
+→ priority = "medium"
+```
+
+Existing Cycle 01–04 behaviors remain unchanged.
+
+### Human Review
+
+- Red: Accepted
+- Green: Accepted
+- Refactor: No-op accepted
+- Speculative behavior introduced: No
+- Cycle status: Completed
