@@ -1,12 +1,27 @@
-export function createTicket({ title }: { title: string }) {
+export function createTicket({
+  title,
+  description,
+}: {
+  title: string;
+  description?: string;
+}) {
   const normalizedTitle = title.trim();
 
   if (!normalizedTitle) {
     throw new Error();
   }
 
-  return {
+  const ticket = {
     title: normalizedTitle,
     status: 'open',
+  };
+
+  if (description === undefined) {
+    return ticket;
+  }
+
+  return {
+    ...ticket,
+    description: description.trim(),
   };
 }

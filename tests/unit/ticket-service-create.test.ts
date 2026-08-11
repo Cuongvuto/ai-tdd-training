@@ -13,4 +13,13 @@ describe('createTicket', () => {
   it('rejects a whitespace-only title', () => {
     expect(() => createTicket({ title: '   ' })).toThrow();
   });
+
+  it('trims a provided description', () => {
+    const ticket = createTicket({
+      title: 'Fix login',
+      description: '  Login button does not work  ',
+    });
+
+    expect(ticket.description).toBe('Login button does not work');
+  });
 });
