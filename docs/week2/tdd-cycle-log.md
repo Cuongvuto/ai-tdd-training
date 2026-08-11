@@ -297,3 +297,192 @@ status = "open"
 - Refactor decision: Accepted
 - Additional speculative behavior introduced: No
 - Cycle status: Completed
+
+---
+
+## Cycle 03 — Trim Provided Description
+
+### Requirement
+
+When a description is provided, leading and trailing whitespace must be removed.
+
+Example:
+
+```text
+"  Login button does not work  "
+→
+"Login button does not work"
+```
+
+The omitted-description default was intentionally not implemented in this cycle.
+
+### RED
+
+Test added:
+
+```ts
+it('trims a provided description', () => {
+  const ticket = createTicket({
+    title: 'Fix login',
+    description: '  Login button does not work  ',
+  });
+
+  expect(ticket.description).toBe('Login button does not work');
+});
+```
+
+Test command:
+
+```bash
+npm run test:run -- tests/unit/ticket-service-create.test.ts
+```
+
+Observed result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 2 passed (3)
+Duration    625ms
+Exit code   1
+```
+
+Observed failure:
+
+```text
+AssertionError: expected undefined to be 'Login button does not work'
+```
+
+Expected:
+
+```text
+"Login button does not work"
+```
+
+Received:
+
+```text
+undefined
+```
+
+The Red was accepted because:
+
+- Vitest successfully discovered and executed all three tests.
+- The existing Cycle 01 and Cycle 02 tests continued to pass.
+- The new test failed specifically because `createTicket` did not yet return
+  the approved description behavior.
+- The failure was not caused by test configuration, imports, syntax, or
+  dependency problems.
+
+### GREEN
+
+`createTicket` was minimally extended to:
+
+- accept an optional `description`;
+- trim the description when it is provided;
+- include the normalized description in the returned result.
+
+The omitted-description default was intentionally not implemented during this
+cycle.
+
+Test command:
+
+```bash
+npm run test:run -- tests/unit/ticket-service-create.test.ts
+```
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       3 passed (3)
+Duration    687ms
+Exit code   0
+```
+
+All three existing behaviors passed.
+
+### REFACTOR
+
+A small readability refactor was applied.
+
+The conditional object-spread implementation was replaced with:
+
+```ts
+const ticket = {
+  title: normalizedTitle,
+  status: 'open',
+};
+
+if (description === undefined) {
+  return ticket;
+}
+
+return {
+  ...ticket,
+  description: description.trim(),
+};
+```
+
+### Refactor Reason
+
+The explicit branch makes the two paths easier to read:
+
+```text
+description omitted
+→ return base ticket
+
+description provided
+→ return base ticket + normalized description
+```
+
+No helper, model, constant, custom error, or other abstraction was introduced.
+
+No new behavior was added.
+
+### Regression Validation
+
+Test command:
+
+```bash
+npm run test:run -- tests/unit/ticket-service-create.test.ts
+```
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       3 passed (3)
+Duration    635ms
+Exit code   0
+```
+
+### Final Cycle 03 Behavior
+
+```text
+provided description
+→ trim leading/trailing whitespace
+→ include normalized description in returned ticket
+```
+
+Existing behaviors remain unchanged:
+
+```text
+Cycle 01:
+valid title
+→ title is trimmed
+→ initial status is "open"
+
+Cycle 02:
+blank or whitespace-only title
+→ rejected by throwing an error
+```
+
+### Human Review
+
+- Red failure reason: Accepted
+- Minimum Green implementation: Accepted
+- Refactor: Accepted
+- Regression tests: Passed
+- Existing behavior preserved: Yes
+- Speculative behavior introduced: No
+- Cycle status: Completed

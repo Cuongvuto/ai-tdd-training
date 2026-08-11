@@ -11,7 +11,7 @@ This document records human-approved decisions for the Ticket Manager CLI.
 
 **Status:** `Approved`
 
-The first TDD cycle will cover ticket creation with a valid title.
+The first TDD cycle covers ticket creation with a valid title.
 
 ### Input
 
@@ -34,6 +34,8 @@ title = "Fix login"
 status = "open"
 ```
 
+---
+
 ## W2-D02 — Title Normalization
 
 **Status:** `Approved`
@@ -46,8 +48,12 @@ A valid ticket title is trimmed before being stored or returned.
 "  Fix login  " → "Fix login"
 ```
 
-Blank or whitespace-only title rejection is already a confirmed requirement,
-but it will be implemented in a separate TDD cycle.
+A blank or whitespace-only title must be rejected.
+
+This behavior was implemented separately from the first TDD cycle so that it
+could be demonstrated through its own Red-Green-Refactor cycle.
+
+---
 
 ## W2-D03 — Initial Ticket Status
 
@@ -59,21 +65,24 @@ A newly created ticket starts with:
 open
 ```
 
-The complete status vocabulary and status-transition rules are not yet defined.
+The caller does not choose another status during ticket creation at this stage.
 
-The first TDD cycle does not allow the caller to choose another status.
+The complete status vocabulary and status-transition rules are still unresolved.
 
-## W2-D04 — First Cycle Scope
+---
+
+## W2-D04 — Cycle 01 Scope
 
 **Status:** `Approved`
 
-Cycle 01 will cover only:
+Cycle 01 intentionally covered only:
 
 1. Accept a valid title.
 2. Trim the title.
 3. Set the initial status to `open`.
 
-Cycle 01 will not implement:
+The following behaviors were intentionally excluded from Cycle 01 and are
+introduced through later TDD cycles as separately tested behaviors:
 
 - Blank-title rejection
 - Description
@@ -86,7 +95,7 @@ Cycle 01 will not implement:
 - Filtering
 - Ticket update
 
-These will be introduced through later TDD cycles.
+---
 
 ## W2-D05 — Ticket Description
 
@@ -106,7 +115,9 @@ When omitted, the description is stored as an empty string.
 description = "  Login button does not work  "
 →
 description = "Login button does not work"
+```
 
+```text
 description omitted
 →
 description = ""
@@ -117,116 +128,6 @@ description = ""
 No description length limit has been approved at this stage.
 
 ---
-
-## Cycle 03 — Trim Provided Description
-
-### Requirement
-
-When a description is provided, leading and trailing whitespace must be removed.
-
-Example:
-
-```text
-"  Login button does not work  "
-→
-"Login button does not work"
-```
-
-The omitted-description default was intentionally not implemented in this cycle.
-
-### RED
-
-Test added:
-
-```ts
-it('trims a provided description', () => {
-  const ticket = createTicket({
-    title: 'Fix login',
-    description: '  Login button does not work  ',
-  });
-
-  expect(ticket.description).toBe('Login button does not work');
-});
-```
-
-Command:
-
-```bash
-npm run test:run -- tests/unit/ticket-service-create.test.ts
-```
-
-Observed result:
-
-```text
-Test Files  1 failed (1)
-Tests       1 failed | 2 passed (3)
-Duration    625ms
-Exit code   1
-```
-
-Failure:
-
-```text
-AssertionError: expected undefined to be 'Login button does not work'
-```
-
-The Red was accepted because the existing behaviors passed and only the new
-description behavior was missing.
-
-### GREEN
-
-`createTicket` was extended to accept an optional description and trim it when
-provided.
-
-Command:
-
-```bash
-npm run test:run -- tests/unit/ticket-service-create.test.ts
-```
-
-Observed result:
-
-```text
-Test Files  1 passed (1)
-Tests       3 passed (3)
-Duration    687ms
-Exit code   0
-```
-
-### REFACTOR
-
-A small readability refactor replaced the conditional object spread with an
-explicit base ticket and description branch.
-
-No new behavior was introduced.
-
-Regression result:
-
-```text
-Test Files  1 passed (1)
-Tests       3 passed (3)
-Duration    635ms
-Exit code   0
-```
-
-### Final Cycle 03 Behavior
-
-```text
-provided description
-→ trim leading/trailing whitespace
-→ include normalized description in returned ticket
-```
-
-Existing Cycle 01 and Cycle 02 behaviors remain unchanged.
-
-### Human Review
-
-- Red failure reason: Accepted
-- Green implementation: Accepted
-- Refactor: Accepted
-- Regression tests: Passed
-- Speculative behavior introduced: No
-- Cycle status: Completed
 
 ## Unresolved Decisions
 
