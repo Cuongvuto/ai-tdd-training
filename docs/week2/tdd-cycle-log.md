@@ -486,3 +486,141 @@ blank or whitespace-only title
 - Existing behavior preserved: Yes
 - Speculative behavior introduced: No
 - Cycle status: Completed
+---
+
+## Cycle 04 — Default Omitted Description
+
+### Requirement
+
+When description is omitted, the returned ticket must contain an empty string.
+
+Example:
+
+```text
+createTicket({
+  title: "Fix login"
+})
+
+→
+
+description = ""
+```
+
+This behavior was already approved in W2-D05.
+
+### RED
+
+Test added:
+
+```ts
+it('defaults an omitted description to an empty string', () => {
+  const ticket = createTicket({ title: 'Fix login' });
+
+  expect(ticket.description).toBe('');
+});
+```
+
+Test command:
+
+```bash
+npm run test:run -- tests/unit/ticket-service-create.test.ts
+```
+
+Observed result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 3 passed (4)
+Duration    867ms
+Exit code   1
+```
+
+Observed failure:
+
+```text
+AssertionError: expected undefined to be ''
+```
+
+The Red was accepted because:
+
+- the existing Cycle 01–03 tests continued to pass;
+- the new test failed specifically because omitted description returned
+  `undefined`;
+- the failure was not caused by configuration, imports, syntax, or dependencies.
+
+### GREEN
+
+`createTicket` was minimally changed so that an omitted description becomes an
+empty string.
+
+Provided descriptions continued to be trimmed.
+
+Test command:
+
+```bash
+npm run test:run -- tests/unit/ticket-service-create.test.ts
+```
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       4 passed (4)
+Duration    593ms
+Exit code   0
+```
+
+### REFACTOR
+
+A small readability simplification was applied.
+
+Because every successful ticket now contains a description, the temporary base
+ticket and multiple return branches were no longer necessary.
+
+The resulting return structure became:
+
+```ts
+return {
+  title: normalizedTitle,
+  status: 'open',
+  description: description === undefined ? '' : description.trim(),
+};
+```
+
+No new behavior was introduced.
+
+### Regression Validation
+
+Test command:
+
+```bash
+npm run test:run -- tests/unit/ticket-service-create.test.ts
+```
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       4 passed (4)
+Duration    563ms
+Exit code   0
+```
+
+### Final Cycle 04 Behavior
+
+```text
+description omitted
+→ description = ""
+```
+
+Existing Cycle 01–03 behaviors remain unchanged.
+
+### Human Review
+
+- Red failure reason: Accepted
+- Minimum Green implementation: Accepted
+- Refactor: Accepted
+- Regression tests: Passed
+- Existing behavior preserved: Yes
+- Speculative behavior introduced: No
+- Cycle status: Completed

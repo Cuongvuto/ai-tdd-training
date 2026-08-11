@@ -22,4 +22,10 @@ describe('createTicket', () => {
 
     expect(ticket.description).toBe('Login button does not work');
   });
+
+  it('defaults an omitted description to an empty string', () => {
+    const ticket = createTicket({ title: 'Fix login' });
+
+    expect(ticket.description).toBe('');
+  });
 });

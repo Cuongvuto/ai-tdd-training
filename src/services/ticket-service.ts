@@ -11,17 +11,9 @@ export function createTicket({
     throw new Error();
   }
 
-  const ticket = {
+  return {
     title: normalizedTitle,
     status: 'open',
-  };
-
-  if (description === undefined) {
-    return ticket;
-  }
-
-  return {
-    ...ticket,
-    description: description.trim(),
+    description: description === undefined ? '' : description.trim(),
   };
 }
