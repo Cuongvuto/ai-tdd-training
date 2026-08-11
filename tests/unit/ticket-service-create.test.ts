@@ -9,4 +9,8 @@ describe('createTicket', () => {
     expect(ticket.title).toBe('Fix login');
     expect(ticket.status).toBe('open');
   });
+
+  it('rejects a whitespace-only title', () => {
+    expect(() => createTicket({ title: '   ' })).toThrow();
+  });
 });
