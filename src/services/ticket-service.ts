@@ -14,11 +14,17 @@ export async function listTickets(
 ): Promise<Ticket[]> {
   const tickets = await repository.findAll();
 
-  if (filter?.status === undefined) {
+  if (
+    filter?.status === undefined &&
+    filter?.priority === undefined
+  ) {
     return tickets;
   }
 
-  return tickets.filter((ticket) => ticket.status === filter.status);
+  return tickets.filter((ticket) =>
+    (filter.status === undefined || ticket.status === filter.status) &&
+    (filter.priority === undefined || ticket.priority === filter.priority)
+  );
 }
 
 export async function getTicketById(

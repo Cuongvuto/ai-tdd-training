@@ -2934,3 +2934,133 @@ status filter
 * **Regression:** Passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+---
+
+## Cycle 24 — Filter Tickets by Priority
+
+### 1. Requirement
+
+* Ticket listing may optionally filter by exact priority.
+* When multiple filters are supplied, all supplied filters must match (AND semantics).
+
+---
+
+### 2. RED Phase
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       2 failed | 2 passed (4)
+Duration    674ms
+Exit code   1
+```
+
+**Priority-only filtering failure:**
+* **Expected:** `[ticketA, ticketC]`
+* **Received:** `[ticketA, ticketB, ticketC]`
+
+**Combined status + priority filtering failure:**
+* **Expected:** `[ticketA]`
+* **Received:** `[ticketA, ticketB]`
+
+> **Note:** The existing no-filter and status-filter tests remained green. The RED was accepted because the failures directly demonstrated that priority was being ignored.
+
+---
+
+### 3. GREEN Phase
+
+`TicketFilter` was extended:
+
+```typescript
+import type {
+  TicketPriority,
+  TicketStatus,
+} from './ticket.js';
+
+export interface TicketFilter {
+  status?: TicketStatus;
+  priority?: TicketPriority;
+}
+```
+
+`listTickets()` now applies supplied filters using AND semantics:
+
+```typescript
+export async function listTickets(
+  repository: TicketRepository,
+  filter?: TicketFilter,
+): Promise<Ticket[]> {
+  const tickets = await repository.findAll();
+
+  if (
+    filter?.status === undefined &&
+    filter?.priority === undefined
+  ) {
+    return tickets;
+  }
+
+  return tickets.filter((ticket) =>
+    (filter.status === undefined || ticket.status === filter.status) &&
+    (filter.priority === undefined || ticket.priority === filter.priority)
+  );
+}
+```
+
+**List-service result:**
+
+```text
+Test Files  1 passed (1)
+Tests       4 passed (4)
+Duration    644ms
+Exit code   0
+```
+
+**Service regression:**
+
+```text
+Test Files  3 passed (3)
+Tests       15 passed (15)
+Duration    1.17s
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+---
+
+### 4. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The implementation is already small, preserves order naturally, and clearly expresses AND semantics.
+
+---
+
+### 5. Final Behavior
+
+```text
+no filters
+→ all tickets
+
+priority only
+→ exact priority match
+
+status + priority
+→ both must match
+```
+
+---
+
+### 6. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Regression:** Passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed

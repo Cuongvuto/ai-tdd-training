@@ -561,6 +561,43 @@ Only tickets whose status exactly matches the requested status are returned.
 
 > Priority and tag filtering are introduced separately.
 
+
+---
+
+## W2-D23 — Ticket List Priority Filter
+
+**Status:** `Approved`
+
+Ticket listing may optionally filter by priority.
+
+When:
+
+```typescript
+listTickets(repository, { priority: "high" })
+```
+
+Only tickets whose priority exactly matches `high` are returned.
+
+---
+
+### 1. Approved Priority Values
+
+* `low`
+* `medium`
+* `high`
+
+---
+
+### 2. Requirements & Combined Filtering
+
+* **Repository ordering is preserved.**
+* **Combined filters:** When both `status` and `priority` are supplied, both filters must match (AND condition).
+* **Scope boundary:** Tag filtering remains separate.
+
+---
+
+:::writing{variant="document" id="39147" title="Cycle 24 — RED: Filter Tickets by Priority"}
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`
