@@ -25,5 +25,6 @@ export function createTicket({
     status: 'open',
     description: description === undefined ? '' : description.trim(),
     priority: normalizedPriority,
+    tags: [],
   };
 }

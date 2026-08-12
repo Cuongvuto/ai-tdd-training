@@ -910,4 +910,86 @@ Existing Cycle 01–06 behaviors remain unchanged.
 - Refactor: No-op accepted
 - Regression tests: Passed
 - Speculative behavior introduced: No
+- Cycle status: Completed---
+
+## Cycle 08 — Default Omitted Tags
+
+### Requirement
+
+When tags are omitted:
+
+```text
+tags = []
+```
+
+### RED
+
+Test added:
+
+```ts
+it('defaults omitted tags to an empty array', () => {
+  const ticket = createTicket({ title: 'Fix login' });
+
+  expect(ticket.tags).toEqual([]);
+});
+```
+
+Observed result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 7 passed (8)
+Duration    865ms
+Exit code   1
+```
+
+Failure:
+
+```text
+AssertionError: expected undefined to deeply equal []
+```
+
+The Red was accepted because the previous seven tests passed and only the new
+default-tags behavior was missing.
+
+### GREEN
+
+The minimum implementation added an empty tags array when tags are omitted.
+
+Observed result:
+
+```text
+Tests  8 passed (8)
+Exit code  0
+```
+
+### REFACTOR REVIEW
+
+Decision:
+
+```text
+No-op refactor review
+```
+
+Reason:
+
+The change is already minimal and readable. No meaningful structural refactor
+is justified.
+
+### Final Cycle 08 Behavior
+
+```text
+tags omitted
+→ tags = []
+```
+
+Existing Cycle 01–07 behaviors remain unchanged.
+
+### Human Review
+
+- Red: Accepted
+- Green: Accepted
+- Refactor: No-op accepted
+- Regression tests: Passed
+- Speculative behavior introduced: No
 - Cycle status: Completed

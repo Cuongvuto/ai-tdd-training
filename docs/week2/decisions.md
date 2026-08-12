@@ -197,6 +197,66 @@ These behaviors will be introduced through separate TDD cycles.
 
 ---
 
+## W2-D08 — Ticket Tags
+
+**Status:** `Approved`
+
+### Input Representation
+
+At the service boundary, tags are represented as an array of strings.
+
+### Example
+
+```ts
+tags: ['bug', 'auth'];
+```
+
+The exact CLI syntax for entering tags is not defined yet.
+
+### Default
+
+When tags are omitted:
+
+```text
+tags = []
+```
+
+### Normalization
+
+When tags are provided:
+
+- Leading and trailing whitespace is removed from each tag.
+- Tags are normalized to lowercase.
+- Empty tags after trimming are removed.
+- Duplicate normalized tags are removed while preserving the first occurrence
+  order.
+
+### Example
+
+```text
+[" Bug ", "AUTH", "bug", "   "]
+→
+["bug", "auth"]
+```
+
+---
+
+## W2-D09 — Cycle 08 Scope
+
+**Status:** `Approved`
+
+Cycle 08 covers only:
+
+```text
+tags omitted
+→ tags = []
+```
+
+Tag normalization and duplicate removal will be introduced through later TDD
+cycles.
+
+---
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`
@@ -207,7 +267,7 @@ The following decisions have not yet been approved:
 - Complete status vocabulary
 - Allowed status transitions
 - Description length limits
-- Tag syntax and normalization
+- CLI tag input syntax
 - Filter semantics
 - List ordering
 - Missing JSON file behavior

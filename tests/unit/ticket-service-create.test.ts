@@ -49,4 +49,10 @@ describe('createTicket', () => {
       createTicket({ title: 'Fix login', priority: 'urgent' }),
     ).toThrow();
   });
+
+  it('defaults omitted tags to an empty array', () => {
+    const ticket = createTicket({ title: 'Fix login' });
+
+    expect(ticket.tags).toEqual([]);
+  });
 });
