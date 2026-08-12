@@ -487,6 +487,28 @@ Cycle 19 covers only repository persistence of an updated existing ticket:
 * Invalid status validation
 * CLI update command
 
+
+## W2-D20 — Runtime Status Validation
+
+**Status:** Approved
+
+TypeScript types do not replace runtime validation because CLI arguments arrive
+as runtime strings.
+
+The service must reject a target status that is not exactly one of:
+
+- `open`
+- `in_progress`
+- `closed`
+
+An invalid status must not be persisted.
+
+Invalid status is classified as a validation error.
+
+The exact error message is not yet part of the contract.
+
+Status normalization is not introduced in this cycle.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`

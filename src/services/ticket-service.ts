@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { TicketNotFoundError } from '../errors/ticket-not-found-error.js';
+import { ValidationError } from '../errors/validation-error.js';
 import type { CreateTicketInput } from '../models/create-ticket-input.js';
 import type { Ticket } from '../models/ticket.js';
 import type { UpdateTicketInput } from '../models/update-ticket-input.js';
@@ -23,6 +24,10 @@ export async function updateTicketStatus(
   repository: TicketRepository,
   input: UpdateTicketInput,
 ): Promise<Ticket> {
+  if (!['open', 'in_progress', 'closed'].includes(input.status)) {
+    throw new ValidationError();
+  }
+
   const ticket = await getTicketById(repository, input.id);
   const updatedTicket = {
     ...ticket,

@@ -2578,3 +2578,117 @@ existing ticket
 * **Service regression:** Passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+---
+
+## Cycle 21 — Reject Invalid Runtime Ticket Status
+
+### 1. Requirement
+
+Runtime status values are restricted to:
+
+- `open`
+- `in_progress`
+- `closed`
+
+An invalid runtime status must be rejected before persistence.
+
+---
+
+### 2. RED Phase
+
+The test attempted:
+
+```typescript
+status: 'done' as TicketStatus
+```
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 1 passed (2)
+Duration    650ms
+Exit code   1
+```
+
+**Failures showed that the service:**
+
+* Resolved successfully instead of rejecting;
+* Returned a ticket with `status: "done"`;
+* Called `repository.update()` with the invalid ticket.
+
+> *This was accepted as a behavioral RED.*
+
+---
+
+### 3. GREEN Phase
+
+A minimal validation error was introduced:
+
+```typescript
+export class ValidationError extends Error {}
+```
+
+Runtime validation was added before lookup and persistence:
+
+```typescript
+if (!['open', 'in_progress', 'closed'].includes(input.status)) {
+  throw new ValidationError();
+}
+```
+
+**Update-service result:**
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    637ms
+Exit code   0
+```
+
+**Create/show regression:**
+
+```text
+Test Files  2 passed (2)
+Tests       13 passed (13)
+Duration    887ms
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+---
+
+### 4. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The validation is small and occurs before any persistence side effect.
+
+---
+
+### 5. Final Behavior
+
+```text
+valid status
+→ continue update
+
+invalid status
+→ ValidationError
+→ repository.update() not called
+```
+
+---
+
+### 6. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Regression:** Passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed

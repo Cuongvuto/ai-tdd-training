@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Ticket } from '../../src/models/ticket.js';
+import type { Ticket, TicketStatus } from '../../src/models/ticket.js';
 import type { TicketRepository } from '../../src/repositories/ticket-repository.js';
 import { updateTicketStatus } from '../../src/services/ticket-service.js';
 
@@ -49,5 +49,25 @@ describe('updateTicketStatus', () => {
 
     expect(updatedTicket).toEqual(expectedTicket);
     expect(repository.updatedTicket).toEqual(expectedTicket);
+  });
+
+  it('rejects an invalid runtime status without updating the repository', async () => {
+    const ticket: Ticket = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      title: 'Fix login',
+      description: 'Login button does not work',
+      status: 'open',
+      priority: 'high',
+      tags: ['bug', 'auth'],
+    };
+    const repository = new FakeTicketRepository([ticket]);
+
+    const updatePromise = updateTicketStatus(repository, {
+      id: ticket.id,
+      status: 'done' as TicketStatus,
+    });
+
+    await expect.soft(updatePromise).rejects.toThrow();
+    expect.soft(repository.updatedTicket).toBeUndefined();
   });
 });
