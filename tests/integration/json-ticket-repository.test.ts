@@ -1,4 +1,10 @@
-import { access, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import {
+  access,
+  mkdtemp,
+  readFile,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -43,5 +49,20 @@ describe('JsonTicketRepository', () => {
     const repository = new JsonTicketRepository(storagePath);
 
     await expect(repository.findAll()).resolves.toEqual([ticket]);
+  });
+
+  it('rejects invalid JSON without changing the corrupted file', async () => {
+    temporaryDirectory = await mkdtemp(
+      join(tmpdir(), 'json-ticket-repository-'),
+    );
+    const storagePath = join(temporaryDirectory, 'tickets.json');
+    const corruptedContents = '[{"id": invalid JSON}]';
+    await writeFile(storagePath, corruptedContents, 'utf8');
+    const repository = new JsonTicketRepository(storagePath);
+
+    await expect(repository.findAll()).rejects.toBeInstanceOf(SyntaxError);
+    await expect(readFile(storagePath, 'utf8')).resolves.toBe(
+      corruptedContents,
+    );
   });
 });

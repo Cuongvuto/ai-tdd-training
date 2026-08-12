@@ -1585,6 +1585,9 @@ CLI integration
 * Refactor: No-op accepted
 * Speculative repository behavior introduced: No
 * Cycle status: Completed
+
+---
+
 ## Cycle 14 — Valid JSON Read Validation
 
 ### Intended Requirement
@@ -1595,37 +1598,49 @@ Given a valid JSON file containing tickets:
 findAll()
 → parse JSON
 → return Ticket[]
-Intended RED
+```
+
+### Attempted RED
 
 A new integration test was added expecting a valid JSON file to be parsed and
 returned as tickets.
 
 Test command:
 
+```bash
 npm run test:run -- tests/integration/json-ticket-repository.test.ts
+```
 
 Observed result:
 
+```text
 Test Files  1 passed (1)
 Tests       2 passed (2)
 Duration    1.07s
-TDD Assessment
+```
+
+### TDD Assessment
 
 A valid RED was not established.
 
 Inspection showed that Cycle 13 production code already contained:
 
+```ts
 return JSON.parse(contents) as Ticket[];
+```
 
 Therefore valid-JSON reading had already been implemented before the Cycle 14
 test was written.
 
 This was broader than the intended Cycle 13 scope, which was limited to:
 
+```text
 missing file
 → findAll()
 → []
-Human Validation
+```
+
+### Human Validation
 
 The issue was not hidden or rewritten.
 
@@ -1633,23 +1648,108 @@ The Cycle 14 test is retained because it provides useful integration coverage
 for real JSON parsing, but it must not be presented as Red-Green-Refactor
 evidence.
 
-Classification:
+### Classification
 
+```text
 Integration validation / characterization test
+```
 
-not:
+This is not a valid TDD Red-Green-Refactor cycle.
 
-Valid TDD Red-Green-Refactor cycle
-Result
+### Confirmed Behavior
 
-Confirmed behavior:
-
+```text
 valid tickets.json
 → findAll()
 → Ticket[]
-Human Review
-Valid JSON behavior confirmed: Yes
-Valid RED established: No
-Reason: behavior was already implemented during Cycle 13
-AI scope overreach detected: Yes
-History preserved honestly: Yes
+```
+
+### Human Review
+
+- Valid JSON behavior confirmed: Yes
+- Valid RED established: No
+- Reason: Behavior was already implemented during Cycle 13
+- AI scope overreach detected: Yes
+- History preserved honestly: Yes
+
+---
+
+## Corrupted JSON Integration Validation
+
+### Requirement
+
+When the configured JSON file contains invalid JSON:
+
+```text
+findAll()
+→ reject/throw an error
+```
+
+The repository must not:
+
+- Reset the file
+- Overwrite the corrupted contents
+- Delete the file
+- Treat the corrupted store as empty
+
+### Validation Test
+
+A real temporary `tickets.json` file was created with invalid JSON contents.
+
+The test verified:
+
+```text
+invalid JSON
+→ findAll() rejects
+→ original file remains unchanged
+```
+
+Test command:
+
+```bash
+npm run test:run -- tests/integration/json-ticket-repository.test.ts
+```
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       3 passed (3)
+Duration    647ms
+```
+
+The thrown error type was:
+
+```text
+SyntaxError
+```
+
+### TDD Assessment
+
+A valid RED was not established.
+
+Reason: `JSON.parse()` was already present in the repository implementation
+before this test was written, so corrupted JSON rejection already existed.
+
+This test is retained as:
+
+```text
+Integration validation
+```
+
+It is not presented as a Red-Green-Refactor cycle.
+
+### Data Preservation
+
+After the rejection:
+
+- The corrupted file still existed.
+- The original corrupted contents were unchanged.
+
+### Human Review
+
+- Corrupted JSON rejection confirmed: Yes
+- Data preservation confirmed: Yes
+- Valid RED established: No
+- Production code modified: No
+- Validation status: Passed
