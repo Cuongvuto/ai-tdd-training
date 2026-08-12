@@ -4141,3 +4141,150 @@ unexpected Error
 * **Typecheck:** Passed
 * **Raw stack traces removed for handled domain errors:** Yes
 * **Cycle status:** Completed
+
+---
+
+## Cycle 34 — Classify Corrupted JSON as StorageError
+
+### 1. Requirement
+
+An existing malformed JSON ticket store must be classified as a storage-layer failure:
+
+```text
+corrupted tickets.json
+→ StorageError
+```
+
+* The corrupted file must remain unchanged.
+* Missing-file behavior remains:
+
+```text
+missing tickets.json
+→ []
+```
+
+---
+
+### 2. RED Phase
+
+The existing corrupted-JSON integration test was strengthened to require storage-error classification.
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 7 passed (8)
+Duration    791ms
+Exit code   1
+```
+
+**Classification difference:**
+
+```text
+Expected: StorageError
+Received: SyntaxError
+```
+
+> **Note:** Malformed JSON was still rejected and the corrupted contents remained unchanged. All seven unrelated repository integration tests remained green.
+
+---
+
+### 3. GREEN Phase
+
+A minimal storage error was introduced:
+
+```typescript
+export class StorageError extends Error {}
+```
+
+`findAll()` now separates file-reading failures from JSON parsing failures:
+
+```typescript
+let contents: string;
+
+try {
+  contents = await readFile(this.storagePath, 'utf8');
+} catch (error) {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    error.code === 'ENOENT'
+  ) {
+    return [];
+  }
+
+  throw error;
+}
+
+try {
+  return JSON.parse(contents) as Ticket[];
+} catch (error) {
+  if (error instanceof SyntaxError) {
+    throw new StorageError();
+  }
+
+  throw error;
+}
+```
+
+* Preserves the previously approved behavior: `ENOENT → []`.
+* Only malformed JSON after a successful read is converted to `StorageError`.
+* Other filesystem errors continue to propagate unchanged.
+
+---
+
+### 4. Validation
+
+**Repository integration:**
+
+```text
+Test Files  1 passed (1)
+Tests       8 passed (8)
+Duration    1.06s
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+---
+
+### 5. REFACTOR REVIEW
+
+* **Decision:** No production refactor required
+* **Reason:** The separate read and parse error boundaries make the intended error classification explicit.
+* *Note:* A future test cleanup may import `StorageError` directly and use `toBeInstanceOf(StorageError)` now that the class exists.
+
+---
+
+### 6. Final Behavior
+
+```text
+missing file
+→ []
+
+valid JSON
+→ Ticket[]
+
+corrupted JSON
+→ StorageError
+→ file unchanged
+
+other filesystem error
+→ rethrow unchanged
+```
+
+---
+
+### 7. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Repository regression:** 8/8 passed
+* **Typecheck:** Passed
+* **Corrupted contents preserved:** Yes
+* **Cycle status:** Completed

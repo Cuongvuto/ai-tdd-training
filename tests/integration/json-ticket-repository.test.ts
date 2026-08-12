@@ -61,7 +61,12 @@ describe('JsonTicketRepository', () => {
     await writeFile(storagePath, corruptedContents, 'utf8');
     const repository = new JsonTicketRepository(storagePath);
 
-    await expect(repository.findAll()).rejects.toBeInstanceOf(SyntaxError);
+    const caughtError: unknown = await repository
+      .findAll()
+      .catch((error: unknown) => error);
+
+    expect.soft(caughtError).toBeInstanceOf(Error);
+    expect.soft((caughtError as Error).constructor.name).toBe('StorageError');
     await expect(readFile(storagePath, 'utf8')).resolves.toBe(
       corruptedContents,
     );

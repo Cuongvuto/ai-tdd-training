@@ -1,5 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
+import { StorageError } from '../errors/storage-error.js';
 import type { Ticket } from '../models/ticket.js';
 import type { TicketRepository } from './ticket-repository.js';
 
@@ -36,10 +37,10 @@ export class JsonTicketRepository implements TicketRepository {
   }
 
   async findAll(): Promise<Ticket[]> {
-    try {
-      const contents = await readFile(this.storagePath, 'utf8');
+    let contents: string;
 
-      return JSON.parse(contents) as Ticket[];
+    try {
+      contents = await readFile(this.storagePath, 'utf8');
     } catch (error) {
       if (
         typeof error === 'object' &&
@@ -48,6 +49,16 @@ export class JsonTicketRepository implements TicketRepository {
         error.code === 'ENOENT'
       ) {
         return [];
+      }
+
+      throw error;
+    }
+
+    try {
+      return JSON.parse(contents) as Ticket[];
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        throw new StorageError();
       }
 
       throw error;

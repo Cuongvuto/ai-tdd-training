@@ -888,6 +888,46 @@ Handled user-facing CLI failures write concise messages to `stderr` and exit wit
 * **Composition Root:** The CLI composition root is responsible for translating these service-level errors into command-line presentation.
 * **Separation of Concerns:** Commands and services must **not** duplicate this presentation logic.
 
+---
+
+## W2-D34 — Corrupted JSON Storage Error
+
+**Status:** `Approved`
+
+A malformed existing ticket JSON file is a storage-layer failure.
+
+---
+
+### 1. Repository Behavior
+
+```text
+existing corrupted tickets.json
+→ throw StorageError
+```
+
+The repository **must not**:
+* Treat corrupted JSON as an empty store;
+* Overwrite the corrupted file;
+* Delete the corrupted file.
+
+---
+
+### 2. Missing-File Semantics
+
+Missing-file behavior remains unchanged:
+
+```text
+missing tickets.json
+→ []
+```
+
+---
+
+### 3. Scope & Boundaries
+
+* The exact internal `StorageError` message is not yet part of the contract.
+* CLI presentation of `StorageError` is handled separately.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`
