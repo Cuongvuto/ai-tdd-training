@@ -1405,3 +1405,183 @@ Existing Cycle 01–11 behaviors remain unchanged.
 - Regression tests: Passed
 - Speculative behavior introduced: No
 - Cycle status: Completed
+---
+
+## Cycle 13 — Missing JSON File Returns Empty Store
+
+### Requirement
+
+When the configured ticket JSON file does not exist:
+
+```text
+repository.findAll()
+→ []
+```
+
+Reading a missing file must not create the file automatically.
+
+This cycle uses the real filesystem through a temporary test directory rather
+than mocking filesystem behavior.
+
+### RED
+
+Integration test file:
+
+```text
+tests/integration/json-ticket-repository.test.ts
+```
+
+The test uses a temporary directory created under the operating system's
+temporary directory and points the repository to a `tickets.json` file that
+does not exist.
+
+The test verifies:
+
+```text
+missing tickets.json
+→ repository.findAll()
+→ []
+```
+
+and also verifies that the read operation does not create the missing file.
+
+Test command:
+
+```bash
+npm run test:run -- tests/integration/json-ticket-repository.test.ts
+```
+
+Observed result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Duration    617ms
+```
+
+Observed failure:
+
+```text
+TypeError: JsonTicketRepository is not a constructor
+```
+
+The Red was accepted because:
+
+* Vitest successfully discovered and executed the integration test;
+* the temporary filesystem setup worked;
+* the failure occurred because the required `JsonTicketRepository` API was not
+  implemented;
+* the failure was not caused by dependency, syntax, test configuration, or
+  filesystem setup problems.
+
+### GREEN
+
+The repository boundary introduced:
+
+```ts
+export interface TicketRepository {
+  findAll(): Promise<Ticket[]>;
+}
+```
+
+`JsonTicketRepository` was implemented with an explicit storage path provided
+through its constructor.
+
+`findAll()` reads the configured path using the real filesystem.
+
+Missing-file behavior:
+
+```text
+readFile()
+→ ENOENT
+→ return []
+```
+
+Other filesystem errors are rethrown unchanged.
+
+No filesystem write operation was introduced.
+
+Test command:
+
+```bash
+npm run test:run -- tests/integration/json-ticket-repository.test.ts
+```
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    614ms
+```
+
+The integration test also confirmed that the missing JSON file still did not
+exist after `findAll()` completed.
+
+### REFACTOR REVIEW
+
+Decision:
+
+```text
+No-op refactor review
+```
+
+Reason:
+
+The repository implementation is currently small and directly expresses the
+required behavior:
+
+```text
+read configured path
+→ missing file: return []
+→ other error: rethrow
+```
+
+No additional helper, abstraction, error class, or storage behavior is
+justified at this stage.
+
+No production or test code was changed during the refactor review.
+
+### Final Cycle 13 Behavior
+
+```text
+configured JSON file does not exist
+→ findAll()
+→ []
+→ file remains nonexistent
+```
+
+### Current Repository Scope
+
+Implemented:
+
+```text
+findAll(): Promise<Ticket[]>
+missing file → []
+explicit storage path
+real filesystem integration
+```
+
+Not yet implemented:
+
+```text
+reading valid ticket data
+corrupted JSON handling
+save
+findById
+update
+StorageError
+default production storage path
+CLI integration
+```
+
+### Human Review
+
+* Red failure reason: Accepted
+* Minimum Green implementation: Accepted
+* Real filesystem integration: Accepted
+* Missing-file behavior: Accepted
+* Read does not create file: Confirmed
+* Refactor: No-op accepted
+* Speculative repository behavior introduced: No
+* Cycle status: Completed

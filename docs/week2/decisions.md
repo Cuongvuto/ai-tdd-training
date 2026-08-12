@@ -300,6 +300,92 @@ Cycle 12 does not introduce:
 
 ---
 
+## W2-D12 — JSON Storage: Missing File
+
+**Status:** `Approved`
+
+When the configured ticket JSON file does not exist:
+
+```text
+repository.findAll()
+→ []
+```
+
+A missing file represents an empty ticket store.
+
+Reading a missing file must not create the file automatically.
+
+The file will only be created when persistence/write behavior is introduced.
+
+---
+
+## W2-D13 — JSON Storage: Corrupted File
+
+**Status:** `Approved`
+
+When the ticket JSON file exists but contains invalid JSON:
+
+```text
+repository read
+→ throw an error
+```
+
+The application must not:
+
+- Silently reset the file
+- Overwrite corrupted data
+- Delete the file
+- Pretend the store is empty
+
+A specific `StorageError` type will be introduced only when required by a later
+TDD cycle.
+
+---
+
+## W2-D14 — Repository API Starting Point
+
+**Status:** `Approved`
+
+JSON persistence is accessed through a repository boundary.
+
+The first repository behavior is:
+
+```ts
+findAll(): Promise<Ticket[]>
+```
+
+`JsonTicketRepository` receives an explicit storage file path.
+
+This allows integration tests to use temporary files instead of real user data.
+
+More repository operations such as `save`, `findById`, and `update` will be
+introduced only when required by later TDD cycles.
+
+---
+
+## W2-D15 — Cycle 13 Scope
+
+**Status:** `Approved`
+
+Cycle 13 covers only:
+
+```text
+JSON file does not exist
+→ findAll()
+→ []
+```
+
+Cycle 13 does not cover:
+
+- Writing JSON
+- Corrupted JSON
+- Saving tickets
+- Finding by ID
+- Updating tickets
+- CLI commands
+
+---
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`
@@ -312,8 +398,6 @@ The following decisions have not yet been approved:
 - CLI tag input syntax
 - Filter semantics
 - List ordering
-- Missing JSON file behavior
-- Corrupted JSON behavior
 - Default storage path
 - Output format
 - `stdout`/`stderr` rules
