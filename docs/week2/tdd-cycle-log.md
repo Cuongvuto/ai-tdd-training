@@ -1851,3 +1851,125 @@ missing tickets.json
 * **Real filesystem persistence:** Confirmed
 * **Speculative append behavior introduced:** No
 * **Cycle status:** Completed
+---
+
+## Cycle 16 — Preserve Existing Tickets When Saving
+
+### 1. Requirement
+
+When the JSON file already contains existing tickets:
+
+```text
+[ticketA]
+```
+
+and another ticket is saved:
+
+```text
+save(ticketB)
+```
+
+the repository must preserve the existing ticket and append the new ticket:
+
+```text
+[ticketA, ticketB]
+```
+
+*Existing order must be preserved.*
+
+---
+
+### 2. RED Phase
+
+A real-filesystem integration test was added for saving a second ticket.
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 4 passed (5)
+Duration    712ms
+Exit code   1
+```
+
+**Failure:**
+
+```text
+Expected: [ticketA, ticketB]
+Received: [ticketB]
+```
+
+> **Note:** The Red was accepted because the previous four integration tests remained green and the failure directly demonstrated that the current `save()` implementation overwrote existing data.
+
+---
+
+### 3. GREEN Phase
+
+`save()` was changed to read the existing tickets first and then append the new ticket:
+
+```typescript
+async save(ticket: Ticket): Promise<void> {
+  const tickets = await this.findAll();
+
+  await writeFile(
+    this.storagePath,
+    JSON.stringify([...tickets, ticket]),
+    'utf8',
+  );
+}
+```
+
+**Observed result:**
+
+```text
+Test Files  1 passed (1)
+Tests       5 passed (5)
+Duration    660ms
+Exit code   0
+```
+
+*Existing tickets retain their order and the newly saved ticket is appended last.*
+
+---
+
+### 4. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The implementation is already small and readable:
+  ```text
+  find existing tickets
+  → append new ticket
+  → write updated array
+  ```
+  No additional abstraction is justified at this stage. No production or test code was changed during the refactor review.
+
+---
+
+### 5. Final Cycle 16 Behavior
+
+```text
+[ticketA]
++ save(ticketB)
+→
+[ticketA, ticketB]
+```
+
+**Existing repository behaviors remain unchanged:**
+
+* Missing file returns `[]`
+* Valid JSON is read successfully
+* Corrupted JSON throws
+* First save creates the file
+* Existing ticket order is preserved
+
+---
+
+### 6. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Existing data preservation:** Confirmed
+* **Regression tests:** Passed
+* **Speculative behavior introduced:** No
+* **Cycle status:** Completed

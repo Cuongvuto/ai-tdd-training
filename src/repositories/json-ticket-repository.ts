@@ -7,7 +7,13 @@ export class JsonTicketRepository implements TicketRepository {
   constructor(private readonly storagePath: string) {}
 
   async save(ticket: Ticket): Promise<void> {
-    await writeFile(this.storagePath, JSON.stringify([ticket]), 'utf8');
+    const tickets = await this.findAll();
+
+    await writeFile(
+      this.storagePath,
+      JSON.stringify([...tickets, ticket]),
+      'utf8',
+    );
   }
 
   async findAll(): Promise<Ticket[]> {
