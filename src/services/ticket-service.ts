@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { TicketNotFoundError } from '../errors/ticket-not-found-error.js';
 import type { CreateTicketInput } from '../models/create-ticket-input.js';
 import type { Ticket } from '../models/ticket.js';
+import type { UpdateTicketInput } from '../models/update-ticket-input.js';
 import type { TicketRepository } from '../repositories/ticket-repository.js';
 
 export async function getTicketById(
@@ -16,6 +17,21 @@ export async function getTicketById(
   }
 
   return ticket;
+}
+
+export async function updateTicketStatus(
+  repository: TicketRepository,
+  input: UpdateTicketInput,
+): Promise<Ticket> {
+  const ticket = await getTicketById(repository, input.id);
+  const updatedTicket = {
+    ...ticket,
+    status: input.status,
+  };
+
+  await repository.update(updatedTicket);
+
+  return updatedTicket;
 }
 
 export function createTicket({

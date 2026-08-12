@@ -2440,3 +2440,141 @@ existing ticket
 - Typecheck: Passed
 - Runtime behavior changed during refactor: No
 - Cycle status: Completed
+---
+
+## Cycle 20 — Update Ticket Status at Service Layer
+
+### 1. Requirement
+
+Given an existing ticket:
+
+```text
+status = "open"
+```
+
+**When:**
+
+```typescript
+updateTicketStatus(repository, {
+  id: ticket.id,
+  status: "closed",
+})
+```
+
+**Then:**
+
+* Only the ticket status changes;
+* All other fields are preserved;
+* `repository.update()` receives the updated ticket;
+* The updated ticket is returned.
+
+---
+
+### 2. RED Phase
+
+A unit test using an in-memory fake repository was added.
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Duration    626ms
+```
+
+**Failure:**
+
+```text
+TypeError: updateTicketStatus is not a function
+```
+
+> **Note:** The Red was accepted because the fake repository executed correctly and the failure directly represented the missing service API.
+
+---
+
+### 3. GREEN Phase
+
+`UpdateTicketInput` was introduced:
+
+```typescript
+export interface UpdateTicketInput {
+  id: string;
+  status: TicketStatus;
+}
+```
+
+The service implemented:
+
+```typescript
+export async function updateTicketStatus(
+  repository: TicketRepository,
+  input: UpdateTicketInput,
+): Promise<Ticket> {
+  const ticket = await getTicketById(repository, input.id);
+
+  const updatedTicket = {
+    ...ticket,
+    status: input.status,
+  };
+
+  await repository.update(updatedTicket);
+
+  return updatedTicket;
+}
+```
+
+**Update-service result:**
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    649ms
+```
+
+**Create/show regression result:**
+
+```text
+Test Files  2 passed (2)
+Tests       13 passed (13)
+Duration    882ms
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+> **Note:** An initial sandbox execution encountered an environment-level `EPERM` error. The command was rerun outside that sandbox and passed successfully.
+
+---
+
+### 4. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** `updateTicketStatus()` is already small and reuses `getTicketById()` for ticket lookup and existing not-found behavior. No additional abstraction is justified.
+
+---
+
+### 5. Final Cycle 20 Behavior
+
+```text
+existing ticket
+→ getTicketById()
+→ copy existing ticket
+→ replace status only
+→ repository.update()
+→ return updated ticket
+```
+
+---
+
+### 6. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Service regression:** Passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed
