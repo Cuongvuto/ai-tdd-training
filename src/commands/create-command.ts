@@ -5,6 +5,9 @@ import { createTicket } from '../services/ticket-service.js';
 
 interface CreateCommandOptions {
   title: string;
+  description?: string;
+  priority?: string;
+  tags?: string;
 }
 
 export function registerCreateCommand(
@@ -14,8 +17,22 @@ export function registerCreateCommand(
   program
     .command('create')
     .requiredOption('--title <title>')
-    .action(async ({ title }: CreateCommandOptions) => {
-      const ticket = createTicket({ title });
+    .option('--description <description>')
+    .option('--priority <priority>')
+    .option('--tags <tags>')
+    .action(async (options: CreateCommandOptions) => {
+      const ticket = createTicket({
+        title: options.title,
+        ...(options.description === undefined
+          ? {}
+          : { description: options.description }),
+        ...(options.priority === undefined
+          ? {}
+          : { priority: options.priority }),
+        ...(options.tags === undefined
+          ? {}
+          : { tags: options.tags.split(',') }),
+      });
 
       await repository.save(ticket);
     });

@@ -3328,3 +3328,135 @@ CLI create
 * **Regression:** Passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+---
+
+## Cycle 27 — Create Ticket with Optional CLI Fields
+
+### 1. Requirement
+
+The `create` command supports:
+
+```text
+--title <title>
+--description <description>
+--priority <priority>
+--tags <comma-separated-tags>
+```
+
+* The command layer only converts the CLI-specific comma-separated tag representation into `string[]`.
+* All business normalization remains in `createTicket()`.
+
+---
+
+### 2. RED Phase
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 1 passed (2)
+Duration    2.57s
+Exit code   1
+```
+
+**Commander rejected the first unsupported option:**
+
+```text
+error: unknown option '--description'
+```
+
+> **Note:** The base Cycle 26 CLI create test remained green.
+
+---
+
+### 3. GREEN Phase
+
+The `create` command added optional Commander options:
+
+```typescript
+.requiredOption('--title <title>')
+.option('--description <description>')
+.option('--priority <priority>')
+.option('--tags <tags>')
+```
+
+The command options are represented as:
+
+```typescript
+interface CreateCommandOptions {
+  title: string;
+  description?: string;
+  priority?: string;
+  tags?: string;
+}
+```
+
+* The action delegates to the existing service.
+* Because `exactOptionalPropertyTypes` is enabled, optional properties are added only when their CLI option is actually present.
+* Tag handling at the command boundary is limited to:
+
+```typescript
+options.tags.split(',')
+```
+
+> *No business normalization is duplicated in the command.*
+
+---
+
+### 4. Validation
+
+**CLI E2E:**
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    2.62s
+Exit code   0
+```
+
+**Create-service regression:**
+
+```text
+Test Files  1 passed (1)
+Tests       12 passed (12)
+Duration    633ms
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+---
+
+### 5. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The command remains a thin adapter between Commander input and the existing service.
+
+---
+
+### 6. Final Behavior
+
+```text
+CLI options
+→ command-boundary parsing
+→ createTicket()
+→ business normalization
+→ repository.save()
+```
+
+---
+
+### 7. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **E2E:** Passed
+* **Service regression:** Passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed
