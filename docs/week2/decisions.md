@@ -417,6 +417,76 @@ missing ticket
 * The exact error message is not part of the contract yet.
 * This separation keeps persistence lookup behavior distinct from business error handling.
 
+---
+
+## W2-D17 — Ticket Status Vocabulary
+
+**Status:** `Approved`
+
+Ticket status uses exactly:
+
+- `open`
+- `in_progress`
+- `closed`
+
+A newly created ticket still starts with:
+
+```text
+open
+```
+
+### Status Update
+
+* For Week 2, an existing ticket may be changed from any valid status to any other valid status.
+* No additional workflow transition restrictions are defined.
+
+**Examples:**
+
+* `open` → `in_progress`
+* `in_progress` → `closed`
+* `closed` → `open`
+
+The target status must be one of the approved values. The exact error type/message for invalid status will be introduced only when required by a TDD cycle.
+
+---
+
+## W2-D18 — Repository Update Contract
+
+**Status:** `Approved`
+
+The repository will support replacing an existing stored ticket by exact ID:
+
+```typescript
+update(ticket: Ticket): Promise<void>
+```
+
+**The update operation must preserve:**
+
+* All other tickets
+* Ticket ordering
+
+> The behavior when the target ID does not exist will be handled at the service layer before repository update is called.
+
+---
+
+## W2-D19 — Cycle 19 Scope
+
+**Status:** `Approved`
+
+Cycle 19 covers only repository persistence of an updated existing ticket:
+
+```text
+[ticketA, ticketB]
+→ update(updatedTicketB)
+→ [ticketA, updatedTicketB]
+```
+
+**Cycle 19 does not yet implement:**
+
+* Service-level status update
+* Invalid status validation
+* CLI update command
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`

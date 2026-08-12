@@ -2282,3 +2282,161 @@ repository.findById(id) → undefined
 * **Create regression:** Passed
 * **Speculative behavior introduced:** No
 * **Cycle status:** Completed
+---
+
+## Cycle 19 — Replace Existing Ticket in JSON Storage
+
+### Requirement
+
+Given:
+
+```text
+[ticketA, ticketB]
+```
+
+and an updated ticket with the same ID as `ticketB`:
+
+```text
+updatedTicketB.status = "closed"
+```
+
+calling:
+
+```text
+repository.update(updatedTicketB)
+```
+
+must persist:
+
+```text
+[ticketA, updatedTicketB]
+```
+
+Requirements:
+
+- matching is performed by exact ticket ID;
+- the existing ticket is replaced rather than appended;
+- all other tickets remain unchanged;
+- array ordering remains unchanged.
+
+### RED
+
+A real-filesystem integration test was added.
+
+Observed result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 7 passed (8)
+Duration    733ms
+Exit code   1
+```
+
+Failure:
+
+```text
+TypeError: repository.update is not a function
+```
+
+The Red was accepted because the previous seven repository integration tests
+remained green and the failure directly demonstrated the missing `update` API.
+
+### GREEN
+
+The repository interface was extended with:
+
+```ts
+update(ticket: Ticket): Promise<void>;
+```
+
+`JsonTicketRepository` implemented:
+
+```ts
+async update(ticket: Ticket): Promise<void> {
+  const tickets = await this.findAll();
+
+  const updatedTickets = tickets.map((storedTicket) =>
+    storedTicket.id === ticket.id ? ticket : storedTicket
+  );
+
+  await writeFile(
+    this.storagePath,
+    JSON.stringify(updatedTickets),
+    'utf8',
+  );
+}
+```
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       8 passed (8)
+Duration    689ms
+Exit code   0
+```
+
+### REFACTOR REVIEW
+
+A type-level refactor was justified because the approved W2-D17 status vocabulary
+had expanded beyond the earlier creation-only `open` status.
+
+`TicketStatus` was changed to:
+
+```ts
+export type TicketStatus = 'open' | 'in_progress' | 'closed';
+```
+
+No runtime repository behavior changed.
+
+### Typecheck Support Adjustments
+
+Running the full TypeScript typecheck exposed two support issues.
+
+`tsconfig.json` was updated with:
+
+```json
+"types": ["node"]
+```
+
+The unit-test `FakeTicketRepository` was also given a no-op `update()` method so
+it continued to satisfy the expanded `TicketRepository` interface.
+
+These were type/configuration support changes and did not introduce new
+application behavior.
+
+### Regression Validation
+
+Repository integration tests:
+
+```text
+Test Files  1 passed (1)
+Tests       8 passed (8)
+Duration    631ms
+```
+
+Typecheck:
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+### Final Cycle 19 Behavior
+
+```text
+existing ticket
+→ update(ticket with same ID)
+→ replace ticket in place
+→ preserve other tickets and ordering
+```
+
+### Human Review
+
+- Red: Accepted
+- Green: Accepted
+- Refactor: Accepted
+- Status type aligned with approved decision: Yes
+- Typecheck: Passed
+- Runtime behavior changed during refactor: No
+- Cycle status: Completed

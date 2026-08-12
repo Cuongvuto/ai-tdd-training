@@ -19,6 +19,8 @@ class FakeTicketRepository implements TicketRepository {
   async save(ticket: Ticket): Promise<void> {
     this.tickets.push(ticket);
   }
+
+  async update(_ticket: Ticket): Promise<void> {}
 }
 
 describe('getTicketById', () => {

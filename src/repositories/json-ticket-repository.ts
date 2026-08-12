@@ -22,6 +22,19 @@ export class JsonTicketRepository implements TicketRepository {
     );
   }
 
+  async update(ticket: Ticket): Promise<void> {
+    const tickets = await this.findAll();
+    const updatedTickets = tickets.map((storedTicket) =>
+      storedTicket.id === ticket.id ? ticket : storedTicket
+    );
+
+    await writeFile(
+      this.storagePath,
+      JSON.stringify(updatedTickets),
+      'utf8',
+    );
+  }
+
   async findAll(): Promise<Ticket[]> {
     try {
       const contents = await readFile(this.storagePath, 'utf8');

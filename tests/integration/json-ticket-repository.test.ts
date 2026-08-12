@@ -167,4 +167,44 @@ describe('JsonTicketRepository', () => {
 
     await expect(repository.findById('missing-id')).resolves.toBeUndefined();
   });
+
+  it('replaces an existing ticket by ID without changing its position', async () => {
+    temporaryDirectory = await mkdtemp(
+      join(tmpdir(), 'json-ticket-repository-'),
+    );
+    const storagePath = join(temporaryDirectory, 'tickets.json');
+    const ticketA = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      title: 'Fix login',
+      description: '',
+      status: 'open' as const,
+      priority: 'medium' as const,
+      tags: [],
+    };
+    const ticketB = {
+      id: '7a1e9d8f-6372-4c98-a27d-fefdb636f102',
+      title: 'Add logout',
+      description: '',
+      status: 'open' as const,
+      priority: 'medium' as const,
+      tags: [],
+    };
+    const updatedTicketB = {
+      ...ticketB,
+      status: 'closed' as const,
+    };
+    await writeFile(
+      storagePath,
+      JSON.stringify([ticketA, ticketB]),
+      'utf8',
+    );
+    const repository = new JsonTicketRepository(storagePath);
+
+    await repository.update(updatedTicketB);
+
+    await expect(repository.findAll()).resolves.toEqual([
+      ticketA,
+      updatedTicketB,
+    ]);
+  });
 });
