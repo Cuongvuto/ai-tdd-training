@@ -16,14 +16,17 @@ export async function listTickets(
 
   if (
     filter?.status === undefined &&
-    filter?.priority === undefined
+    filter?.priority === undefined &&
+    filter?.tags === undefined
   ) {
     return tickets;
   }
 
   return tickets.filter((ticket) =>
     (filter.status === undefined || ticket.status === filter.status) &&
-    (filter.priority === undefined || ticket.priority === filter.priority)
+    (filter.priority === undefined || ticket.priority === filter.priority) &&
+    (filter.tags === undefined ||
+      filter.tags.every((tag) => ticket.tags.includes(tag)))
   );
 }
 

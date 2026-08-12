@@ -3064,3 +3064,131 @@ status + priority
 * **Regression:** Passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+---
+
+## Cycle 25 — Filter Tickets by Tags
+
+### 1. Requirement
+
+Ticket listing may optionally filter by tags.
+
+**Tag semantics:**
+
+```text
+["bug"]
+→ ticket must contain "bug"
+
+["bug", "auth"]
+→ ticket must contain BOTH tags
+```
+
+*When status, priority, and tags are supplied together, all conditions must match.*
+
+---
+
+### 2. RED Phase
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       3 failed | 4 passed (7)
+Duration    668ms
+Exit code   1
+```
+
+*The existing Cycle 22–24 tests remained green. New failures showed that tag filtering was ignored.*
+
+* **Single tag:**
+  * **Expected:** `[ticketA, ticketC]`
+  * **Received:** `[ticketA, ticketB, ticketC]`
+* **Multiple tags:**
+  * **Expected:** `[ticketA]`
+  * **Received:** `[ticketA, ticketB, ticketC]`
+* **Combined status + priority + tags:**
+  * **Expected:** `[ticketA]`
+  * **Received:** `[ticketA, ticketB]`
+
+> **Note:** The RED was accepted because all failures directly represented missing tag filter behavior.
+
+---
+
+### 3. GREEN Phase
+
+`TicketFilter` was extended with:
+
+```typescript
+tags?: string[];
+```
+
+The service now applies:
+
+```typescript
+filter.tags.every((tag) => ticket.tags.includes(tag))
+```
+
+*alongside the existing status and priority conditions.*
+
+**List-service result:**
+
+```text
+Test Files  1 passed (1)
+Tests       7 passed (7)
+Duration    637ms
+Exit code   0
+```
+
+**Service regression:**
+
+```text
+Test Files  3 passed (3)
+Tests       15 passed (15)
+Duration    1.15s
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+---
+
+### 4. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The implementation is already small and directly expresses the approved filter semantics.
+
+---
+
+### 5. Final Behavior
+
+```text
+no filters
+→ all tickets
+
+status
+→ exact status match
+
+priority
+→ exact priority match
+
+tags
+→ every requested tag must be present
+
+status + priority + tags
+→ all supplied conditions must match
+```
+
+---
+
+### 6. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Regression:** Passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed

@@ -152,4 +152,125 @@ describe('listTickets', () => {
       listTickets(repository, { status: 'open', priority: 'high' }),
     ).resolves.toEqual([ticketA]);
   });
+
+  it('filters tickets containing a requested tag', async () => {
+    const ticketA: Ticket = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      title: 'Fix login',
+      description: 'Login button does not work',
+      status: 'open',
+      priority: 'high',
+      tags: ['bug', 'auth'],
+    };
+    const ticketB: Ticket = {
+      id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      title: 'Write documentation',
+      description: '',
+      status: 'closed',
+      priority: 'low',
+      tags: ['docs'],
+    };
+    const ticketC: Ticket = {
+      id: '6ba7b811-9dad-11d1-80b4-00c04fd430c8',
+      title: 'Add logout button',
+      description: '',
+      status: 'in_progress',
+      priority: 'medium',
+      tags: ['bug'],
+    };
+    const repository = new FakeTicketRepository([
+      ticketA,
+      ticketB,
+      ticketC,
+    ]);
+
+    await expect(
+      listTickets(repository, { tags: ['bug'] }),
+    ).resolves.toEqual([ticketA, ticketC]);
+  });
+
+  it('requires every requested tag to be present', async () => {
+    const ticketA: Ticket = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      title: 'Fix login',
+      description: 'Login button does not work',
+      status: 'open',
+      priority: 'high',
+      tags: ['bug', 'auth'],
+    };
+    const ticketB: Ticket = {
+      id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      title: 'Write documentation',
+      description: '',
+      status: 'closed',
+      priority: 'low',
+      tags: ['docs'],
+    };
+    const ticketC: Ticket = {
+      id: '6ba7b811-9dad-11d1-80b4-00c04fd430c8',
+      title: 'Add logout button',
+      description: '',
+      status: 'in_progress',
+      priority: 'medium',
+      tags: ['bug'],
+    };
+    const repository = new FakeTicketRepository([
+      ticketA,
+      ticketB,
+      ticketC,
+    ]);
+
+    await expect(
+      listTickets(repository, { tags: ['bug', 'auth'] }),
+    ).resolves.toEqual([ticketA]);
+  });
+
+  it('requires status, priority, and tags to match combined filters', async () => {
+    const ticketA: Ticket = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      title: 'Fix login',
+      description: 'Login button does not work',
+      status: 'open',
+      priority: 'high',
+      tags: ['bug', 'auth'],
+    };
+    const ticketB: Ticket = {
+      id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      title: 'Investigate login metrics',
+      description: '',
+      status: 'open',
+      priority: 'high',
+      tags: ['bug'],
+    };
+    const ticketC: Ticket = {
+      id: '6ba7b811-9dad-11d1-80b4-00c04fd430c8',
+      title: 'Add logout button',
+      description: '',
+      status: 'closed',
+      priority: 'high',
+      tags: ['bug', 'auth'],
+    };
+    const ticketD: Ticket = {
+      id: '6ba7b812-9dad-11d1-80b4-00c04fd430c8',
+      title: 'Improve authentication copy',
+      description: '',
+      status: 'open',
+      priority: 'low',
+      tags: ['bug', 'auth'],
+    };
+    const repository = new FakeTicketRepository([
+      ticketA,
+      ticketB,
+      ticketC,
+      ticketD,
+    ]);
+
+    await expect(
+      listTickets(repository, {
+        status: 'open',
+        priority: 'high',
+        tags: ['bug', 'auth'],
+      }),
+    ).resolves.toEqual([ticketA]);
+  });
 });

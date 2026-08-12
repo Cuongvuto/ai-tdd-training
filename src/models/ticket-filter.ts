@@ -6,4 +6,5 @@ import type {
 export interface TicketFilter {
   status?: TicketStatus;
   priority?: TicketPriority;
+  tags?: string[];
 }

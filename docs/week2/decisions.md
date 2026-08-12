@@ -598,6 +598,44 @@ Only tickets whose priority exactly matches `high` are returned.
 
 :::writing{variant="document" id="39147" title="Cycle 24 — RED: Filter Tickets by Priority"}
 
+---
+
+## W2-D24 — Ticket List Tag Filter
+
+**Status:** `Approved`
+
+Ticket listing may optionally filter by tags.
+
+The service filter representation is:
+
+```typescript
+tags?: string[];
+```
+
+---
+
+### 1. Tag Matching Rules
+
+When `tags` are supplied, a ticket must contain **every** requested tag (subset / all-match semantics).
+
+**Example:**
+
+```text
+filter tags = ["bug", "auth"]
+```
+
+* **Matches:** `ticket tags = ["bug", "auth", "backend"]`
+* **Does not match:** `ticket tags = ["bug"]`
+
+---
+
+### 2. Implementation Constraints
+
+* **Tag comparison:** Uses exact stored tag values.
+* **Tag normalization:** Existing ticket creation already normalizes stored tags. Runtime CLI parsing and normalization are separate concerns.
+* **Combined filtering:** When `status`, `priority`, and `tags` are supplied together, all supplied filter conditions must match (AND semantics).
+* **Repository ordering:** Preserved naturally.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`
