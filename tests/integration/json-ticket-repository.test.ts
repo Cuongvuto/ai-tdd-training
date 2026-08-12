@@ -1,4 +1,4 @@
-import { access, mkdtemp, rm } from 'node:fs/promises';
+import { access, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -24,5 +24,24 @@ describe('JsonTicketRepository', () => {
 
     await expect(repository.findAll()).resolves.toEqual([]);
     await expect(access(storagePath)).rejects.toMatchObject({ code: 'ENOENT' });
+  });
+
+  it('returns tickets read from valid JSON', async () => {
+    temporaryDirectory = await mkdtemp(
+      join(tmpdir(), 'json-ticket-repository-'),
+    );
+    const storagePath = join(temporaryDirectory, 'tickets.json');
+    const ticket = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      title: 'Fix login',
+      description: '',
+      status: 'open',
+      priority: 'medium',
+      tags: [],
+    };
+    await writeFile(storagePath, JSON.stringify([ticket]), 'utf8');
+    const repository = new JsonTicketRepository(storagePath);
+
+    await expect(repository.findAll()).resolves.toEqual([ticket]);
   });
 });
