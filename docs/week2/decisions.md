@@ -733,6 +733,47 @@ With no filters, it lists every stored ticket in repository order.
 * Exact long-term formatting is not yet treated as a stable contract.
 * Filtering options are introduced separately.
 
+---
+
+## W2-D29 — CLI List Filter Syntax
+
+**Status:** `Approved`
+
+The `list` command supports:
+
+```bash
+tickets list
+  --status <status>
+  --priority <priority>
+  --tags <comma-separated-tags>
+```
+
+### 1. Examples
+
+```bash
+tickets list --status open
+tickets list --priority high
+tickets list --tags bug,auth
+tickets list --status open --priority high --tags bug,auth
+```
+
+---
+
+### 2. Command-Boundary & Service Responsibilities
+
+* **CLI tags:** Split by comma at the command boundary (`tags.split(',')`).
+* **Service responsibility:** The service remains responsible for the approved filter semantics:
+  * Status exact match;
+  * Priority exact match;
+  * Every requested tag must be present (subset / all-match semantics);
+  * Supplied filter categories use AND semantics.
+
+---
+
+### 3. Scope Boundary
+
+> Exact final `stdout` formatting remains unresolved.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`

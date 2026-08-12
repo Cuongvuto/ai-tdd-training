@@ -3460,3 +3460,157 @@ CLI options
 * **Service regression:** Passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+---
+
+## Cycle 29 — Filter Tickets Through CLI Options
+
+### 1. Requirement
+
+The `list` command supports:
+
+```bash
+--status <status>
+--priority <priority>
+--tags <comma-separated-tags>
+```
+
+**Example:**
+
+```bash
+tickets list --status open --priority high --tags bug,auth
+```
+
+* The command layer parses CLI representations and delegates filtering semantics to `listTickets()`.
+
+---
+
+### 2. RED Phase
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 1 passed (2)
+Duration    2.74s
+Exit code   1
+```
+
+**Commander reported:**
+
+```text
+error: unknown option '--status'
+```
+
+> **Note:** The existing base list E2E test remained green. The RED was accepted because the actual CLI subprocess and base list behavior worked while the new filter options were not registered.
+
+---
+
+### 3. GREEN Phase
+
+The `list` command added:
+
+```typescript
+.option('--status <status>')
+.option('--priority <priority>')
+.option('--tags <tags>')
+```
+
+The CLI-boundary options type is:
+
+```typescript
+interface ListCommandOptions {
+  status?: string;
+  priority?: string;
+  tags?: string;
+}
+```
+
+A `TicketFilter` is constructed only from supplied options:
+
+```typescript
+const filter: TicketFilter = {
+  ...(options.status === undefined
+    ? {}
+    : { status: options.status as TicketStatus }),
+  ...(options.priority === undefined
+    ? {}
+    : { priority: options.priority as TicketPriority }),
+  ...(options.tags === undefined
+    ? {}
+    : { tags: options.tags.split(',') }),
+};
+```
+
+* This preserves `exactOptionalPropertyTypes`.
+* The command does not implement filtering rules itself. It delegates:
+
+```typescript
+const tickets = await listTickets(repository, filter);
+```
+
+---
+
+### 4. Validation
+
+**CLI E2E:**
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    2.58s
+Exit code   0
+```
+
+**List-service regression:**
+
+```text
+Test Files  1 passed (1)
+Tests       7 passed (7)
+Duration    651ms
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+---
+
+### 5. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The command remains a thin CLI adapter:
+  ```text
+  Commander strings
+  → TicketFilter
+  → listTickets()
+  ```
+  No filtering business logic is duplicated.
+
+---
+
+### 6. Deferred Behavior
+
+Runtime validation for invalid list filter values remains separate. For example:
+
+```bash
+--status invalid
+--priority urgent
+```
+
+*does not yet have a finalized CLI error contract.*
+
+---
+
+### 7. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **E2E:** Passed
+* **Service regression:** Passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed
