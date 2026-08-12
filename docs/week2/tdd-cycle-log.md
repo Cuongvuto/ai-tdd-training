@@ -1753,3 +1753,101 @@ After the rejection:
 - Valid RED established: No
 - Production code modified: No
 - Validation status: Passed
+---
+
+## Cycle 15 — Save First Ticket
+
+### 1. Requirement
+
+When the configured JSON file does not exist:
+
+```text
+save(ticket)
+→ create tickets.json
+→ persist [ticket]
+```
+
+A later `findAll()` call must return the saved ticket.
+
+---
+
+### 2. RED Phase
+
+A real-filesystem integration test called:
+
+```typescript
+await repository.save(ticket);
+```
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 3 passed (4)
+Duration    622ms
+```
+
+**Failure:**
+
+```text
+TypeError: repository.save is not a function
+```
+
+> **Note:** The Red was accepted because the existing repository tests remained green and the failure specifically demonstrated that the `save` API was missing.
+
+---
+
+### 3. GREEN Phase
+
+The repository interface was extended with:
+
+```typescript
+save(ticket: Ticket): Promise<void>;
+```
+
+`JsonTicketRepository` implemented:
+
+```typescript
+async save(ticket: Ticket): Promise<void> {
+  await writeFile(this.storagePath, JSON.stringify([ticket]), 'utf8');
+}
+```
+
+**Observed result:**
+
+```text
+Test Files  1 passed (1)
+Tests       4 passed (4)
+Duration    671ms
+Exit code   0
+```
+
+---
+
+### 4. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The implementation is currently minimal and directly expresses the required first-save behavior. Append behavior and additional persistence concerns are intentionally deferred.
+
+---
+
+### 5. Final Cycle 15 Behavior
+
+```text
+missing tickets.json
+→ save(ticket)
+→ create tickets.json containing [ticket]
+→ findAll()
+→ [ticket]
+```
+
+---
+
+### 6. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Real filesystem persistence:** Confirmed
+* **Speculative append behavior introduced:** No
+* **Cycle status:** Completed

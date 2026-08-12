@@ -1,10 +1,14 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 
 import type { Ticket } from '../models/ticket.js';
 import type { TicketRepository } from './ticket-repository.js';
 
 export class JsonTicketRepository implements TicketRepository {
   constructor(private readonly storagePath: string) {}
+
+  async save(ticket: Ticket): Promise<void> {
+    await writeFile(this.storagePath, JSON.stringify([ticket]), 'utf8');
+  }
 
   async findAll(): Promise<Ticket[]> {
     try {

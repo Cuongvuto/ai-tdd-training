@@ -10,6 +10,7 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
+import type { Ticket } from '../../src/models/ticket.js';
 import { JsonTicketRepository } from '../../src/repositories/json-ticket-repository.js';
 
 describe('JsonTicketRepository', () => {
@@ -64,5 +65,27 @@ describe('JsonTicketRepository', () => {
     await expect(readFile(storagePath, 'utf8')).resolves.toBe(
       corruptedContents,
     );
+  });
+
+  it('saves the first ticket to a missing JSON file', async () => {
+    temporaryDirectory = await mkdtemp(
+      join(tmpdir(), 'json-ticket-repository-'),
+    );
+    const storagePath = join(temporaryDirectory, 'tickets.json');
+    const ticket: Ticket = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      title: 'Fix login',
+      description: '',
+      status: 'open',
+      priority: 'medium',
+      tags: [],
+    };
+    const repository = new JsonTicketRepository(storagePath);
+
+    await repository.save(ticket);
+
+    await expect(access(storagePath)).resolves.toBeUndefined();
+    const reloadedRepository = new JsonTicketRepository(storagePath);
+    await expect(reloadedRepository.findAll()).resolves.toEqual([ticket]);
   });
 });
