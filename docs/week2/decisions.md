@@ -1000,7 +1000,21 @@ data/tickets.json
 
 to work on first use without requiring manual directory setup.
 
+## W2-D37 — CLI Create and Update Success Feedback
 
+**Status:** Approved
+
+Successful create and update commands write concise human-readable feedback to
+stdout.
+
+Create success output must contain at least the created ticket title.
+
+Update success output must contain at least:
+
+- the ticket ID;
+- the resulting status.
+
+Exact full wording and layout are not treated as a stable public contract.
 
 ## Unresolved Decisions
 

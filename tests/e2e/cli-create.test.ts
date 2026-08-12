@@ -58,6 +58,7 @@ describe('tickets create CLI', () => {
       title: 'Fix login',
       status: 'open',
     });
+    expect(result.stdout).toContain('Fix login');
   });
 
   it('creates a ticket with optional fields through the real CLI process', async () => {

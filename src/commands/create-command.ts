@@ -35,5 +35,6 @@ export function registerCreateCommand(
       });
 
       await repository.save(ticket);
+      console.log(`Created ticket: ${ticket.title}`);
     });
 }

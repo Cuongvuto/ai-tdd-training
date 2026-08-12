@@ -16,9 +16,11 @@ export function registerUpdateCommand(
     .command('update <id>')
     .requiredOption('--status <status>')
     .action(async (id: string, options: UpdateCommandOptions) => {
-      await updateTicketStatus(repository, {
+      const ticket = await updateTicketStatus(repository, {
         id,
         status: options.status as TicketStatus,
       });
+
+      console.log(`Updated ticket ${ticket.id} to ${ticket.status}`);
     });
 }

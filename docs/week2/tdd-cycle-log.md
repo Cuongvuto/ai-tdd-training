@@ -4584,3 +4584,122 @@ missing file
 * **Full suite:** 40/40 passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+---
+
+## Cycle 37 — Successful Create and Update CLI Feedback
+
+### 1. Requirement
+
+Successful `create` and `update` commands provide concise human-readable feedback through `stdout`.
+
+* **Create success output:** Must contain the created ticket `title`.
+* **Update success output:** Must contain the updated ticket `id` and resulting `status`.
+
+*Exact complete wording is not treated as a stable output contract.*
+
+---
+
+### 2. RED Phase
+
+**Observed result:**
+
+```text
+Test Files  2 failed (2)
+Tests       2 failed | 1 passed (3)
+Duration    2.80s
+Exit code   1
+```
+
+* **Create failure:** Persistence succeeded, but `stdout` was empty:
+  ```text
+  expected '' to contain 'Fix login'
+  ```
+* **Update failure:** Persistence succeeded, but `stdout` was empty:
+  ```text
+  expected '' to contain '<ticket-id>'
+  expected '' to contain 'closed'
+  ```
+
+> **Note:** The RED was accepted because persistence and exit behavior remained correct; only successful CLI feedback was missing.
+
+---
+
+### 3. GREEN Phase
+
+`create` prints feedback only after persistence succeeds:
+
+```typescript
+await repository.save(ticket);
+console.log(`Created ticket: ${ticket.title}`);
+```
+
+`update` captures the service result and prints feedback only after the update succeeds:
+
+```typescript
+const ticket = await updateTicketStatus(repository, {
+  id,
+  status: options.status as TicketStatus,
+});
+console.log(`Updated ticket ${ticket.id} to${ticket.status}`);
+```
+
+---
+
+### 4. Validation
+
+**Focused create/update E2E:**
+
+```text
+Test Files  2 passed (2)
+Tests       3 passed (3)
+Duration    2.70s
+Exit code   0
+```
+
+**Full CLI E2E:**
+
+```text
+Test Files  5 passed (5)
+Tests       9 passed (9)
+Duration    5.23s
+Exit code   0
+```
+
+**Full test suite:**
+
+```text
+Test Files  10 passed (10)
+Tests       40 passed (40)
+Duration    6.98s
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+**Observed outputs:**
+* **Create:** `Created ticket: Fix login`
+* **Update:** `Updated ticket <ticket-id> to closed`
+
+---
+
+### 5. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The commands remain thin adapters. Business normalization, validation, lookup, and persistence behavior remain in the service/repository layers.
+
+---
+
+### 6. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **CLI E2E:** 9/9 passed
+* **Full suite:** 40/40 passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed

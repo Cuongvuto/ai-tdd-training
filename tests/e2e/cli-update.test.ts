@@ -66,5 +66,7 @@ describe('tickets update CLI', () => {
     ) as Ticket[];
 
     expect(persistedTickets).toEqual([{ ...ticket, status: 'closed' }]);
+    expect.soft(result.stdout).toContain(ticket.id);
+    expect.soft(result.stdout).toContain('closed');
   });
 });
