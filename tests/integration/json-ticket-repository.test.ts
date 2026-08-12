@@ -117,4 +117,35 @@ describe('JsonTicketRepository', () => {
 
     await expect(repository.findAll()).resolves.toEqual([ticketA, ticketB]);
   });
+
+  it('finds an existing ticket by ID', async () => {
+    temporaryDirectory = await mkdtemp(
+      join(tmpdir(), 'json-ticket-repository-'),
+    );
+    const storagePath = join(temporaryDirectory, 'tickets.json');
+    const ticketA: Ticket = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      title: 'Fix login',
+      description: '',
+      status: 'open',
+      priority: 'medium',
+      tags: [],
+    };
+    const ticketB: Ticket = {
+      id: '7a1e9d8f-6372-4c98-a27d-fefdb636f102',
+      title: 'Add logout',
+      description: '',
+      status: 'open',
+      priority: 'medium',
+      tags: [],
+    };
+    await writeFile(
+      storagePath,
+      JSON.stringify([ticketA, ticketB]),
+      'utf8',
+    );
+    const repository = new JsonTicketRepository(storagePath);
+
+    await expect(repository.findById(ticketB.id)).resolves.toEqual(ticketB);
+  });
 });

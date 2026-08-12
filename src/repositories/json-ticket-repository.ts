@@ -6,6 +6,12 @@ import type { TicketRepository } from './ticket-repository.js';
 export class JsonTicketRepository implements TicketRepository {
   constructor(private readonly storagePath: string) {}
 
+  async findById(id: string): Promise<Ticket | undefined> {
+    const tickets = await this.findAll();
+
+    return tickets.find((ticket) => ticket.id === id);
+  }
+
   async save(ticket: Ticket): Promise<void> {
     const tickets = await this.findAll();
 

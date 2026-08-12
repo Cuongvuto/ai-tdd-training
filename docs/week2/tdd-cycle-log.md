@@ -1973,3 +1973,110 @@ Exit code   0
 * **Regression tests:** Passed
 * **Speculative behavior introduced:** No
 * **Cycle status:** Completed
+---
+
+## Cycle 17 — Find Existing Ticket by ID
+
+### 1. Requirement
+
+Given a JSON file containing multiple tickets:
+
+```text
+[ticketA, ticketB]
+```
+
+calling:
+
+```text
+findById(ticketB.id)
+```
+
+must return:
+
+```text
+ticketB
+```
+
+*Lookup uses exact ID equality.*
+
+---
+
+### 2. RED Phase
+
+A real-filesystem integration test was added for finding an existing ticket by ID.
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 5 passed (6)
+Duration    622ms
+Exit code   1
+```
+
+**Failure:**
+
+```text
+TypeError: repository.findById is not a function
+```
+
+> **Note:** The Red was accepted because the previous five integration tests remained green and the failure directly demonstrated that the `findById` API was missing.
+
+---
+
+### 3. GREEN Phase
+
+The repository interface was extended with:
+
+```typescript
+findById(id: string): Promise<Ticket undefined |>;
+```
+
+`JsonTicketRepository` implemented:
+
+```typescript
+async findById(id: string): Promise<Ticket undefined |> {
+  const tickets = await this.findAll();
+
+  return tickets.find((ticket) => ticket.id === id);
+}
+```
+
+**Observed result:**
+
+```text
+Test Files  1 passed (1)
+Tests       6 passed (6)
+Duration    631ms
+Exit code   0
+```
+
+---
+
+### 4. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The implementation is already minimal and directly expresses the required lookup behavior.
+
+---
+
+### 5. Final Cycle 17 Behavior
+
+```text
+existing ID
+→ findById(id)
+→ matching Ticket
+```
+
+*Not-found behavior remains separate and has not been implemented as an error.*
+
+---
+
+### 6. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Regression tests:** Passed
+* **Speculative behavior introduced:** No
+* **Cycle status:** Completed
