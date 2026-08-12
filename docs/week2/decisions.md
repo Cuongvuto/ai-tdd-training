@@ -808,6 +808,37 @@ The output must include at least:
 * **Layout:** Exact final layout and formatting are not yet treated as a stable output contract.
 * **Error handling:** Missing-ticket CLI error presentation will be handled separately.
 
+---
+
+## W2-D31 — CLI Update Status Syntax
+
+**Status:** `Approved`
+
+The CLI provides:
+
+```bash
+tickets update <id> --status <status>
+```
+
+The `--status` option is required.
+
+---
+
+### 1. Requirements & Responsibilities
+
+* **Service delegation:** The command delegates status-update behavior to the existing service:
+  ```typescript
+  updateTicketStatus()
+  ```
+* **Separation of concerns:** The command layer does not implement status validation or persistence logic.
+* **Persistence:** Successful execution must persist the updated status to JSON storage.
+
+---
+
+### 2. Scope & Boundaries
+
+* Exact success-output formatting is not yet treated as a stable contract.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`

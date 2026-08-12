@@ -3747,3 +3747,129 @@ tickets show <id>
 * **Service regression:** Passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+---
+
+## Cycle 31 — Update Ticket Status Through CLI
+
+### 1. Requirement
+
+The CLI supports:
+
+```bash
+tickets update <id> --status <status>
+```
+
+The command delegates status-update behavior to the existing service layer.
+
+---
+
+### 2. RED Phase
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Duration    1.68s
+Exit code   1
+```
+
+**Commander reported:**
+
+```text
+error: unknown command 'update'
+```
+
+> **Note:** The actual CLI subprocess and temporary JSON setup worked correctly. The RED was accepted because the failure directly represented the missing CLI `update` command.
+
+---
+
+### 3. GREEN Phase
+
+The `update` command was implemented:
+
+```typescript
+interface UpdateCommandOptions {
+  status: string;
+}
+
+export function registerUpdateCommand(
+  program: Command,
+  repository: TicketRepository,
+): void {
+  program
+    .command('update <id>')
+    .requiredOption('--status <status>')
+    .action(async (id: string, options: UpdateCommandOptions) => {
+      await updateTicketStatus(repository, {
+        id,
+        status: options.status as TicketStatus,
+      });
+    });
+}
+```
+
+* The command was registered in `cli.ts` using the existing repository instance.
+* Runtime status validation remains in `updateTicketStatus()`.
+
+---
+
+### 4. Validation
+
+**CLI E2E:**
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    1.90s
+Exit code   0
+```
+
+**Update-service regression:**
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    678ms
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+> **Note:** The persisted JSON retained exactly one ticket and preserved all fields except the requested status change.
+
+---
+
+### 5. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The command is already a thin CLI adapter and contains no validation or persistence business logic.
+
+---
+
+### 6. Final Behavior
+
+```text
+tickets update <id> --status closed
+→ Commander
+→ updateTicketStatus()
+→ repository.update()
+→ persisted ticket with status closed
+```
+
+---
+
+### 7. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **E2E:** Passed
+* **Service regression:** Passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed
