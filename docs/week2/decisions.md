@@ -928,6 +928,39 @@ missing tickets.json
 * The exact internal `StorageError` message is not yet part of the contract.
 * CLI presentation of `StorageError` is handled separately.
 
+---
+
+## W2-D35 — CLI Storage Error Presentation
+
+**Status:** `Approved`
+
+A handled storage failure is presented by the CLI as:
+
+```text
+StorageError
+→ stderr: Storage error
+→ exit code 1
+```
+
+---
+
+### 1. Requirements & CLI Behavior
+
+* **Stack Traces:** The CLI must **not** expose a raw stack trace for a handled `StorageError`.
+* **Data Integrity:** The corrupted storage file must remain unchanged.
+* **Error Propagation:** Unexpected, non-classified errors continue to propagate.
+
+---
+
+### 2. Error Presentation Matrix Summary
+
+| Error Type | `stderr` Output | Exit Code | Stack Trace |
+| :--- | :--- | :--- | :--- |
+| `ValidationError` | `Invalid input` | `1` | Suppressed |
+| `TicketNotFoundError` | `Ticket not found` | `1` | Suppressed |
+| `StorageError` | `Storage error` | `1` | Suppressed |
+| *Unexpected Error* | *(Standard Node trace)* | `> 0` | Propagated / Rethrown |
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`

@@ -60,4 +60,26 @@ describe('tickets CLI domain errors', () => {
     expect(result.status).toBe(1);
     expect(result.stderr).toContain('Ticket not found');
   });
+
+  it('presents corrupted storage as a concise CLI error', async () => {
+    const temporaryDirectory = await mkdtemp(
+      join(tmpdir(), 'tickets-cli-error-'),
+    );
+    temporaryDirectories.push(temporaryDirectory);
+
+    const storagePath = join(temporaryDirectory, 'tickets.json');
+    const corruptedContents = '{ invalid json';
+    await writeFile(storagePath, corruptedContents, 'utf8');
+
+    const result = runCli(storagePath, ['list']);
+
+    expect(result.error).toBeUndefined();
+    expect(result.status).toBe(1);
+    expect.soft(result.stderr).toContain('Storage error');
+    expect.soft(result.stderr).not.toContain('StorageError');
+    expect.soft(result.stderr).not.toContain('at JsonTicketRepository');
+    await expect(readFile(storagePath, 'utf8')).resolves.toBe(
+      corruptedContents,
+    );
+  });
 });

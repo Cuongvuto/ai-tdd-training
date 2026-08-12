@@ -5,6 +5,7 @@ import { registerListCommand } from './commands/list-command.js';
 import { registerShowCommand } from './commands/show-command.js';
 import { registerUpdateCommand } from './commands/update-command.js';
 import { resolveStoragePath } from './config/storage-path.js';
+import { StorageError } from './errors/storage-error.js';
 import { TicketNotFoundError } from './errors/ticket-not-found-error.js';
 import { ValidationError } from './errors/validation-error.js';
 import { JsonTicketRepository } from './repositories/json-ticket-repository.js';
@@ -25,6 +26,9 @@ try {
     process.exitCode = 1;
   } else if (error instanceof TicketNotFoundError) {
     console.error('Ticket not found');
+    process.exitCode = 1;
+  } else if (error instanceof StorageError) {
+    console.error('Storage error');
     process.exitCode = 1;
   } else {
     throw error;

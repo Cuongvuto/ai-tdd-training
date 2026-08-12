@@ -4288,3 +4288,172 @@ other filesystem error
 * **Typecheck:** Passed
 * **Corrupted contents preserved:** Yes
 * **Cycle status:** Completed
+
+---
+
+## Cycle 35 — Present Corrupted Storage as a CLI Error
+
+### 1. Requirement
+
+A corrupted ticket store is classified by the repository as `StorageError`.
+
+The CLI translates that handled storage failure into:
+* **`stderr`:** `Storage error`
+* **Exit code:** `1`
+
+**Constraints:**
+* The raw error class and stack trace must not be exposed.
+* The corrupted file must remain unchanged.
+
+---
+
+### 2. RED Phase
+
+A real-subprocess E2E test ran:
+
+```bash
+tickets list
+```
+
+against a temporary corrupted JSON file containing:
+
+```json
+{ invalid json
+```
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 2 passed (3)
+Duration    5.07s
+Exit code   1
+```
+
+**`stderr` contained:**
+
+```text
+StorageError
+    at JsonTicketRepository.findAll (...)
+    at async listTickets (...)
+    at async Command.<anonymous> (...)
+    at async Command.parseAsync (...)
+```
+
+> **Note:** The corrupted-file preservation assertion passed. The RED was accepted because repository classification was already correct, while CLI presentation was missing.
+
+---
+
+### 3. GREEN Phase
+
+`cli.ts` imported:
+
+```typescript
+import { StorageError } from './errors/storage-error.js';
+```
+
+The top-level error translation became:
+
+```typescript
+try {
+  await program.parseAsync(process.argv);
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.error('Invalid input');
+    process.exitCode = 1;
+  } else if (error instanceof TicketNotFoundError) {
+    console.error('Ticket not found');
+    process.exitCode = 1;
+  } else if (error instanceof StorageError) {
+    console.error('Storage error');
+    process.exitCode = 1;
+  } else {
+    throw error;
+  }
+}
+```
+
+* Unexpected, unclassified errors continue to propagate.
+
+---
+
+### 4. Validation
+
+**CLI error E2E:**
+
+```text
+Test Files  1 passed (1)
+Tests       3 passed (3)
+Duration    4.52s
+```
+
+**Full CLI E2E regression:**
+
+```text
+Test Files  5 passed (5)
+Tests       9 passed (9)
+Duration    6.49s
+```
+
+**Repository integration regression:**
+
+```text
+Test Files  1 passed (1)
+Tests       8 passed (8)
+Duration    801ms
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+**Observed corrupted-storage `stderr`:**
+
+```text
+Storage error
+```
+
+---
+
+### 5. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The top-level CLI composition root remains small and is the appropriate boundary for translating application errors into CLI presentation.
+
+---
+
+### 6. Final Error Behavior
+
+```text
+ValidationError
+→ "Invalid input"
+→ exit 1
+
+TicketNotFoundError
+→ "Ticket not found"
+→ exit 1
+
+StorageError
+→ "Storage error"
+→ exit 1
+
+unexpected error
+→ rethrow
+```
+
+---
+
+### 7. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **CLI E2E:** 9/9 passed
+* **Repository integration:** 8/8 passed
+* **Typecheck:** Passed
+* **Corrupted contents preserved:** Yes
+* **Raw handled-error stack trace removed:** Yes
+* **Cycle status:** Completed
