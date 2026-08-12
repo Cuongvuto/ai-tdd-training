@@ -705,6 +705,34 @@ The command layer converts this to:
 * The integration test may verify essential information such as the created ticket title while persistence is verified independently from the JSON file.
 * Error output and numerical exit-code contracts will be finalized in later cycles.
 
+---
+
+## W2-D28 — Base CLI List Behavior
+
+**Status:** `Approved`
+
+The CLI provides:
+
+```bash
+tickets list
+```
+
+With no filters, it lists every stored ticket in repository order.
+
+---
+
+### 1. Requirements
+
+* **stdout Content:** For the initial CLI list cycle, `stdout` must contain enough human-readable information to identify each ticket, including at least its `title`.
+* **Ordering:** Preserves repository order.
+
+---
+
+### 2. Contract Scope & Boundary
+
+* Exact long-term formatting is not yet treated as a stable contract.
+* Filtering options are introduced separately.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`
