@@ -1,16 +1,14 @@
 import { randomUUID } from 'node:crypto';
 
+import type { CreateTicketInput } from '../models/create-ticket-input.js';
+import type { Ticket } from '../models/ticket.js';
+
 export function createTicket({
   title,
   description,
   priority,
   tags,
-}: {
-  title: string;
-  description?: string;
-  priority?: string;
-  tags?: string[];
-}) {
+}: CreateTicketInput): Ticket {
   const normalizedTitle = title.trim();
 
   if (!normalizedTitle) {
@@ -29,7 +27,7 @@ export function createTicket({
     title: normalizedTitle,
     status: 'open',
     description: description === undefined ? '' : description.trim(),
-    priority: normalizedPriority,
+    priority: normalizedPriority as Ticket['priority'],
     tags: tags === undefined
       ? []
       : tags
