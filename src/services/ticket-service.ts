@@ -2,10 +2,12 @@ export function createTicket({
   title,
   description,
   priority,
+  tags,
 }: {
   title: string;
   description?: string;
   priority?: string;
+  tags?: string[];
 }) {
   const normalizedTitle = title.trim();
 
@@ -25,6 +27,8 @@ export function createTicket({
     status: 'open',
     description: description === undefined ? '' : description.trim(),
     priority: normalizedPriority,
-    tags: [],
+    tags: tags === undefined
+      ? []
+      : tags.map((tag) => tag.trim().toLowerCase()),
   };
 }

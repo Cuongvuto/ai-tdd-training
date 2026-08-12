@@ -55,4 +55,13 @@ describe('createTicket', () => {
 
     expect(ticket.tags).toEqual([]);
   });
+
+  it('normalizes provided tags', () => {
+    const ticket = createTicket({
+      title: 'Fix login',
+      tags: [' Bug ', 'AUTH'],
+    });
+
+    expect(ticket.tags).toEqual(['bug', 'auth']);
+  });
 });

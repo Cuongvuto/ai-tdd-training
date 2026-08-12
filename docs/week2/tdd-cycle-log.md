@@ -993,3 +993,120 @@ Existing Cycle 01–07 behaviors remain unchanged.
 - Regression tests: Passed
 - Speculative behavior introduced: No
 - Cycle status: Completed
+---
+
+## Cycle 09 — Normalize Provided Tags
+
+### Requirement
+
+When tags are provided, each tag must:
+
+- be trimmed;
+- be normalized to lowercase.
+
+Example:
+
+```text
+[" Bug ", "AUTH"]
+→
+["bug", "auth"]
+```
+
+Empty-tag removal and duplicate-tag removal are intentionally excluded from
+this cycle.
+
+### RED
+
+Test added:
+
+```ts
+it('normalizes provided tags', () => {
+  const ticket = createTicket({
+    title: 'Fix login',
+    tags: [' Bug ', 'AUTH'],
+  });
+
+  expect(ticket.tags).toEqual(['bug', 'auth']);
+});
+```
+
+Test command:
+
+```bash
+npm run test:run -- tests/unit/ticket-service-create.test.ts
+```
+
+Observed result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 8 passed (9)
+Duration    622ms
+Exit code   1
+```
+
+Failure:
+
+```text
+AssertionError: expected [] to deeply equal [ 'bug', 'auth' ]
+```
+
+The Red was accepted because the previous eight tests passed and the new test
+failed specifically because provided tags were ignored.
+
+### GREEN
+
+`createTicket` was minimally extended to accept optional tags.
+
+Provided tags are normalized using:
+
+```ts
+tags.map((tag) => tag.trim().toLowerCase())
+```
+
+Omitted tags still default to an empty array.
+
+Empty-tag and duplicate-tag removal were not implemented.
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       9 passed (9)
+Duration    563ms
+Exit code   0
+```
+
+### REFACTOR REVIEW
+
+Decision:
+
+```text
+No-op refactor review
+```
+
+Reason:
+
+The implementation is currently small and readable. No structural refactor is
+justified without introducing unnecessary abstraction.
+
+No production or test code was changed during the refactor review.
+
+### Final Cycle 09 Behavior
+
+```text
+[" Bug ", "AUTH"]
+→
+["bug", "auth"]
+```
+
+Existing Cycle 01–08 behaviors remain unchanged.
+
+### Human Review
+
+- Red: Accepted
+- Green: Accepted
+- Refactor: No-op accepted
+- Regression tests: Passed
+- Speculative behavior introduced: No
+- Cycle status: Completed
