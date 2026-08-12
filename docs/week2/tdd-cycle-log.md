@@ -3995,3 +3995,149 @@ invalid user-controlled domain input
 * **Regression:** Passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+
+---
+
+## Cycle 33 — CLI Domain Error Handling
+
+### 1. Requirement
+
+Handled domain failures must be translated into concise CLI errors:
+
+```text
+ValidationError
+→ stderr: Invalid input
+→ exit code 1
+
+TicketNotFoundError
+→ stderr: Ticket not found
+→ exit code 1
+```
+
+> **Note:** Unexpected errors remain unhandled by this cycle and must still propagate.
+
+---
+
+### 2. RED Phase
+
+Two real-subprocess E2E scenarios were added:
+1. Blank-title create
+2. Missing-ticket show
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       2 failed (2)
+Duration    3.66s
+Exit code   1
+```
+
+The processes already exited non-zero, but `stderr` contained raw Node stack traces:
+
+* **Invalid create:**
+  ```text
+  ValidationError
+  at createTicket (...)
+  ```
+* **Missing-ticket show:**
+  ```text
+  TicketNotFoundError
+  at getTicketById (...)
+  ```
+
+> **Note:** The RED was accepted because domain behavior worked, while the approved CLI presentation behavior was missing.
+
+---
+
+### 3. GREEN Phase
+
+`cli.ts` now translates handled domain errors:
+
+```typescript
+try {
+  await program.parseAsync(process.argv);
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.error('Invalid input');
+    process.exitCode = 1;
+  } else if (error instanceof TicketNotFoundError) {
+    console.error('Ticket not found');
+    process.exitCode = 1;
+  } else {
+    throw error;
+  }
+}
+```
+
+* Handled errors no longer bubble to Node.
+* Unexpected errors continue to be rethrown.
+
+---
+
+### 4. Validation
+
+**Domain-error E2E:**
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    3.09s
+```
+
+**Full current CLI E2E regression:**
+
+```text
+Test Files  5 passed (5)
+Tests       8 passed (8)
+Duration    5.62s
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+**Observed stderr:**
+* `Invalid input`
+* `Ticket not found`
+
+---
+
+### 5. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The composition root is the correct place to translate domain errors into command-line presentation.
+
+---
+
+### 6. Final Behavior
+
+```text
+ValidationError
+→ cli.ts
+→ "Invalid input"
+→ exit 1
+
+TicketNotFoundError
+→ cli.ts
+→ "Ticket not found"
+→ exit 1
+
+unexpected Error
+→ rethrow
+```
+
+---
+
+### 7. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **CLI E2E regression:** 8/8 passed
+* **Typecheck:** Passed
+* **Raw stack traces removed for handled domain errors:** Yes
+* **Cycle status:** Completed

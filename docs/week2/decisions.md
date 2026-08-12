@@ -856,6 +856,38 @@ Exact human-readable CLI error messages remain a command-boundary concern.
 Unexpected storage or programming failures must not be classified as
 `ValidationError`.
 
+---
+
+## W2-D33 — CLI Domain Error Handling
+
+**Status:** `Approved`
+
+Handled user-facing CLI failures write concise messages to `stderr` and exit with code `1`.
+
+---
+
+### 1. Error Mapping & Exit Codes
+
+* **Domain Validation Failures:**
+  ```text
+  ValidationError
+  → stderr: "Invalid input"
+  → exit code: 1
+  ```
+* **Missing Tickets:**
+  ```text
+  TicketNotFoundError
+  → stderr: "Ticket not found"
+  → exit code: 1
+  ```
+
+---
+
+### 2. Architectural Responsibilities
+
+* **Composition Root:** The CLI composition root is responsible for translating these service-level errors into command-line presentation.
+* **Separation of Concerns:** Commands and services must **not** duplicate this presentation logic.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`
