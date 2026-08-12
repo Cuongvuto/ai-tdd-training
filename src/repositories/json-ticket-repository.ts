@@ -1,4 +1,5 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 
 import { StorageError } from '../errors/storage-error.js';
 import type { Ticket } from '../models/ticket.js';
@@ -16,6 +17,7 @@ export class JsonTicketRepository implements TicketRepository {
   async save(ticket: Ticket): Promise<void> {
     const tickets = await this.findAll();
 
+    await mkdir(dirname(this.storagePath), { recursive: true });
     await writeFile(
       this.storagePath,
       JSON.stringify([...tickets, ticket]),

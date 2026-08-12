@@ -961,6 +961,47 @@ StorageError
 | `StorageError` | `Storage error` | `1` | Suppressed |
 | *Unexpected Error* | *(Standard Node trace)* | `> 0` | Propagated / Rethrown |
 
+
+---
+
+## W2-D36 — Create Storage Parent Directory on First Write
+
+**Status:** `Approved`
+
+The JSON repository must support writing to a storage path whose parent directory does not yet exist.
+
+**Example:**
+
+```text
+data/
+└── tickets.json
+```
+
+On first write, if `data/` does not exist, the repository creates the required parent directory before writing `tickets.json`.
+
+---
+
+### 1. Requirements
+
+* **Write-only creation:** Parent directories are created **only** as part of a write operation (`create`, `update`, etc.).
+* **Read behavior:** Repository reads must **not** create directories or files.
+* **Missing-file reads:** Missing-file read behavior remains `[]`.
+* **Backward compatibility:** Existing storage behavior remains unchanged.
+
+---
+
+### 2. Motivation
+
+This allows the default CLI path:
+
+```text
+data/tickets.json
+```
+
+to work on first use without requiring manual directory setup.
+
+
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`

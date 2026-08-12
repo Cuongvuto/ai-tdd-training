@@ -94,6 +94,33 @@ describe('JsonTicketRepository', () => {
     await expect(reloadedRepository.findAll()).resolves.toEqual([ticket]);
   });
 
+  it('creates missing parent directories when saving a ticket', async () => {
+    temporaryDirectory = await mkdtemp(
+      join(tmpdir(), 'json-ticket-repository-'),
+    );
+    const storageDirectory = join(temporaryDirectory, 'nested', 'data');
+    const storagePath = join(storageDirectory, 'tickets.json');
+    const ticket: Ticket = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      title: 'Fix login',
+      description: '',
+      status: 'open',
+      priority: 'medium',
+      tags: [],
+    };
+    const repository = new JsonTicketRepository(storagePath);
+
+    await expect(access(storageDirectory)).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
+
+    await repository.save(ticket);
+
+    await expect(access(storagePath)).resolves.toBeUndefined();
+    await expect(repository.findAll()).resolves.toEqual([ticket]);
+    expect(JSON.parse(await readFile(storagePath, 'utf8'))).toEqual([ticket]);
+  });
+
   it('preserves existing tickets when saving another ticket', async () => {
     temporaryDirectory = await mkdtemp(
       join(tmpdir(), 'json-ticket-repository-'),

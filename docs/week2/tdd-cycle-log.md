@@ -4457,3 +4457,130 @@ unexpected error
 * **Corrupted contents preserved:** Yes
 * **Raw handled-error stack trace removed:** Yes
 * **Cycle status:** Completed
+
+---
+
+## Cycle 36 — Create Missing Storage Parent Directory on First Write
+
+### 1. Requirement
+
+When saving to a path whose parent directories do not exist:
+
+```text
+<temp>/nested/data/tickets.json
+```
+
+* The repository must create the required directories before writing the ticket.
+* Reads must **not** create storage directories or files.
+
+---
+
+### 2. RED Phase
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 8 passed (9)
+Duration    705ms
+Exit code   1
+```
+
+**Failure:**
+
+```text
+ENOENT: no such file or directory, open '<temp>\nested\data\tickets.json'
+```
+
+> **Note:** The existing eight repository integration tests remained green. The RED was accepted because the failure directly represented missing first-write directory creation.
+
+---
+
+### 3. GREEN Phase
+
+`save()` now ensures the parent directory exists:
+
+```typescript
+async save(ticket: Ticket): Promise<void> {
+  const tickets = await this.findAll();
+
+  await mkdir(dirname(this.storagePath), { recursive: true });
+
+  await writeFile(
+    this.storagePath,
+    JSON.stringify([...tickets, ticket]),
+    'utf8',
+  );
+}
+```
+
+* Directory creation occurs **only** during writes.
+* `findAll()` remains unchanged.
+
+---
+
+### 4. Validation
+
+**Repository integration:**
+
+```text
+Test Files  1 passed (1)
+Tests       9 passed (9)
+Duration    658ms
+Exit code   0
+```
+
+**Full suite:**
+
+```text
+Test Files  10 passed (10)
+Tests       40 passed (40)
+Duration    6.70s
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+---
+
+### 5. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** No helper abstraction was required for this focused behavior.
+
+---
+
+### 6. Final Behavior
+
+```text
+first write
+→ parent directory missing
+→ mkdir recursive
+→ tickets.json created
+→ ticket persisted
+```
+
+**Read behavior remains:**
+
+```text
+missing file
+→ []
+→ no files/directories created
+```
+
+---
+
+### 7. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Repository regression:** 9/9 passed
+* **Full suite:** 40/40 passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed
