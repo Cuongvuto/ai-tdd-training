@@ -71,14 +71,14 @@ export function createTicket({
   const normalizedTitle = title.trim();
 
   if (!normalizedTitle) {
-    throw new Error();
+    throw new ValidationError();
   }
 
   const normalizedPriority =
     priority === undefined ? 'medium' : priority.trim().toLowerCase();
 
   if (!['low', 'medium', 'high'].includes(normalizedPriority)) {
-    throw new Error();
+    throw new ValidationError();
   }
 
   return {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { ValidationError } from '../../src/errors/validation-error.js';
 import { createTicket } from '../../src/services/ticket-service.js';
 
 describe('createTicket', () => {
@@ -11,7 +12,7 @@ describe('createTicket', () => {
   });
 
   it('rejects a whitespace-only title', () => {
-    expect(() => createTicket({ title: '   ' })).toThrow();
+    expect(() => createTicket({ title: '   ' })).toThrow(ValidationError);
   });
 
   it('trims a provided description', () => {
@@ -47,7 +48,7 @@ describe('createTicket', () => {
   it('rejects an invalid priority', () => {
     expect(() =>
       createTicket({ title: 'Fix login', priority: 'urgent' }),
-    ).toThrow();
+    ).toThrow(ValidationError);
   });
 
   it('defaults omitted tags to an empty array', () => {

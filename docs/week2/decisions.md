@@ -839,6 +839,23 @@ The `--status` option is required.
 
 * Exact success-output formatting is not yet treated as a stable contract.
 
+## W2-D32 — Validation Error Classification
+
+**Status:** Approved
+
+Invalid user-controlled domain input is represented by `ValidationError`.
+
+This includes:
+
+- blank or whitespace-only ticket title;
+- invalid ticket priority;
+- invalid update status.
+
+Exact human-readable CLI error messages remain a command-boundary concern.
+
+Unexpected storage or programming failures must not be classified as
+`ValidationError`.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`

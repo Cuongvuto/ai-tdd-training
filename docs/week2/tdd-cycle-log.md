@@ -3873,3 +3873,125 @@ tickets update <id> --status closed
 * **Service regression:** Passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+---
+
+## Cycle 32 — Standardize Validation Error Classification
+
+### 1. Requirement
+
+Invalid user-controlled domain input must be classified as `ValidationError`.
+
+This includes:
+* Whitespace-only ticket titles
+* Invalid ticket priorities
+* Invalid update statuses
+
+---
+
+### 2. RED Phase
+
+Two existing create-service tests were strengthened to require `ValidationError`.
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       2 failed | 10 passed (12)
+Duration    779ms
+Exit code   1
+```
+
+**Both failures showed:**
+
+```text
+Expected: ValidationError
+Received: Error
+```
+
+> **Note:** The RED was accepted because the invalid inputs were already rejected, but with the wrong error classification. The other ten create behaviors remained green.
+
+---
+
+### 3. GREEN Phase
+
+The existing validation conditions were preserved.
+
+Whitespace-only titles now throw:
+
+```typescript
+if (!normalizedTitle) {
+  throw new ValidationError();
+}
+```
+
+Invalid priorities now throw:
+
+```typescript
+if (!['low', 'medium', 'high'].includes(normalizedPriority)) {
+  throw new ValidationError();
+}
+```
+
+*No new validation rules were introduced.*
+
+---
+
+### 4. Validation
+
+**Create-service tests:**
+
+```text
+Test Files  1 passed (1)
+Tests       12 passed (12)
+Duration    657ms
+```
+
+**Update-service regression:**
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    633ms
+```
+
+**Full service regression:**
+
+```text
+Test Files  4 passed (4)
+Tests       22 passed (22)
+Duration    1.67s
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+---
+
+### 5. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** Only error classification changed. Existing validation conditions and business behavior remain unchanged.
+
+---
+
+### 6. Final Behavior
+
+```text
+invalid user-controlled domain input
+→ ValidationError
+```
+
+---
+
+### 7. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Regression:** Passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed
