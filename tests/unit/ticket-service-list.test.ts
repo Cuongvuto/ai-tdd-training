@@ -44,4 +44,40 @@ describe('listTickets', () => {
 
     await expect(listTickets(repository)).resolves.toEqual([ticketA, ticketB]);
   });
+
+  it('filters tickets by exact status while preserving repository order', async () => {
+    const ticketA: Ticket = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      title: 'Fix login',
+      description: 'Login button does not work',
+      status: 'open',
+      priority: 'high',
+      tags: ['bug', 'auth'],
+    };
+    const ticketB: Ticket = {
+      id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
+      title: 'Write documentation',
+      description: '',
+      status: 'closed',
+      priority: 'low',
+      tags: ['docs'],
+    };
+    const ticketC: Ticket = {
+      id: '6ba7b811-9dad-11d1-80b4-00c04fd430c8',
+      title: 'Add logout button',
+      description: '',
+      status: 'open',
+      priority: 'medium',
+      tags: ['auth'],
+    };
+    const repository = new FakeTicketRepository([
+      ticketA,
+      ticketB,
+      ticketC,
+    ]);
+
+    await expect(
+      listTickets(repository, { status: 'open' }),
+    ).resolves.toEqual([ticketA, ticketC]);
+  });
 });

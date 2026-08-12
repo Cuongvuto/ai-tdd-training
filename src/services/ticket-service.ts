@@ -4,13 +4,21 @@ import { TicketNotFoundError } from '../errors/ticket-not-found-error.js';
 import { ValidationError } from '../errors/validation-error.js';
 import type { CreateTicketInput } from '../models/create-ticket-input.js';
 import type { Ticket } from '../models/ticket.js';
+import type { TicketFilter } from '../models/ticket-filter.js';
 import type { UpdateTicketInput } from '../models/update-ticket-input.js';
 import type { TicketRepository } from '../repositories/ticket-repository.js';
 
 export async function listTickets(
   repository: TicketRepository,
+  filter?: TicketFilter,
 ): Promise<Ticket[]> {
-  return repository.findAll();
+  const tickets = await repository.findAll();
+
+  if (filter?.status === undefined) {
+    return tickets;
+  }
+
+  return tickets.filter((ticket) => ticket.status === filter.status);
 }
 
 export async function getTicketById(

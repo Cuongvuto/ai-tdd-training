@@ -522,6 +522,45 @@ No additional sorting is introduced by the service.
 
 Filtering by status, priority, and tags will be introduced in later TDD cycles.
 
+---
+
+## W2-D22 — Ticket List Status Filter
+
+**Status:** `Approved`
+
+Ticket listing may optionally filter by status.
+
+When a status filter is provided:
+
+```typescript
+listTickets(repository, { status: "open" })
+```
+
+Only tickets whose status exactly matches the requested status are returned.
+
+---
+
+### 1. Requirements
+
+* **Exact status equality**
+* **Repository ordering is preserved**
+* **Tickets are not mutated**
+* **Omitted status means no status filtering**
+
+---
+
+### 2. Approved Status Values
+
+* `open`
+* `in_progress`
+* `closed`
+
+---
+
+### 3. Scope Boundary
+
+> Priority and tag filtering are introduced separately.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`

@@ -2791,3 +2791,146 @@ repository.findAll()
 * **Regression:** Passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+---
+
+## Cycle 23 — Filter Tickets by Status
+
+### 1. Requirement
+
+Ticket listing may optionally filter tickets by exact status.
+
+Given repository order:
+
+```text
+ticketA → open
+ticketB → closed
+ticketC → open
+```
+
+**When:**
+
+```typescript
+listTickets(repository, { status: "open" })
+```
+
+**Then:**
+
+```text
+[ticketA, ticketC]
+```
+
+*Must be returned while preserving repository order.*
+
+---
+
+### 2. RED Phase
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 1 passed (2)
+Duration    662ms
+Exit code   1
+```
+
+**Expected:**
+
+```text
+[ticketA, ticketC]
+```
+
+**Received:**
+
+```text
+[ticketA, ticketB, ticketC]
+```
+
+> **Note:** The existing no-filter listing test remained green. The RED was accepted because the service API existed but ignored the status filter.
+
+---
+
+### 3. GREEN Phase
+
+`TicketFilter` was introduced:
+
+```typescript
+import type { TicketStatus } from './ticket.js';
+
+export interface TicketFilter {
+  status?: TicketStatus;
+}
+```
+
+`listTickets()` became:
+
+```typescript
+export async function listTickets(
+  repository: TicketRepository,
+  filter?: TicketFilter,
+): Promise<Ticket[]> {
+  const tickets = await repository.findAll();
+
+  if (filter?.status === undefined) {
+    return tickets;
+  }
+
+  return tickets.filter((ticket) => ticket.status === filter.status);
+}
+```
+
+**List-service result:**
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    617ms
+Exit code   0
+```
+
+**Service regression:**
+
+```text
+Test Files  3 passed (3)
+Tests       15 passed (15)
+Duration    1.18s
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+---
+
+### 4. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The implementation is already small and `Array.filter()` naturally preserves relative repository order.
+
+---
+
+### 5. Final Behavior
+
+```text
+no status filter
+→ return all tickets
+
+status filter
+→ exact status match
+→ preserve repository order
+```
+
+---
+
+### 6. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Regression:** Passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed
