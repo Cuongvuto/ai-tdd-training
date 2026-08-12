@@ -714,3 +714,110 @@ Existing Cycle 01–04 behaviors remain unchanged.
 - Refactor: No-op accepted
 - Speculative behavior introduced: No
 - Cycle status: Completed
+---
+
+## Cycle 06 — Normalize Provided Priority
+
+### Requirement
+
+When priority is provided:
+
+- leading and trailing whitespace is removed;
+- the value is normalized to lowercase.
+
+Example:
+
+```text
+" HIGH "
+→
+"high"
+```
+
+### RED
+
+Test added:
+
+```ts
+it('normalizes a provided priority', () => {
+  const ticket = createTicket({
+    title: 'Fix login',
+    priority: ' HIGH ',
+  });
+
+  expect(ticket.priority).toBe('high');
+});
+```
+
+Observed result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 5 passed (6)
+Duration    602ms
+Exit code   1
+```
+
+Failure:
+
+```text
+AssertionError: expected 'medium' to be 'high'
+```
+
+The Red was accepted because the previous five tests passed and the new test
+failed specifically because the provided priority was ignored.
+
+### GREEN
+
+`createTicket` was extended so that:
+
+```text
+priority omitted
+→ "medium"
+
+priority provided
+→ trim
+→ lowercase
+```
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       6 passed (6)
+Duration    633ms
+Exit code   0
+```
+
+### REFACTOR REVIEW
+
+Decision:
+
+```text
+No-op refactor review
+```
+
+Reason:
+
+The implementation is already minimal and readable. No structural refactor is
+currently justified.
+
+No production or test code was changed during the refactor review.
+
+### Final Cycle 06 Behavior
+
+```text
+" HIGH "
+→
+"high"
+```
+
+Existing Cycle 01–05 behaviors remain unchanged.
+
+### Human Review
+
+- Red: Accepted
+- Green: Accepted
+- Refactor: No-op accepted
+- Regression tests: Passed
+- Speculative behavior introduced: No
+- Cycle status: Completed

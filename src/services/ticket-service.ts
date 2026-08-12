@@ -1,9 +1,11 @@
 export function createTicket({
   title,
   description,
+  priority,
 }: {
   title: string;
   description?: string;
+  priority?: string;
 }) {
   const normalizedTitle = title.trim();
 
@@ -15,6 +17,7 @@ export function createTicket({
     title: normalizedTitle,
     status: 'open',
     description: description === undefined ? '' : description.trim(),
-    priority: 'medium',
+    priority:
+      priority === undefined ? 'medium' : priority.trim().toLowerCase(),
   };
 }

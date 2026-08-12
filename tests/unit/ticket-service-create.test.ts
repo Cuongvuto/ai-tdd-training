@@ -34,4 +34,13 @@ describe('createTicket', () => {
 
     expect(ticket.priority).toBe('medium');
   });
+
+  it('normalizes a provided priority', () => {
+    const ticket = createTicket({
+      title: 'Fix login',
+      priority: ' HIGH ',
+    });
+
+    expect(ticket.priority).toBe('high');
+  });
 });
