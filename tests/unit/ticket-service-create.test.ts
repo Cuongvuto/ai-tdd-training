@@ -43,4 +43,10 @@ describe('createTicket', () => {
 
     expect(ticket.priority).toBe('high');
   });
+
+  it('rejects an invalid priority', () => {
+    expect(() =>
+      createTicket({ title: 'Fix login', priority: 'urgent' }),
+    ).toThrow();
+  });
 });

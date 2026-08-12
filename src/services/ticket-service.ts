@@ -13,11 +13,17 @@ export function createTicket({
     throw new Error();
   }
 
+  const normalizedPriority =
+    priority === undefined ? 'medium' : priority.trim().toLowerCase();
+
+  if (!['low', 'medium', 'high'].includes(normalizedPriority)) {
+    throw new Error();
+  }
+
   return {
     title: normalizedTitle,
     status: 'open',
     description: description === undefined ? '' : description.trim(),
-    priority:
-      priority === undefined ? 'medium' : priority.trim().toLowerCase(),
+    priority: normalizedPriority,
   };
 }

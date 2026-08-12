@@ -820,4 +820,94 @@ Existing Cycle 01–05 behaviors remain unchanged.
 - Refactor: No-op accepted
 - Regression tests: Passed
 - Speculative behavior introduced: No
+- Cycle status: Completed---
+
+## Cycle 07 — Reject Invalid Priority
+
+### Requirement
+
+Priority must be one of:
+
+```text
+low | medium | high
+```
+
+Any other normalized value must be rejected.
+
+### RED
+
+Test added:
+
+```ts
+it('rejects an invalid priority', () => {
+  expect(() =>
+    createTicket({ title: 'Fix login', priority: 'urgent' }),
+  ).toThrow();
+});
+```
+
+Observed result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 6 passed (7)
+Duration    610ms
+Exit code   1
+```
+
+Failure:
+
+```text
+AssertionError: expected [Function] to throw an error
+```
+
+The Red was accepted because the previous six tests passed and only invalid
+priority rejection was missing.
+
+### GREEN
+
+The implementation normalized priority and validated it against:
+
+```text
+low | medium | high
+```
+
+Invalid values now throw an error.
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       7 passed (7)
+Duration    656ms
+Exit code   0
+```
+
+### REFACTOR REVIEW
+
+Decision:
+
+```text
+No-op refactor review
+```
+
+The implementation was already sufficiently clear and no structural change was
+justified.
+
+### Final Cycle 07 Behavior
+
+```text
+"urgent"
+→ rejected
+```
+
+Existing Cycle 01–06 behaviors remain unchanged.
+
+### Human Review
+
+- Red: Accepted
+- Green: Accepted
+- Refactor: No-op accepted
+- Regression tests: Passed
+- Speculative behavior introduced: No
 - Cycle status: Completed
