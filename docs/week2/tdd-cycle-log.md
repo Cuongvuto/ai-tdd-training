@@ -3614,3 +3614,136 @@ Runtime validation for invalid list filter values remains separate. For example:
 * **Service regression:** Passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+---
+
+## Cycle 30 — Show Existing Ticket Through CLI
+
+### 1. Requirement
+
+The CLI supports:
+
+```bash
+tickets show <id>
+```
+
+For an existing ticket, the command retrieves the ticket through the service layer and writes human-readable ticket details to `stdout`.
+
+**Required visible fields:**
+* `id`
+* `title`
+* `description`
+* `status`
+* `priority`
+* `tags`
+
+*Exact final formatting is not yet a stable contract.*
+
+---
+
+### 2. RED Phase
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Duration    1.64s
+Exit code   1
+```
+
+**Commander reported:**
+
+```text
+error: unknown command 'show'
+```
+
+> **Note:** The RED was accepted because the real subprocess and temporary JSON storage worked correctly and the failure directly represented the missing CLI command.
+
+---
+
+### 3. GREEN Phase
+
+The `show` command was implemented:
+
+```typescript
+export function registerShowCommand(
+  program: Command,
+  repository: TicketRepository,
+): void {
+  program
+    .command('show <id>')
+    .action(async (id: string) => {
+      const ticket = await getTicketById(repository, id);
+
+      console.log(`ID: ${ticket.id}`);
+      console.log(`Title: ${ticket.title}`);
+      console.log(`Description: ${ticket.description}`);
+      console.log(`Status: ${ticket.status}`);
+      console.log(`Priority: ${ticket.priority}`);
+      console.log(`Tags: ${ticket.tags.join(', ')}`);
+    });
+}
+```
+
+* The command delegates lookup to `getTicketById(repository, id)` and does not access the repository directly.
+
+---
+
+### 4. Validation
+
+**CLI E2E:**
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    1.82s
+Exit code   0
+```
+
+**Show-service regression:**
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    923ms
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+---
+
+### 5. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The command is already a thin CLI adapter.
+
+---
+
+### 6. Final Behavior
+
+```text
+tickets show <id>
+→ Commander
+→ getTicketById()
+→ repository lookup
+→ Ticket
+→ stdout
+```
+
+---
+
+### 7. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **E2E:** Passed
+* **Service regression:** Passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed

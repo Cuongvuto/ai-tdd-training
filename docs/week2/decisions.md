@@ -774,6 +774,40 @@ tickets list --status open --priority high --tags bug,auth
 
 > Exact final `stdout` formatting remains unresolved.
 
+---
+
+## W2-D30 — Base CLI Show Behavior
+
+**Status:** `Approved`
+
+The CLI provides:
+
+```bash
+tickets show <id>
+```
+
+For an existing ticket, the command retrieves the ticket through the existing service layer and writes its details to `stdout`.
+
+---
+
+### 1. Displayed Information
+
+The output must include at least:
+
+* `id`
+* `title`
+* `description`
+* `status`
+* `priority`
+* `tags`
+
+---
+
+### 2. Scope & Boundaries
+
+* **Layout:** Exact final layout and formatting are not yet treated as a stable output contract.
+* **Error handling:** Missing-ticket CLI error presentation will be handled separately.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`
