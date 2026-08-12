@@ -386,6 +386,37 @@ Cycle 13 does not cover:
 
 ---
 
+---
+
+## W2-D16 — Ticket Not Found
+
+**Status:** `Approved`
+
+---
+
+### 1. Architectural Behavior
+
+#### Repository lookup behavior:
+
+```text
+missing ticket
+→ undefined
+```
+
+#### Service behavior:
+
+```text
+missing ticket
+→ throw TicketNotFoundError
+```
+
+---
+
+### 2. Contract Scope & Boundary
+
+* The exact error message is not part of the contract yet.
+* This separation keeps persistence lookup behavior distinct from business error handling.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`

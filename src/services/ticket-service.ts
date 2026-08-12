@@ -1,7 +1,22 @@
 import { randomUUID } from 'node:crypto';
 
+import { TicketNotFoundError } from '../errors/ticket-not-found-error.js';
 import type { CreateTicketInput } from '../models/create-ticket-input.js';
 import type { Ticket } from '../models/ticket.js';
+import type { TicketRepository } from '../repositories/ticket-repository.js';
+
+export async function getTicketById(
+  repository: TicketRepository,
+  id: string,
+): Promise<Ticket> {
+  const ticket = await repository.findById(id);
+
+  if (ticket === undefined) {
+    throw new TicketNotFoundError();
+  }
+
+  return ticket;
+}
 
 export function createTicket({
   title,

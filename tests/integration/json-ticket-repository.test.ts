@@ -148,4 +148,23 @@ describe('JsonTicketRepository', () => {
 
     await expect(repository.findById(ticketB.id)).resolves.toEqual(ticketB);
   });
+
+  it('returns undefined when no ticket has the requested ID', async () => {
+    temporaryDirectory = await mkdtemp(
+      join(tmpdir(), 'json-ticket-repository-'),
+    );
+    const storagePath = join(temporaryDirectory, 'tickets.json');
+    const ticket: Ticket = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      title: 'Fix login',
+      description: '',
+      status: 'open',
+      priority: 'medium',
+      tags: [],
+    };
+    await writeFile(storagePath, JSON.stringify([ticket]), 'utf8');
+    const repository = new JsonTicketRepository(storagePath);
+
+    await expect(repository.findById('missing-id')).resolves.toBeUndefined();
+  });
 });

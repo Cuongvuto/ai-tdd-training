@@ -2080,3 +2080,205 @@ existing ID
 * **Regression tests:** Passed
 * **Speculative behavior introduced:** No
 * **Cycle status:** Completed
+---
+
+## Repository Not-Found Integration Validation
+
+### 1. Requirement
+
+When no stored ticket matches the requested ID:
+
+```text
+findById(id)
+→ undefined
+```
+
+---
+
+### 2. Validation
+
+A real-filesystem integration test was added:
+
+```typescript
+it('returns undefined when no ticket has the requested ID', async () => {
+  // real temporary tickets.json
+
+  await expect(
+    repository.findById('missing-id'),
+  ).resolves.toBeUndefined();
+});
+```
+
+**Observed result:**
+
+```text
+Test Files  1 passed (1)
+Tests       7 passed (7)
+Duration    641ms
+```
+
+---
+
+### 3. TDD Assessment
+
+* **A RED was not established.**
+* The behavior already existed because `findById()` uses `Array.find()`, which returns `undefined` when there is no matching ticket.
+* This test is retained as integration validation rather than Red-Green-Refactor evidence.
+
+---
+
+### 4. Confirmed Repository Contract
+
+```text
+existing ID
+→ Ticket
+
+missing ID
+→ undefined
+```
+
+*The repository does not convert a missing ticket into a business error.*
+
+---
+
+### 5. Human Review
+
+* **Missing-ID behavior confirmed:** Yes
+* **Valid RED established:** No
+* **Production code modified:** No
+* **Validation status:** Passed
+---
+
+## Cycle 18 — Reject Missing Ticket at Service Layer
+
+### 1. Requirement
+
+Repository lookup behavior remains:
+
+```text
+missing ID
+→ undefined
+```
+
+The service converts that persistence result into a business-level error:
+
+```text
+missing ID
+→ getTicketById()
+→ TicketNotFoundError
+```
+
+*The exact error message is not part of the contract.*
+
+---
+
+### 2. RED Phase
+
+A unit test used an in-memory fake repository configured so that:
+
+```text
+findById("missing-id")
+→ undefined
+```
+
+The test expected:
+
+```text
+getTicketById(...)
+→ reject with TicketNotFoundError
+```
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Duration    630ms
+```
+
+**Failure:**
+
+```text
+TypeError: getTicketById is not a function
+```
+
+> **Note:** The Red was accepted because the unit test and fake repository executed correctly and the missing service API was the direct cause of failure.
+
+---
+
+### 3. GREEN Phase
+
+A minimal business error was introduced:
+
+```typescript
+export class TicketNotFoundError extends Error {}
+```
+
+The service implemented:
+
+```typescript
+export async function getTicketById(
+  repository: TicketRepository,
+  id: string,
+): Promise<Ticket> {
+  const ticket = await repository.findById(id);
+
+  if (ticket === undefined) {
+    throw new TicketNotFoundError();
+  }
+
+  return ticket;
+}
+```
+
+**Show-service test result:**
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    651ms
+```
+
+**Create-service regression result:**
+
+```text
+Test Files  1 passed (1)
+Tests       12 passed (12)
+Duration    650ms
+```
+
+---
+
+### 4. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The service currently expresses the business rule directly:
+  ```text
+  repository lookup
+  → ticket exists: return ticket
+  → ticket missing: throw TicketNotFoundError
+  ```
+  No additional abstraction is justified.
+
+---
+
+### 5. Final Cycle 18 Behavior
+
+```text
+repository.findById(id) → undefined
+→ service throws TicketNotFoundError
+```
+
+*Existing create-ticket behavior remains unchanged.*
+
+---
+
+### 6. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Unit boundary:** Accepted
+* **Create regression:** Passed
+* **Speculative behavior introduced:** No
+* **Cycle status:** Completed
