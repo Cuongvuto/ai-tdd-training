@@ -1208,4 +1208,106 @@ Existing Cycle 01–09 behaviors remain unchanged.
 - Refactor: No-op accepted
 - Regression tests: Passed
 - Speculative behavior introduced: No
+- Cycle status: Completed---
+
+## Cycle 11 — Remove Duplicate Normalized Tags
+
+### Requirement
+
+Duplicate normalized tags must be removed while preserving first occurrence order.
+
+Example:
+
+```text
+["bug", "auth", "BUG"]
+→
+["bug", "auth"]
+```
+
+### RED
+
+Test added:
+
+```ts
+it('removes duplicate normalized tags', () => {
+  const ticket = createTicket({
+    title: 'Fix login',
+    tags: ['bug', 'auth', 'BUG'],
+  });
+
+  expect(ticket.tags).toEqual(['bug', 'auth']);
+});
+```
+
+Observed result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 10 passed (11)
+Duration    622ms
+Exit code   1
+```
+
+Failure:
+
+```text
+expected [ 'bug', 'auth', 'bug' ]
+to deeply equal [ 'bug', 'auth' ]
+```
+
+The Red was accepted because the previous ten tests remained green and the
+failure specifically demonstrated missing duplicate removal.
+
+### GREEN
+
+Duplicate normalized tags were removed using:
+
+```ts
+.filter(
+  (tag, index, normalizedTags) =>
+    normalizedTags.indexOf(tag) === index,
+)
+```
+
+First occurrence order is preserved.
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       11 passed (11)
+Duration    595ms
+Exit code   0
+```
+
+### REFACTOR REVIEW
+
+Decision:
+
+```text
+No-op refactor review
+```
+
+Reason:
+
+The implementation is currently readable and directly expresses the required
+behavior. No additional abstraction is justified.
+
+### Final Cycle 11 Behavior
+
+```text
+["bug", "auth", "BUG"]
+→
+["bug", "auth"]
+```
+
+Existing Cycle 01–10 behaviors remain unchanged.
+
+### Human Review
+
+- Red: Accepted
+- Green: Accepted
+- Refactor: No-op accepted
+- Regression tests: Passed
+- Speculative behavior introduced: No
 - Cycle status: Completed

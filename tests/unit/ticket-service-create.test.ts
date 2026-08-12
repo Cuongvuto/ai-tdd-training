@@ -73,4 +73,13 @@ describe('createTicket', () => {
 
     expect(ticket.tags).toEqual(['bug', 'auth']);
   });
+
+  it('removes duplicate normalized tags', () => {
+    const ticket = createTicket({
+      title: 'Fix login',
+      tags: ['bug', 'auth', 'BUG'],
+    });
+
+    expect(ticket.tags).toEqual(['bug', 'auth']);
+  });
 });

@@ -31,6 +31,9 @@ export function createTicket({
       ? []
       : tags
           .map((tag) => tag.trim().toLowerCase())
-          .filter((tag) => tag.length > 0),
+          .filter((tag) => tag.length > 0)
+          .filter((tag, index, normalizedTags) =>
+            normalizedTags.indexOf(tag) === index
+          ),
   };
 }
