@@ -6,10 +6,13 @@
   "directories": {
     "doc": "docs"
   },
+  "bin": {
+    "tickets": "./dist/cli.js"
+  },
   "scripts": {
     "test": "vitest",
     "dev": "tsx src/cli.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test:run": "vitest run"
   },
