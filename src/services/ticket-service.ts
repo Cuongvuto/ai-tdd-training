@@ -7,6 +7,12 @@ import type { Ticket } from '../models/ticket.js';
 import type { UpdateTicketInput } from '../models/update-ticket-input.js';
 import type { TicketRepository } from '../repositories/ticket-repository.js';
 
+export async function listTickets(
+  repository: TicketRepository,
+): Promise<Ticket[]> {
+  return repository.findAll();
+}
+
 export async function getTicketById(
   repository: TicketRepository,
   id: string,

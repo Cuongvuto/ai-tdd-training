@@ -2692,3 +2692,102 @@ invalid status
 * **Regression:** Passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+---
+
+## Cycle 22 — List All Tickets
+
+### 1. Requirement
+
+When no filters are provided, the service returns every ticket supplied by the repository while preserving repository order.
+
+---
+
+### 2. RED Phase
+
+A focused unit test used an in-memory repository containing two distinguishable tickets.
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Duration    891ms
+Exit code   1
+```
+
+**Failure:**
+
+```text
+TypeError: listTickets is not a function
+```
+
+> **Note:** The RED was accepted because the test and fake repository executed correctly and the failure directly represented the missing service API.
+
+---
+
+### 3. GREEN Phase
+
+The minimal implementation was added:
+
+```typescript
+export async function listTickets(
+  repository: TicketRepository,
+): Promise<Ticket[]> {
+  return repository.findAll();
+}
+```
+
+**List-service result:**
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    654ms
+Exit code   0
+```
+
+**Service regression:**
+
+```text
+Test Files  3 passed (3)
+Tests       15 passed (15)
+Duration    1.22s
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+> **Note:** An initial sandbox execution encountered an environment-level `EPERM` error. The compiler passed when rerun outside that sandbox.
+
+---
+
+### 4. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The implementation directly delegates to `repository.findAll()` and contains no unnecessary abstraction or duplication.
+
+---
+
+### 5. Final Behavior
+
+```text
+repository.findAll()
+→ listTickets()
+→ same Ticket[] in repository order
+```
+
+---
+
+### 6. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Regression:** Passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed

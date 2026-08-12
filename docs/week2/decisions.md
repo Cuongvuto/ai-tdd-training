@@ -509,6 +509,19 @@ The exact error message is not yet part of the contract.
 
 Status normalization is not introduced in this cycle.
 
+## W2-D21 — Base Ticket Listing
+
+**Status:** Approved
+
+When no filters are provided, the service returns every ticket supplied by the
+repository.
+
+Repository ordering is preserved.
+
+No additional sorting is introduced by the service.
+
+Filtering by status, priority, and tags will be introduced in later TDD cycles.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`
