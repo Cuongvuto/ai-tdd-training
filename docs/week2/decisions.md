@@ -636,6 +636,75 @@ filter tags = ["bug", "auth"]
 * **Combined filtering:** When `status`, `priority`, and `tags` are supplied together, all supplied filter conditions must match (AND semantics).
 * **Repository ordering:** Preserved naturally.
 
+---
+
+## W2-D25 — CLI Storage Path
+
+**Status:** `Approved`
+
+The CLI stores tickets in:
+
+```text
+data/tickets.json
+```
+
+*relative to the current working directory by default.*
+
+### Test Isolation
+
+For integration/E2E testing, the storage file may be overridden with:
+
+```text
+TICKETS_FILE
+```
+
+> This allows real subprocess tests to use isolated temporary files without writing into project data.
+
+---
+
+## W2-D26 — CLI Create Syntax
+
+**Status:** `Approved`
+
+### Create Command
+
+```bash
+tickets create --title <title>
+```
+
+### Optional Arguments
+
+* `--description <description>`
+* `--priority <priority>`
+* `--tags <tags>`
+
+### Tags Handling
+
+CLI tags are supplied as a comma-separated string:
+
+```bash
+--tags bug,auth,backend
+```
+
+The command layer converts this to:
+
+```typescript
+["bug", "auth", "backend"]
+```
+
+> **Note:** The service remains responsible for the existing tag normalization behavior.
+
+---
+
+## W2-D27 — Initial CLI Output
+
+**Status:** `Approved`
+
+* Successful commands write human-readable output to `stdout`.
+* For the first CLI create cycle, exact long-term formatting is not yet treated as a stable public contract.
+* The integration test may verify essential information such as the created ticket title while persistence is verified independently from the JSON file.
+* Error output and numerical exit-code contracts will be finalized in later cycles.
+
 ## Unresolved Decisions
 
 **Status:** `Unresolved`

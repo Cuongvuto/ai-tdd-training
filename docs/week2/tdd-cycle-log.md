@@ -3192,3 +3192,139 @@ status + priority + tags
 * **Regression:** Passed
 * **Typecheck:** Passed
 * **Cycle status:** Completed
+---
+
+## Cycle 26 — Create Ticket Through Real CLI Process
+
+### 1. Requirement
+
+Running the real CLI:
+
+```bash
+tickets create --title " Fix login "
+```
+
+with an isolated `TICKETS_FILE` must create and persist one ticket.
+
+**Expected persisted behavior:**
+
+```text
+title  → "Fix login"
+status → "open"
+```
+
+---
+
+### 2. RED Phase
+
+The CLI subprocess launched successfully and exited with status `0`, but no ticket file was created.
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Duration    2.15s
+Exit code   1
+```
+
+**Failure:**
+
+```text
+ENOENT: no such file or directory, open '<temp>/tickets.json'
+```
+
+> **Note:** The RED was accepted because the real subprocess environment worked correctly. The failure directly represented missing CLI wiring and persistence behavior.
+
+---
+
+### 3. GREEN Phase
+
+Storage-path resolution was implemented:
+
+```typescript
+export function resolveStoragePath(): string {
+  return process.env.TICKETS_FILE ??
+    resolve(process.cwd(), 'data', 'tickets.json');
+}
+```
+
+The `create` command was registered with `create --title <title>` and delegates ticket construction to the service:
+
+```typescript
+const ticket = createTicket({ title });
+await repository.save(ticket);
+```
+
+*The CLI composition root now creates the repository, registers the command, and awaits Commander parsing.*
+
+---
+
+### 4. Validation
+
+**CLI E2E:**
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    1.88s
+Exit code   0
+```
+
+**Repository regression:**
+
+```text
+Test Files  1 passed (1)
+Tests       8 passed (8)
+Duration    672ms
+Exit code   0
+```
+
+**Create-service regression:**
+
+```text
+Test Files  1 passed (1)
+Tests       12 passed (12)
+Duration    636ms
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+---
+
+### 5. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The composition and command implementations are already small and preserve the intended dependency direction.
+
+---
+
+### 6. Final Behavior
+
+```text
+CLI create
+→ raw title
+→ createTicket()
+→ business normalization
+→ repository.save()
+→ JSON storage
+```
+
+---
+
+### 7. Human Review
+
+* **Red:** Accepted
+* **Green:** Accepted
+* **Refactor:** No-op accepted
+* **Real subprocess used:** Yes
+* **Real JSON persistence used:** Yes
+* **Regression:** Passed
+* **Typecheck:** Passed
+* **Cycle status:** Completed
