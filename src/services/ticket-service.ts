@@ -29,6 +29,8 @@ export function createTicket({
     priority: normalizedPriority,
     tags: tags === undefined
       ? []
-      : tags.map((tag) => tag.trim().toLowerCase()),
+      : tags
+          .map((tag) => tag.trim().toLowerCase())
+          .filter((tag) => tag.length > 0),
   };
 }

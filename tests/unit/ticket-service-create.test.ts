@@ -64,4 +64,13 @@ describe('createTicket', () => {
 
     expect(ticket.tags).toEqual(['bug', 'auth']);
   });
+
+  it('removes tags that are empty after trimming', () => {
+    const ticket = createTicket({
+      title: 'Fix login',
+      tags: ['bug', '   ', 'auth'],
+    });
+
+    expect(ticket.tags).toEqual(['bug', 'auth']);
+  });
 });

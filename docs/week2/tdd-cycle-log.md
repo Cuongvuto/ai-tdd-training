@@ -1110,3 +1110,102 @@ Existing Cycle 01–08 behaviors remain unchanged.
 - Regression tests: Passed
 - Speculative behavior introduced: No
 - Cycle status: Completed
+---
+
+## Cycle 10 — Remove Empty Tags
+
+### Requirement
+
+Tags that become empty after trimming must be removed.
+
+Example:
+
+```text
+["bug", "   ", "auth"]
+→
+["bug", "auth"]
+```
+
+Duplicate-tag removal is intentionally excluded from this cycle.
+
+### RED
+
+Test added:
+
+```ts
+it('removes tags that are empty after trimming', () => {
+  const ticket = createTicket({
+    title: 'Fix login',
+    tags: ['bug', '   ', 'auth'],
+  });
+
+  expect(ticket.tags).toEqual(['bug', 'auth']);
+});
+```
+
+Observed result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 9 passed (10)
+Duration    607ms
+Exit code   1
+```
+
+Failure:
+
+```text
+expected [ 'bug', '', 'auth' ] to deeply equal [ 'bug', 'auth' ]
+```
+
+The Red was accepted because the previous nine tests passed and the new
+empty-tag-removal behavior was specifically missing.
+
+### GREEN
+
+The tags normalization pipeline was extended with:
+
+```ts
+.filter((tag) => tag.length > 0)
+```
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       10 passed (10)
+Duration    563ms
+Exit code   0
+```
+
+### REFACTOR REVIEW
+
+Decision:
+
+```text
+No-op refactor review
+```
+
+Reason:
+
+The current `map → filter` pipeline is small, readable, and directly expresses
+the required behavior. No additional abstraction is justified.
+
+### Final Cycle 10 Behavior
+
+```text
+["bug", "   ", "auth"]
+→
+["bug", "auth"]
+```
+
+Existing Cycle 01–09 behaviors remain unchanged.
+
+### Human Review
+
+- Red: Accepted
+- Green: Accepted
+- Refactor: No-op accepted
+- Regression tests: Passed
+- Speculative behavior introduced: No
+- Cycle status: Completed
