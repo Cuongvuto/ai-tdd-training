@@ -3462,6 +3462,94 @@ CLI options
 * **Cycle status:** Completed
 ---
 
+## Cycle 28 — List Tickets Through CLI
+
+### 1. Requirement
+
+The real CLI supports:
+
+```text
+tickets list
+```
+
+It must return all stored tickets, write their titles to stdout, and preserve
+repository order. Exact complete formatting is not part of this cycle.
+
+---
+
+### 2. RED Phase
+
+**Observed result:**
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Duration    1.75s
+Exit code   1
+```
+
+**Commander reported:**
+
+```text
+error: unknown command 'list'
+```
+
+The actual subprocess, temporary JSON file, and `TICKETS_FILE` override worked;
+the failure directly represented the missing command.
+
+---
+
+### 3. GREEN Phase
+
+The CLI registered `registerListCommand(program, repository)`. Its action uses:
+
+```text
+listTickets(repository)
+-> console.log(ticket.title) for each returned ticket
+```
+
+The command delegates storage and listing behavior to the existing service and
+prints tickets in the order returned by that service.
+
+---
+
+### 4. Validation
+
+**CLI E2E:**
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    1.63s
+Exit code   0
+```
+
+**List-service regression:**
+
+```text
+Test Files  1 passed (1)
+Tests       7 passed (7)
+Duration    629ms
+Exit code   0
+```
+
+**Typecheck:**
+
+```text
+tsc --noEmit
+Exit code: 0
+```
+
+---
+
+### 5. REFACTOR REVIEW
+
+* **Decision:** No-op refactor review
+* **Reason:** The new command was already a small adapter that delegated to
+  `listTickets()`; no further abstraction was justified.
+
+---
+
 ## Cycle 29 — Filter Tickets Through CLI Options
 
 ### 1. Requirement

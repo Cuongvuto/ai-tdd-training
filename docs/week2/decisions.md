@@ -1020,17 +1020,12 @@ Exact full wording and layout are not treated as a stable public contract.
 
 **Status:** `Unresolved`
 
-The following decisions have not yet been approved:
+The following concerns remain deferred and are not claimed as implemented:
 
-- Complete status vocabulary
-- Allowed status transitions
-- Description length limits
-- CLI tag input syntax
-- Filter semantics
-- List ordering
-- Default storage path
-- Output format
-- `stdout`/`stderr` rules
-- Numerical exit codes
-- Platform support
-- Concurrency/file locking
+- Description length limits.
+- Exact stable long-term success-output wording and layout.
+- Platform support beyond the environment used for the recorded validation.
+- Concurrency and file-locking behavior.
+- Atomic-write, backup, and recovery strategy.
+- Runtime schema validation and migration for stored JSON ticket data.
+- The library-package meaning of the stale `package.json` `main` field.
