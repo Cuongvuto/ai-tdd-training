@@ -1311,3 +1311,97 @@ Existing Cycle 01–10 behaviors remain unchanged.
 - Regression tests: Passed
 - Speculative behavior introduced: No
 - Cycle status: Completed
+---
+
+## Cycle 12 — Generate Ticket UUID
+
+### Requirement
+
+Each newly created ticket must automatically receive a UUID string.
+
+The caller does not provide or override the ID.
+
+### RED
+
+Test added:
+
+```ts
+it('assigns a UUID ID to a newly created ticket', () => {
+  const ticket = createTicket({ title: 'Fix login' });
+
+  expect(ticket.id).toMatch(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  );
+});
+```
+
+Observed result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 11 passed (12)
+Duration    713ms
+```
+
+Failure:
+
+```text
+TypeError: .toMatch() expects to receive a string, but got undefined
+```
+
+The Red was accepted because the previous eleven tests remained green and the
+failure specifically demonstrated missing automatic ID generation.
+
+### GREEN
+
+Node.js built-in UUID generation was introduced:
+
+```ts
+import { randomUUID } from 'node:crypto';
+```
+
+The returned ticket now contains:
+
+```ts
+id: randomUUID(),
+```
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       12 passed (12)
+Duration    1.03s
+```
+
+### REFACTOR REVIEW
+
+Decision:
+
+```text
+No-op refactor review
+```
+
+Reason:
+
+Using Node.js `randomUUID()` directly is already minimal and readable. No
+additional abstraction is justified at this stage.
+
+### Final Cycle 12 Behavior
+
+```text
+create ticket
+→ automatically generate UUID
+→ return UUID as ticket.id
+```
+
+Existing Cycle 01–11 behaviors remain unchanged.
+
+### Human Review
+
+- Red: Accepted
+- Green: Accepted
+- Refactor: No-op accepted
+- Regression tests: Passed
+- Speculative behavior introduced: No
+- Cycle status: Completed

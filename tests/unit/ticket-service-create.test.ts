@@ -82,4 +82,12 @@ describe('createTicket', () => {
 
     expect(ticket.tags).toEqual(['bug', 'auth']);
   });
+
+  it('assigns a UUID ID to a newly created ticket', () => {
+    const ticket = createTicket({ title: 'Fix login' });
+
+    expect(ticket.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+  });
 });

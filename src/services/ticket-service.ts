@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 export function createTicket({
   title,
   description,
@@ -23,6 +25,7 @@ export function createTicket({
   }
 
   return {
+    id: randomUUID(),
     title: normalizedTitle,
     status: 'open',
     description: description === undefined ? '' : description.trim(),
