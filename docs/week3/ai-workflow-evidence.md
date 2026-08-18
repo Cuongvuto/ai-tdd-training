@@ -22,6 +22,26 @@ The project did not manufacture a replacement RED after implementation or
 rewrite the observed history. The correction is recorded in
 `tdd-cycle-log.md`.
 
+## Week 3 Cycle 2
+
+The human wrote the Cycle 2 behavioral test before the production change.
+
+The initial test run produced a genuine behavioral RED:
+
+```text
+Expected 1 result
+Received 0 results
+```
+
+The existing title-search test remained green, showing that the failure was
+specific to the missing content-search behavior.
+
+After the RED was reviewed, the implementation was changed only enough to add
+content matching while preserving title precedence.
+
+Scope review confirmed that tag matching, `topK`, validation, list, retrieve,
+add, commands, and HTTP behavior were not implemented early.
+
 ## Evidence standard
 
 AI statements are not proof that behavior works. Evidence comes from:

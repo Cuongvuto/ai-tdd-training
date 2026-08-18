@@ -21,4 +21,18 @@ describe('MockKBClient search', () => {
       },
     ]);
   });
+
+  it('returns a content match case-insensitively' , async() =>{
+    const client = new MockKBClient();
+
+    const results = await client.search({
+      query: 'rEusAbLe',
+    })
+
+    expect(results).toHaveLength(1);
+    expect(results[0]?.document.id).toBe('doc-001');
+    expect(results[0]?.matchType).toBe('content');
+
+  })
+
 });
