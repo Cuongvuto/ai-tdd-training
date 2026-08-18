@@ -82,7 +82,7 @@ export class MockKBClient implements KBClient {
       throw new ValidationError('nodePath must not be blank');
     }
     if (!Number.isInteger(input.limit) || input.limit <= 0) {
-      throw new ValidationError('topK must be a positive integer');
+      throw new ValidationError('limit must be a positive integer');
     }
     return documents.filter(
       (document) => document.nodePath === normalizedNodePath
