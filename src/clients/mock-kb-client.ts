@@ -77,8 +77,16 @@ export class MockKBClient implements KBClient {
     return results.slice(0, input.topK);
   }
   async list(input: ListInput): Promise<Document[]> {
+    const normalizedNodePath = input.nodePath.trim();
+    if(!normalizedNodePath){
+      throw new ValidationError('nodePath must not be blank');
+    }
+    if (!Number.isInteger(input.limit) || input.limit <= 0) {
+      throw new ValidationError('topK must be a positive integer');
+    }
     return documents.filter(
-      (document) => document.nodePath === input.nodePath
-    );
+      (document) => document.nodePath === normalizedNodePath
+    )
+    .slice(0,input.limit);
   }
 }

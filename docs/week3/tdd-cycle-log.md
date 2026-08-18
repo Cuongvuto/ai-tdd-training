@@ -885,3 +885,174 @@ restriction, not a test, TypeScript, or production build failure.
 Cycle 6 contains a valid behavioral RED and the minimum exact-node GREEN
 behavior. List remains partial because Cycle 7 limit/validation behavior, CLI,
 and HTTP integration have not been implemented.
+
+## Cycle 7 — List limit and validation
+
+Cycle 7 extends the existing exact-node list behavior with result limiting,
+blank-path validation, and positive-integer limit validation. It reuses the
+existing `ValidationError`.
+
+### Contract preparation
+
+`ListInput` gained exactly one field:
+
+```typescript
+interface ListInput {
+  nodePath: string;
+  limit: number;
+}
+```
+
+The Cycle 6 exact-node/order test now supplies `limit: 10`, which is large
+enough to preserve its original expectation of `doc-001` followed by
+`doc-002`. Adding the field and updating the existing call site are structural
+type-contract preparation, not behavioral RED evidence.
+
+### Cycle 7A — List limit
+
+When two documents match `/templates/email` and `limit` is `1`, list returns
+only `doc-001`. Limit means “at most K,” not “exactly K,” and existing seed
+order is preserved.
+
+The actual implementation filters by exact path and then slices the result:
+
+```typescript
+return documents.filter(
+  (document) => document.nodePath === input.nodePath
+)
+.slice(0,input.limit);
+```
+
+No sorting, prefix/substring matching, or recursive traversal was added.
+
+#### RED evidence
+
+**Classification: IMPLEMENTATION / BEHAVIOR VALIDATION WITHOUT CAPTURED
+BEHAVIORAL RED**
+
+No verified run proves that the limit test failed with two results before the
+slice implementation existed. No RED was recreated after implementation.
+
+### Cycle 7B — Blank nodePath validation
+
+The implementation trims `nodePath` for validation and rejects a normalized
+empty value with `ValidationError`:
+
+```typescript
+const normalizedNodePath = input.nodePath.trim();
+if(!normalizedNodePath){
+  throw new ValidationError('nodePath must not be blank');
+}
+```
+
+The focused suite tests a whitespace-only value. An empty string reaches the
+same guard, but no separate empty-string test exists. The current matching
+expression still compares against raw `input.nodePath`; no executable test
+establishes matching behavior for a nonblank path with surrounding whitespace.
+
+#### RED evidence
+
+**Classification: IMPLEMENTATION / BEHAVIOR VALIDATION WITHOUT CAPTURED
+BEHAVIORAL RED**
+
+No verified run proves that the whitespace-only test resolved instead of
+rejecting before validation was implemented.
+
+### Cycle 7C — Invalid limit validation
+
+The implementation requires a positive integer and rejects `0`, `-1`, and
+`1.5` with the existing `ValidationError`:
+
+```typescript
+if (!Number.isInteger(input.limit) || input.limit <= 0) {
+  throw new ValidationError('topK must be a positive integer');
+}
+```
+
+Current tests assert the error class, not the exact message. The production
+message refers to `topK`, so it is not recorded as an approved list error
+message contract.
+
+#### RED evidence
+
+**Classification: IMPLEMENTATION / BEHAVIOR VALIDATION WITHOUT CAPTURED
+BEHAVIORAL RED**
+
+No verified pre-GREEN failure is available for the zero-limit behavior. The
+negative and decimal tests are regression/edge-case validation of the general
+positive-integer guard, not separate RED/GREEN cycles.
+
+### Focused validation
+
+List focused suite:
+
+```text
+Test Files  1 passed (1)
+Tests       6 passed (6)
+Duration    655ms
+Exit code   0
+```
+
+Search regression:
+
+```text
+Test Files  1 passed (1)
+Tests       8 passed (8)
+Duration    759ms
+Exit code   0
+```
+
+### Full regression
+
+```text
+Test Files  12 passed (12)
+Tests       54 passed (54)
+Duration    7.26s
+Exit code   0
+```
+
+### Typecheck
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+### Build
+
+```text
+npm run build
+tsc -p tsconfig.build.json
+Exit code: 0
+```
+
+These Node-based validations used approved out-of-sandbox execution because
+the environment's `C:\Users\anhde` resolution has already been established to
+produce sandbox-only `EPERM` failures. All requested project validations
+passed; no code failure was observed.
+
+### Refactor review
+
+**Decision:** No-op behavioral refactor
+
+The direct guards plus exact filter and final slice are sufficient for the
+current behavior. No new error class or behavioral abstraction was needed.
+
+### Scope review
+
+- Exact `nodePath` matching and deterministic order: preserved.
+- Result limiting: implemented.
+- Blank/whitespace-only `nodePath` validation: implemented.
+- Zero, negative, and non-integer limit validation: implemented.
+- List CLI command and KB command registration: not implemented.
+- Retrieve and add: not implemented.
+- Recursive listing: not implemented.
+- `HTTPKBClient`: not implemented.
+- Environment switching and live API validation: not implemented.
+
+### Cycle assessment
+
+Cycle 7 behavior is implemented and covered by the current list suite, but no
+verified pre-implementation behavioral RED is available for 7A, 7B, or 7C.
+List remains partial because CLI, HTTP, and live API integration are absent.

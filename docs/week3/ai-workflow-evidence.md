@@ -105,6 +105,22 @@ and list behavior in separate focused suites.
 Human-controlled scope kept list limit and validation, CLI behavior, retrieve,
 add, HTTP integration, and environment switching out of Cycle 6.
 
+## Week 3 Cycle 7
+
+Cycle 6 exact-node matching and seed order were preserved while list limiting
+and validation were introduced. Adding `limit` to `ListInput` and updating the
+existing Cycle 6 call site were treated as structural/type preparation rather
+than behavioral RED evidence. Limit retained “at most K” semantics.
+
+No verified pre-GREEN failure is available for Cycle 7A, 7B, or 7C, so none is
+claimed. The negative and decimal limit cases are recorded as
+regression/edge-case coverage of the general positive-integer rule rather than
+separate RED/GREEN cycles.
+
+List validation reused `ValidationError` instead of introducing another error
+class. Scope remained limited to `MockKBClient.list`; CLI, retrieve, add,
+recursive listing, HTTP integration, and environment switching were not added.
+
 ## Evidence standard
 
 AI statements are not proof that behavior works. Evidence comes from:
