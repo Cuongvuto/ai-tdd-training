@@ -1,4 +1,4 @@
-
+import { ValidationError } from '../errors/validation-error.js';
 import type { Document } from '../models/kb/document.js';
 import type { SearchInput } from '../models/kb/search-input.js';
 import type { SearchResult } from '../models/kb/search-result.js';
@@ -30,7 +30,13 @@ const documents: Document[] = [
 
 export class MockKBClient implements KBClient {
   async search(input: SearchInput): Promise<SearchResult[]> {
-    const normalizedQuery = input.query.toLowerCase();
+    const normalizedQuery = input.query.trim().toLowerCase();
+    if (!normalizedQuery) {
+      throw new ValidationError('Search query must not be blank');
+    }
+    if (!Number.isInteger(input.topK) || input.topK <= 0) {
+      throw new ValidationError('topK must be a positive integer');
+   }
     const results: SearchResult[] = [];
 
     for(const document of documents){

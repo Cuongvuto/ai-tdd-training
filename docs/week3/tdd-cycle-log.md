@@ -580,3 +580,141 @@ abstraction or unrelated cleanup was needed.
 The behavioral goal is implemented and GREEN. Cycle 4 does not contain a valid
 pre-implementation behavioral RED because its first failure came from an
 incorrect test expectation rather than missing production behavior.
+
+## Cycle 5 — Search input validation
+
+Cycle 5 remained limited to validating the existing search inputs. It reused
+the existing `ValidationError`; no KB-specific validation error hierarchy was
+introduced.
+
+### Cycle 5A — Blank query validation
+
+#### Behavior
+
+- Trim surrounding whitespace and normalize the query to lowercase before
+  matching.
+- Reject a query whose normalized value is empty with `ValidationError`.
+
+The implementation performs both operations in the existing search method:
+
+```typescript
+const normalizedQuery = input.query.trim().toLowerCase();
+
+if (!normalizedQuery) {
+  throw new ValidationError('Search query must not be blank');
+}
+```
+
+The focused suite contains a whitespace-only query test. An empty string is
+also rejected by the same production branch after trimming, but there is no
+separate executable empty-string test in the current suite. The exact error
+message is not asserted as part of the current executable contract.
+
+#### RED evidence
+
+**Classification: IMPLEMENTATION / BEHAVIOR VALIDATION WITHOUT CAPTURED
+BEHAVIORAL RED**
+
+No verified pre-GREEN failing run was captured for Cycle 5A. No RED was
+manufactured after the implementation was present.
+
+### Cycle 5B — Invalid topK validation
+
+#### Behavior
+
+`topK` must be a positive integer. The implementation rejects zero, negative,
+and non-integer values with `ValidationError`:
+
+```typescript
+if (!Number.isInteger(input.topK) || input.topK <= 0) {
+  throw new ValidationError('topK must be a positive integer');
+}
+```
+
+The focused suite exercises `topK` values `0`, `-1`, and `1.5`. The negative
+and decimal cases were added after the existing implementation already handled
+them, so they are regression/edge-case validation rather than separate
+RED/GREEN cycles. The exact error message is not asserted by the current tests.
+
+#### RED evidence
+
+**Classification: IMPLEMENTATION / BEHAVIOR VALIDATION WITHOUT CAPTURED
+BEHAVIORAL RED**
+
+No verified pre-GREEN failing run was captured for Cycle 5B. Passing tests
+added after implementation are not presented as historical RED evidence.
+
+### Focused validation
+
+Command:
+
+```text
+npx vitest run tests/unit/mock-kb-client-search.test.ts
+```
+
+Observed result from the approved out-of-sandbox retry:
+
+```text
+Test Files  1 passed (1)
+Tests       8 passed (8)
+Duration    626ms
+Exit code   0
+```
+
+### Full regression
+
+```text
+Test Files  11 passed (11)
+Tests       48 passed (48)
+Duration    7.00s
+Exit code   0
+```
+
+### Typecheck
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+### Build
+
+```text
+npm run build
+tsc -p tsconfig.build.json
+Exit code: 0
+```
+
+The initial sandboxed validation attempts could not start Node-based project
+commands because of the known environment-only `EPERM` restriction while
+resolving `C:\Users\anhde`. Approved out-of-sandbox retries passed the focused
+suite, full regression, typecheck, and build. This was an execution-environment
+restriction, not a test, TypeScript, or production build failure.
+
+### Refactor review
+
+**Decision:** No-op
+
+The two direct guards are the minimum implementation for the approved input
+rules. Reusing `ValidationError` avoids an unapproved KB-specific hierarchy,
+and no further abstraction is justified by this slice.
+
+### Scope review
+
+- Query trimming and case normalization: implemented.
+- Blank and whitespace-only query rejection: implemented.
+- Zero, negative, and non-integer `topK` rejection: implemented.
+- Filters: not implemented.
+- Search scoring or ranking: not implemented.
+- List, retrieve, and add: not implemented.
+- KB commands: not implemented.
+- `HTTPKBClient`: not implemented.
+- Environment selection and real API integration: not implemented.
+
+### Cycle assessment
+
+Cycle 5A and 5B behavior is implemented and covered by the current focused
+suite, but neither slice has a verified pre-implementation behavioral RED.
+Search and `MockKBClient` remain partial because later operations, filters,
+commands, HTTP behavior, and environment switching have not been implemented.
