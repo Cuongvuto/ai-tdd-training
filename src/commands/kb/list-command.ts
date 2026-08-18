@@ -16,9 +16,13 @@ export function registerKBListCommand(
     .requiredOption('--node <path>')
     .requiredOption('--limit <number>', 'maximum number of documents', Number)
     .action(async (options: KBListCommandOptions) => {
-      await client.list({
+      const documents = await client.list({
         nodePath: options.node,
         limit: options.limit,
       });
+
+      for (const document of documents) {
+        console.log(document.title);
+      }
     });
 }

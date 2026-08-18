@@ -146,7 +146,24 @@ not relabeled as behavioral RED. Final evidence was one focused test passing,
 Scope review prevented stdout implementation, production `src/cli.ts` wiring,
 subprocess E2E, other KB commands, HTTP integration, and environment switching
 from entering this first Cycle 8 slice. The approved stdout behavior remains a
-future test-driven slice.
+separate test-driven slice.
+
+For the stdout slice, the human-approved contract was converted into a focused
+test before production changed. The test received no log calls while the prior
+delegation test passed, and the full RED run left all 55 earlier tests green.
+This was accepted as Cycle 8's second valid behavioral RED because the approved
+output behavior—not module setup—was absent.
+
+The minimum GREEN printed each returned document title in client order. Silent
+empty-result behavior and both missing-required-option cases were added only
+after GREEN and are classified as regression/contract coverage, not newly
+manufactured REDs. Test setup was refactored without changing production
+behavior.
+
+Final evidence is five focused tests passing, 59 full-suite tests passing,
+typecheck passing, and build passing. Scope review still excludes production
+`src/cli.ts` wiring, subprocess E2E, other KB commands, HTTP integration, and
+environment switching. Cycle 8 is complete for its approved in-process scope.
 
 ## Evidence standard
 

@@ -1216,3 +1216,146 @@ list-command registration, parsing, numeric conversion, and exact-once client
 delegation. The Cycle 8 command remains partial until its approved stdout
 behavior is implemented and covered. Production composition and E2E remain
 later-cycle work.
+
+### Cycle 8B — Ordered list stdout
+
+The human-approved output contract requires one document title per line in the
+order returned by `KBClient.list()`, with no header or additional fields. An
+empty result produces no stdout and completes successfully.
+
+#### RED evidence
+
+The executable stdout test configures a fake client to return `doc-001` then
+`doc-002`, invokes the same in-process list command, and expects these calls:
+
+```text
+console.log('Customer Response Template')
+console.log('Password Reset Template')
+```
+
+The delegation test remained green, while the new test observed no log calls:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 1 passed (2)
+Expected    Customer Response Template, Password Reset Template
+Received    []
+Duration    669ms
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 12 passed (13)
+Tests       1 failed | 55 passed (56)
+Duration    8.59s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+Both Cycle 8 tests loaded and executed, the earlier delegation behavior and all
+54 pre-Cycle-8 tests passed, and the new assertion failed because the command
+discarded the returned documents instead of printing their titles. This was
+missing approved output behavior, not a structural or environment failure.
+
+#### GREEN
+
+The minimum production change stores the documents returned by
+`KBClient.list()` and logs each `document.title` using a `for...of` loop. The
+loop preserves client order and adds no header, formatting, sorting, or extra
+fields.
+
+First focused GREEN:
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    603ms
+Exit code   0
+```
+
+#### Regression and contract coverage
+
+After GREEN, three cases were added:
+
+- an empty client result completes without calling `console.log`;
+- omission of `--node` is rejected by Commander before client delegation;
+- omission of `--limit` is rejected by Commander before client delegation.
+
+The required-option implementation already existed before these tests, and the
+empty-result behavior was already satisfied by the GREEN loop. These cases are
+regression/contract coverage, not additional RED/GREEN cycles.
+
+Test-only setup was consolidated into typed client and program helpers. No
+production behavior changed during that cleanup.
+
+#### Final validation
+
+Focused Cycle 8 suite:
+
+```text
+Test Files  1 passed (1)
+Tests       5 passed (5)
+Duration    599ms
+Exit code   0
+```
+
+Full regression:
+
+```text
+Test Files  13 passed (13)
+Tests       59 passed (59)
+Duration    7.31s
+Exit code   0
+```
+
+Typecheck:
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+Build:
+
+```text
+npm run build
+tsc -p tsconfig.build.json
+Exit code: 0
+```
+
+These Node-based validations used approved out-of-sandbox execution because
+the environment's `C:\Users\anhde` resolution has already been established to
+produce sandbox-only `EPERM` failures. No project failure was observed.
+
+#### Final refactor review
+
+**Decision:** No-op production refactor
+
+The direct iteration matches the approved Week 2 list-output convention. Only
+test setup duplication was reduced; no service layer or output abstraction was
+introduced.
+
+#### Final scope review
+
+- Parent `kb` and nested `list` registration: implemented and tested in
+  process.
+- Required `--node` and `--limit`: implemented and covered.
+- Numeric conversion and exact-once delegation: implemented and tested.
+- Ordered title-per-line stdout: implemented and tested.
+- Empty-result silent success: implemented and tested.
+- Business validation remains in `MockKBClient`: preserved.
+- `src/cli.ts` production wiring: not implemented.
+- Subprocess E2E: not implemented.
+- Search, retrieve, and add commands: not implemented.
+- `HTTPKBClient`, environment switching, and live API validation: deferred.
+
+#### Final Cycle 8 assessment
+
+Cycle 8 is complete for its approved in-process mock-first scope. It contains
+two valid behavioral REDs: command delegation and ordered stdout. Production
+composition and E2E are explicitly reserved for a later cycle, so their absence
+does not rewrite or broaden Cycle 8 scope.
