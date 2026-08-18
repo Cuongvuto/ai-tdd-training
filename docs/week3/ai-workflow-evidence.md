@@ -57,6 +57,22 @@ added to the deterministic seed tags. The expected fixture was corrected to
 match the approved seed change; production search behavior was not altered to
 satisfy the stale assertion. The title, content, and tag tests then passed.
 
+## Week 3 Cycle 4
+
+The human wrote and ran a focused test for deterministic ordering and `topK`
+limiting. Its first version used `topK = 5` with two matching documents while
+expecting one result.
+
+Human/Agent review investigated the failure instead of automatically treating
+it as a valid TDD RED. Because `topK` is an upper bound, returning both
+available matches was correct. The expectation was corrected to `topK = 1`,
+and the focused suite then passed.
+
+No fake RED was manufactured after the production implementation was known.
+This cycle records the distinction between a failing test and evidence of
+missing behavior: every failure must be checked against the approved contract
+before it is accepted as a behavioral RED.
+
 ## Evidence standard
 
 AI statements are not proof that behavior works. Evidence comes from:

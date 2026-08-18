@@ -22,10 +22,10 @@ reported as completed behavior.
 | Extend the Week 2 CLI with KB integration | Week 2 behavior remains intact, but no KB commands are registered. | **NOT STARTED** |
 | Five-field `Document` entity | `src/models/kb/document.ts` defines `id`, `title`, `content`, `nodePath`, and `tags`. | **COMPLETE** |
 | `SearchResult` concept | The provisional mock-phase result contains a full `Document` and `matchType`. Executable evidence covers title, content, and tag matches. | **PARTIAL** |
-| `KBQuery` with query, filters, and `topK` | The current `SearchInput` contains only `query`. Filters and `topK` are intentionally deferred to later TDD cycles. | **PARTIAL** |
+| `KBQuery` with query, filters, and `topK` | `SearchInput` contains `query` and `topK`. Filter shape and behavior remain deferred. | **PARTIAL** |
 | `KBClient` supports search, list, retrieve, and add | The interface currently exposes asynchronous `search` only. `list`, `retrieve`, and `add` have not been introduced. | **PARTIAL** |
-| In-memory `MockKBClient` with 2–3 documents | One deterministic document now includes the `support` tag, and title, content, and tag search behaviors exist. The complete fixture and remaining operations are not implemented. | **PARTIAL** |
-| Search operation | Case-insensitive substring matching is implemented for title, content, and individual tags with title > content > tag precedence. `topK`, filters, validation, and ranking remain absent. | **PARTIAL** |
+| In-memory `MockKBClient` with 2–3 documents | All three intended deterministic seed documents exist. Title, content, tag, insertion-order, and positive-`topK` search behavior are implemented; list, retrieve, and add remain absent. | **PARTIAL** |
+| Search operation | Case-insensitive substring matching is implemented for title, content, and individual tags with title > content > tag precedence. Results preserve seed order and support positive-`topK` happy-path limiting. Filters, validation, and ranking remain absent. | **PARTIAL** |
 | List operation | No model, client behavior, command, or test exists. | **NOT STARTED** |
 | Retrieve operation | No model, client behavior, command, or test exists. | **NOT STARTED** |
 | Add operation | No model, client behavior, file handling, command, or test exists. | **NOT STARTED** |
@@ -39,9 +39,9 @@ reported as completed behavior.
 | HTTP client supports all four operations | The real base URL, authentication, response schemas, and error behavior remain unresolved. | **BLOCKED** |
 | Real KB API integration is tested | API access and a safe policy for testing the mutating add operation are unavailable. | **BLOCKED** |
 | Real API integration is documented | Accurate integration documentation requires the production API contract and access. | **BLOCKED** |
-| Mock client is independently testable | `tests/unit/mock-kb-client-search.test.ts` independently verifies title, content, and tag search behavior. The remaining mock behaviors are not implemented. | **PARTIAL** |
+| Mock client is independently testable | `tests/unit/mock-kb-client-search.test.ts` independently verifies title, content, tag, insertion-order, and positive-`topK` search behavior. The remaining mock behaviors are not implemented. | **PARTIAL** |
 | Error handling for missing or invalid data | No KB validation, not-found, file, configuration, or HTTP error behavior exists. | **NOT STARTED** |
-| Continue the TDD and mock-first workflow | Cycle 1 records its structural failure accurately; Cycle 2 has a valid behavioral RED; Cycle 3 is explicitly classified as behavior validation without a captured pre-implementation behavioral RED. | **PARTIAL** |
+| Continue the TDD and mock-first workflow | Cycle 1 records a structural failure; Cycle 2 has a valid behavioral RED; Cycle 3 lacks captured RED evidence; Cycle 4 records and corrects an invalid test expectation rather than misclassifying it as RED evidence. | **PARTIAL** |
 | Architecture and setup/deployment documentation | Mentor architecture and project decision/evidence documents exist. Configuration, HTTP setup, and deployment documentation remain incomplete. | **PARTIAL** |
 
 ## Current search implementation
@@ -58,9 +58,12 @@ reported as completed behavior.
 - [x] `matchType: 'content'` for content-only matches
 - [x] `matchType: 'tag'` for tag-only matches
 - [x] Title over content over tag precedence
-- [ ] `topK`
+- [x] Deterministic seed/insertion order
+- [x] Positive-`topK` happy-path result limiting
 - [ ] Blank-query validation
-- [ ] Invalid-`topK` validation
+- [ ] Zero-`topK` validation
+- [ ] Negative-`topK` validation
+- [ ] Non-integer-`topK` validation
 - [ ] `KBQuery.filters`
 - [ ] Search scoring or ranking
 
@@ -168,6 +171,36 @@ Exit code   0
 Cycle 3 did not introduce `topK`, validation, filters, scoring/ranking, list,
 retrieve, add, KB commands, HTTP behavior, or environment configuration.
 
+### Cycle 4 — Deterministic ordering and topK limiting
+
+Approved behavior:
+
+- Preserve deterministic seed/insertion order.
+- Return at most `topK` matching documents.
+
+The focused example uses query `template`, which matches `doc-001` followed by
+`doc-002`, with `topK = 1`. The expected result is `doc-001` only.
+
+The first test version used `topK = 5` while expecting one result. Two
+documents matched, so returning two was correct. This was classified as an
+**INVALID TEST EXPECTATION / TEST DESIGN ERROR**, not as a behavioral RED. The
+test was corrected to `topK = 1`, while production behavior remained
+`results.slice(0, input.topK)`.
+
+Focused GREEN:
+
+```text
+Test Files  1 passed (1)
+Tests       4 passed (4)
+Duration    707ms
+Exit code   0
+```
+
+Cycle 4 proves positive-`topK` happy-path limiting only. It does not prove
+blank-query, zero, negative, or non-integer validation and does not introduce
+filters, ranking, list, retrieve, add, KB commands, HTTP behavior, or
+environment switching.
+
 ## Acceptance criteria status
 
 | Acceptance criterion | Status | Current evidence or blocker |
@@ -183,8 +216,8 @@ retrieve, add, KB commands, HTTP behavior, or environment configuration.
 | --- | --- | --- |
 | `Document` model | **COMPLETE** | Five mentor-specified fields |
 | `KBClient` contract | **PARTIAL** | Asynchronous `search` only |
-| `MockKBClient` | **PARTIAL** | Title, content, and tag search against one seeded document with an expanded deterministic tag fixture |
-| Search | **PARTIAL** | Case-insensitive title/content/tag substring matching with title > content > tag precedence |
+| `MockKBClient` | **PARTIAL** | Three deterministic seed documents; title/content/tag search; insertion order; positive-`topK` limiting |
+| Search | **PARTIAL** | Case-insensitive title/content/tag substring matching, precedence, deterministic order, and positive-`topK` limiting |
 | List | **NOT STARTED** | None |
 | Retrieve | **NOT STARTED** | None |
 | Add | **NOT STARTED** | None |
@@ -195,6 +228,6 @@ retrieve, add, KB commands, HTTP behavior, or environment configuration.
 
 ## Overall assessment
 
-Week 3 is not complete. After Cycle 3, `MockKBClient` and the search
+Week 3 is not complete. After Cycle 4, `MockKBClient` and the search
 requirement remain **PARTIAL**. All unimplemented behavior remains explicitly
 separated from completed, executable evidence.

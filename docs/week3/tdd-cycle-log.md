@@ -430,3 +430,153 @@ this documentation-only task.
 The Cycle 3 behavior is implemented and validated, but the cycle does not have
 captured evidence of a pre-implementation behavioral RED. Future cycles must
 run and record the focused behavioral RED before production implementation.
+
+## Cycle 4 — Preserve insertion order and limit results with topK
+
+### Behavior
+
+When multiple documents match, search preserves deterministic seed/insertion
+order and returns at most `topK` results.
+
+The focused example is:
+
+```text
+query   = "template"
+matches = doc-001, doc-002
+topK    = 1
+result  = doc-001
+```
+
+This demonstrates both result limiting and preservation of insertion order.
+
+### Contract preparation
+
+`SearchInput` was extended with:
+
+```typescript
+topK: number;
+```
+
+Existing title, content, and tag tests use a sufficiently large fixed `topK`
+so the limit does not interfere with the behavior each test was designed to
+verify. This contract preparation is not classified as a behavioral RED.
+
+### Initial failing validation
+
+The initial test used:
+
+```text
+query = "template"
+topK  = 5
+```
+
+Two documents matched, but the test expected one result. The observed failure
+was:
+
+```text
+Expected length: 1
+Received length: 2
+```
+
+**Classification: INVALID TEST EXPECTATION / TEST DESIGN ERROR**
+
+`topK` means “return at most K results.” With two available matches and
+`topK = 5`, returning both matches is correct. The failure did not prove
+missing or incorrect production behavior and is not accepted as a behavioral
+RED.
+
+### Correction
+
+The focused test was corrected to `topK = 1`. Production behavior remained:
+
+```typescript
+return results.slice(0, input.topK);
+```
+
+No production behavior was reverted or removed to manufacture a RED after the
+known GREEN implementation.
+
+### Focused GREEN
+
+Command:
+
+```text
+npm run test:run -- tests/unit/mock-kb-client-search.test.ts
+```
+
+Observed result:
+
+```text
+Test Files  1 passed (1)
+Tests       4 passed (4)
+Duration    707ms
+Exit code   0
+```
+
+### TDD classification
+
+No valid behavioral RED was captured before the known GREEN implementation.
+The initial failure was an invalid expectation, and no replacement RED was
+recreated after the implementation was known.
+
+### Full regression
+
+```text
+Test Files  11 passed (11)
+Tests       44 passed (44)
+Duration    8.86s
+Exit code   0
+```
+
+### Typecheck
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+### Build
+
+```text
+npm run build
+tsc -p tsconfig.build.json
+Exit code: 0
+```
+
+The first sandboxed build attempt failed with the known environment-only
+`EPERM` restriction while resolving `C:\Users\anhde`. The approved
+out-of-sandbox retry passed. This was an execution-environment restriction,
+not a project or TypeScript build failure.
+
+### Refactor review
+
+**Decision:** No-op
+
+The previously identified unused `node:process` import is no longer present.
+The insertion-order and `topK` behavior is already expressed directly by
+collecting matches in seed order and slicing once after matching. No additional
+abstraction or unrelated cleanup was needed.
+
+### Scope review
+
+- Title, content, and tag matching: implemented.
+- Case-insensitive substring matching: implemented.
+- Precedence `title > content > tag`: implemented.
+- Deterministic seed/insertion order: implemented.
+- Positive-`topK` happy-path limiting: implemented.
+- Blank-query validation: not implemented.
+- Zero-`topK` validation: not implemented.
+- Negative-`topK` validation: not implemented.
+- Non-integer-`topK` validation: not implemented.
+- Filters: not implemented.
+- Ranking or scoring: not implemented.
+- List, retrieve, and add: not implemented.
+- KB commands: not implemented.
+- `HTTPKBClient` and environment switching: not implemented.
+
+### Cycle assessment
+
+The behavioral goal is implemented and GREEN. Cycle 4 does not contain a valid
+pre-implementation behavioral RED because its first failure came from an
+incorrect test expectation rather than missing production behavior.

@@ -1,4 +1,4 @@
-import { title } from 'node:process';
+
 import type { Document } from '../models/kb/document.js';
 import type { SearchInput } from '../models/kb/search-input.js';
 import type { SearchResult } from '../models/kb/search-result.js';
@@ -12,6 +12,20 @@ const documents: Document[] = [
     nodePath: '/templates/email',
     tags: ['template', 'email', 'support'],
   },
+  {
+    id: 'doc-002',
+    title: 'Password Reset Template',
+    content: 'Instructions for resetting a customer password.',
+    nodePath: '/templates/email',
+    tags: ['template', 'email', 'security'],
+ },
+  {
+    id: 'doc-003',
+    title: 'DevOps Team Contacts',
+    content: 'On-call contact information for the DevOps team.',
+    nodePath: '/team/devops',
+    tags: ['team', 'devops'],
+ },
 ];
 
 export class MockKBClient implements KBClient {
@@ -50,6 +64,6 @@ export class MockKBClient implements KBClient {
       }
     }
 
-    return results;
+    return results.slice(0, input.topK);
   }
 }

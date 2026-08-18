@@ -6,7 +6,7 @@ describe('MockKBClient search', () => {
   it('returns a seeded document whose title contains the query case-insensitively', async () => {
     const client = new MockKBClient();
 
-    const results = await client.search({ query: 'rEsPoNsE' });
+    const results = await client.search({ query: 'rEsPoNsE', topK: 5 });
 
     expect(results).toEqual([
       {
@@ -27,6 +27,7 @@ describe('MockKBClient search', () => {
 
     const results = await client.search({
       query: 'rEusAbLe',
+      topK: 5,
     })
 
     expect(results).toHaveLength(1);
@@ -40,6 +41,7 @@ describe('MockKBClient search', () => {
 
     const results = await client.search({
       query : 'SuPpOrT',
+      topK: 5,
     });
 
     expect(results).toHaveLength(1);
@@ -47,5 +49,17 @@ describe('MockKBClient search', () => {
     expect(results[0]?.matchType).toBe('tag');
 
   });
+
+  it('preserves insertion order and limits results by topK', async()=>{
+    const client = new MockKBClient();
+
+    const result = await  client.search({
+      query: 'template',
+      topK: 1,
+    });
+
+    expect(result).toHaveLength(1);
+    expect(result[0]?.document.id).toBe('doc-001');
+  })
 
 });
