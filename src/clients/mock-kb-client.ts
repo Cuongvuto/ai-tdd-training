@@ -10,7 +10,7 @@ const documents: Document[] = [
     title: 'Customer Response Template',
     content: 'A reusable email template for customer requests.',
     nodePath: '/templates/email',
-    tags: ['template', 'email'],
+    tags: ['template', 'email', 'support'],
   },
 ];
 
@@ -27,6 +27,10 @@ export class MockKBClient implements KBClient {
       const contentMatches = document.content
         .toLocaleLowerCase()
         .includes(normalizedQuery);
+      
+      const tagMatches = document.tags.some((tag)=>
+         tag.toLowerCase()
+         .includes(normalizedQuery));
 
       if(titleMatches){
         results.push({
@@ -37,6 +41,11 @@ export class MockKBClient implements KBClient {
         results.push({
           document,
           matchType: 'content',
+        });
+      }else if(tagMatches){
+        results.push({
+          document,
+          matchType: 'tag',
         });
       }
     }

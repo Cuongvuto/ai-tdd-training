@@ -21,11 +21,11 @@ reported as completed behavior.
 | --- | --- | --- |
 | Extend the Week 2 CLI with KB integration | Week 2 behavior remains intact, but no KB commands are registered. | **NOT STARTED** |
 | Five-field `Document` entity | `src/models/kb/document.ts` defines `id`, `title`, `content`, `nodePath`, and `tags`. | **COMPLETE** |
-| `SearchResult` concept | The provisional mock-phase result contains a full `Document` and `matchType`. Executable evidence currently covers title and content matches. | **PARTIAL** |
+| `SearchResult` concept | The provisional mock-phase result contains a full `Document` and `matchType`. Executable evidence covers title, content, and tag matches. | **PARTIAL** |
 | `KBQuery` with query, filters, and `topK` | The current `SearchInput` contains only `query`. Filters and `topK` are intentionally deferred to later TDD cycles. | **PARTIAL** |
 | `KBClient` supports search, list, retrieve, and add | The interface currently exposes asynchronous `search` only. `list`, `retrieve`, and `add` have not been introduced. | **PARTIAL** |
-| In-memory `MockKBClient` with 2–3 documents | One deterministic document and two search behaviors exist. The complete fixture and remaining operations are not implemented. | **PARTIAL** |
-| Search operation | Case-insensitive substring matching is implemented for title and content. Tag matching, `topK`, filters, and validation remain absent. | **PARTIAL** |
+| In-memory `MockKBClient` with 2–3 documents | One deterministic document now includes the `support` tag, and title, content, and tag search behaviors exist. The complete fixture and remaining operations are not implemented. | **PARTIAL** |
+| Search operation | Case-insensitive substring matching is implemented for title, content, and individual tags with title > content > tag precedence. `topK`, filters, validation, and ranking remain absent. | **PARTIAL** |
 | List operation | No model, client behavior, command, or test exists. | **NOT STARTED** |
 | Retrieve operation | No model, client behavior, command, or test exists. | **NOT STARTED** |
 | Add operation | No model, client behavior, file handling, command, or test exists. | **NOT STARTED** |
@@ -39,9 +39,9 @@ reported as completed behavior.
 | HTTP client supports all four operations | The real base URL, authentication, response schemas, and error behavior remain unresolved. | **BLOCKED** |
 | Real KB API integration is tested | API access and a safe policy for testing the mutating add operation are unavailable. | **BLOCKED** |
 | Real API integration is documented | Accurate integration documentation requires the production API contract and access. | **BLOCKED** |
-| Mock client is independently testable | `tests/unit/mock-kb-client-search.test.ts` independently verifies title and content search behavior. The remaining mock behaviors are not implemented. | **PARTIAL** |
+| Mock client is independently testable | `tests/unit/mock-kb-client-search.test.ts` independently verifies title, content, and tag search behavior. The remaining mock behaviors are not implemented. | **PARTIAL** |
 | Error handling for missing or invalid data | No KB validation, not-found, file, configuration, or HTTP error behavior exists. | **NOT STARTED** |
-| Continue the TDD and mock-first workflow | Cycle 1 records its structural failure accurately. Cycle 2 records a valid behavioral RED followed by the minimum GREEN for content search. | **PARTIAL** |
+| Continue the TDD and mock-first workflow | Cycle 1 records its structural failure accurately; Cycle 2 has a valid behavioral RED; Cycle 3 is explicitly classified as behavior validation without a captured pre-implementation behavioral RED. | **PARTIAL** |
 | Architecture and setup/deployment documentation | Mentor architecture and project decision/evidence documents exist. Configuration, HTTP setup, and deployment documentation remain incomplete. | **PARTIAL** |
 
 ## Current search implementation
@@ -52,10 +52,12 @@ reported as completed behavior.
 - [x] Case-insensitive title matching
 - [x] Content substring matching
 - [x] Case-insensitive content matching
+- [x] Tag substring matching
+- [x] Case-insensitive tag matching
 - [x] `matchType: 'title'` for title matches
 - [x] `matchType: 'content'` for content-only matches
-- [x] Title precedence over content matching
-- [ ] Tag matching
+- [x] `matchType: 'tag'` for tag-only matches
+- [x] Title over content over tag precedence
 - [ ] `topK`
 - [ ] Blank-query validation
 - [ ] Invalid-`topK` validation
@@ -137,6 +139,35 @@ Exit code   0
 Cycle 2 did not introduce tag matching, `topK`, validation, list, retrieve,
 add, KB commands, HTTP behavior, or environment configuration.
 
+### Cycle 3 — Case-insensitive tag search
+
+Approved behavior:
+
+- Match a case-insensitive substring in an individual document tag.
+- Return a tag-only match with `matchType: 'tag'`.
+- Preserve title, then content, then tag precedence.
+
+**Evidence classification: IMPLEMENTATION / BEHAVIOR VALIDATION WITHOUT
+CAPTURED BEHAVIORAL RED**
+
+No verified pre-implementation failing run is available. The later failure of
+the Cycle 1 full-object assertion was caused by its stale expected tag array
+after `support` was added to the seed. It was not a behavioral RED. Correcting
+the expected fixture restored all three search tests without changing search
+behavior.
+
+Focused validation after the correction:
+
+```text
+Test Files  1 passed (1)
+Tests       3 passed (3)
+Duration    589ms
+Exit code   0
+```
+
+Cycle 3 did not introduce `topK`, validation, filters, scoring/ranking, list,
+retrieve, add, KB commands, HTTP behavior, or environment configuration.
+
 ## Acceptance criteria status
 
 | Acceptance criterion | Status | Current evidence or blocker |
@@ -152,8 +183,8 @@ add, KB commands, HTTP behavior, or environment configuration.
 | --- | --- | --- |
 | `Document` model | **COMPLETE** | Five mentor-specified fields |
 | `KBClient` contract | **PARTIAL** | Asynchronous `search` only |
-| `MockKBClient` | **PARTIAL** | Title and content search against one seeded document |
-| Search | **PARTIAL** | Case-insensitive title/content substring matching with title precedence |
+| `MockKBClient` | **PARTIAL** | Title, content, and tag search against one seeded document with an expanded deterministic tag fixture |
+| Search | **PARTIAL** | Case-insensitive title/content/tag substring matching with title > content > tag precedence |
 | List | **NOT STARTED** | None |
 | Retrieve | **NOT STARTED** | None |
 | Add | **NOT STARTED** | None |
@@ -164,6 +195,6 @@ add, KB commands, HTTP behavior, or environment configuration.
 
 ## Overall assessment
 
-Week 3 is not complete. After Cycle 2, `MockKBClient` and the search
+Week 3 is not complete. After Cycle 3, `MockKBClient` and the search
 requirement remain **PARTIAL**. All unimplemented behavior remains explicitly
 separated from completed, executable evidence.

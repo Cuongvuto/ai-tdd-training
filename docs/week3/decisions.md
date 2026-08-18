@@ -49,17 +49,16 @@ schema.
 **Status:** Approved provisionally for the mock phase
 
 The approved match types are `title`, `content`, and `tag`. When more than one
-field matches, the precedence is title, then content, then tag. Cycle 1
-implements title matching only.
+field matches, the precedence is title, then content, then tag.
 
 ## W3-D04 — KBQuery filters
 
 **Source:** PROJECT TECHNICAL DECISION  
 **Status:** Approved for staged implementation
 
-The first search slice accepts only a query. Filter shape and behavior are not
-invented. `topK` and filters will be introduced only in their approved cycles.
-The production HTTP representation remains unresolved.
+The staged search contract uses `query`. `topK` is introduced with its
+dedicated behavior. Filter shape and behavior are not invented, and the
+production HTTP representation remains unresolved.
 
 ## W3-D05 — Mock seed data
 
@@ -72,26 +71,26 @@ The intended deterministic mock seed contains three documents:
 2. Password Reset Template at `/templates/email`.
 3. DevOps Team Contacts at `/team/devops`.
 
-Cycle 1 includes only the Customer Response Template because no later-cycle
-fixture behavior is needed yet.
+This fixture stays small while supporting meaningful search, list, retrieve,
+and add examples across more than one node.
 
 ## W3-D06 — Search matching
 
 **Source:** PROJECT TECHNICAL DECISION  
 **Status:** Approved for staged implementation
 
-Mock search uses case-insensitive substring matching, returns each matching
-document once, and does not score or rank results. Cycle 1 searches titles
-only. Content and tag matching remain later mock cycles.
+Mock search checks title, content, and individual tags using case-insensitive
+substring matching. It returns each matching document once and does not score
+or rank results. Match precedence follows W3-D03: title, then content, then
+tag.
 
 ## W3-D07 — Search ordering, topK, and validation
 
 **Source:** PROJECT TECHNICAL DECISION  
-**Status:** Approved but not implemented
+**Status:** Approved for staged implementation
 
-Results preserve seed/insertion order. Later cycles will apply an approved
-positive-integer `topK` and reject blank queries or invalid `topK` values.
-Cycle 1 implements neither `topK` nor validation.
+Results preserve seed/insertion order. `topK` must be a positive integer. Blank
+queries and invalid `topK` values are rejected.
 
 ## W3-D08 — List behavior
 
@@ -144,10 +143,10 @@ the mock.
 **Source:** PROJECT TECHNICAL DECISION  
 **Status:** Approved for staged implementation
 
-Client methods are asynchronous for future HTTP parity and use domain inputs
-and outputs. Cycle 1 exposes only `search`; list, retrieve, and add are added
-when their behaviors enter TDD. The interface contains no HTTP-library,
-Commander, console, filesystem, or environment details.
+Client methods are asynchronous for future HTTP parity and use typed domain
+inputs and outputs. Operations are added when their behavior enters TDD. The
+interface contains no HTTP-library, Commander, console, filesystem, or
+environment details.
 
 ## W3-D14 — CLI organization
 

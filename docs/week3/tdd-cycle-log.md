@@ -283,3 +283,150 @@ implemented behavior.
 Cycle 2 contains a valid behavioral RED: the existing behavior stayed green
 and the new test failed specifically because content matching was absent. The
 minimum implementation is green, regression-safe, type-safe, and build-safe.
+
+## Cycle 3 — Tag search is case-insensitive
+
+### Behavior
+
+Given the deterministic seeded document, a case-insensitive query contained
+only in one document tag returns that document with:
+
+```text
+matchType = "tag"
+```
+
+The focused test uses `SuPpOrT`. The seed contains `support` in its tags, while
+the term is intentionally absent from the document title and content. The test
+therefore distinguishes tag matching from title and content matching.
+
+### Evidence classification
+
+**Classification: IMPLEMENTATION / BEHAVIOR VALIDATION WITHOUT CAPTURED
+BEHAVIORAL RED**
+
+No repository evidence or verified human-reported result proves that the tag
+test ran and failed before the tag-search production implementation was added.
+No RED was recreated after implementation, and no behavioral RED is claimed.
+
+The temporary failure of the Cycle 1 exact-object assertion during later
+validation is not a Cycle 3 RED. It occurred after tag behavior existed and was
+caused by stale expected fixture data.
+
+### Minimum implementation
+
+Cycle 3 added only:
+
+- an individual-tag substring check using the normalized query;
+- `matchType: 'tag'` when neither title nor content matches;
+- preservation of title, then content, then tag precedence.
+
+The implemented precedence is:
+
+```text
+title
+↓
+content
+↓
+tag
+```
+
+### Focused validation
+
+Command:
+
+```text
+npm run test:run -- tests/unit/mock-kb-client-search.test.ts
+```
+
+Observed result from the post-documentation validation run:
+
+```text
+Test Files  1 passed (1)
+Tests       3 passed (3)
+Duration    589ms
+Exit code   0
+```
+
+### Temporary regression during validation
+
+After tag search was implemented, the existing Cycle 1 exact-object assertion
+temporarily failed because the deterministic seed's tags changed from:
+
+```text
+["template", "email"]
+```
+
+to:
+
+```text
+["template", "email", "support"]
+```
+
+Production title-search behavior itself was not broken. The expected fixture
+was stale, so the expected tag array was corrected to include `support` rather
+than changing search behavior to satisfy the old assertion. Title, content,
+and tag tests then all passed.
+
+### Full regression
+
+```text
+Test Files  11 passed (11)
+Tests       43 passed (43)
+Duration    7.25s
+Exit code   0
+```
+
+### Typecheck
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+### Build
+
+```text
+npm run build
+tsc -p tsconfig.build.json
+Exit code: 0
+```
+
+The first sandboxed build attempt failed with the known environment-only
+`EPERM` restriction while resolving `C:\Users\anhde`. The approved
+out-of-sandbox retry passed. This was an execution-environment restriction,
+not a project or TypeScript build failure.
+
+### Refactor review
+
+**Decision:** No-op behavioral refactor
+
+The current branch structure directly expresses title, content, and tag
+precedence. No additional abstraction is required for Cycle 3 behavior. Minor
+unrelated source-formatting or unused-import cleanup was not performed during
+this documentation-only task.
+
+### Scope review
+
+- Title search: implemented.
+- Content search: implemented.
+- Tag search: implemented.
+- Case-insensitive substring matching: implemented for all three fields.
+- Precedence `title > content > tag`: implemented.
+- `topK`: not implemented.
+- Blank-query validation: not implemented.
+- Invalid-`topK` validation: not implemented.
+- Filters: not implemented.
+- Ranking or scoring: not implemented.
+- List: not implemented.
+- Retrieve: not implemented.
+- Add: not implemented.
+- KB commands: not implemented.
+- `HTTPKBClient`: not implemented.
+- Environment configuration: not implemented.
+
+### Cycle assessment
+
+The Cycle 3 behavior is implemented and validated, but the cycle does not have
+captured evidence of a pre-implementation behavioral RED. Future cycles must
+run and record the focused behavioral RED before production implementation.

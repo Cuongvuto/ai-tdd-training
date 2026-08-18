@@ -15,7 +15,7 @@ describe('MockKBClient search', () => {
           title: 'Customer Response Template',
           content: 'A reusable email template for customer requests.',
           nodePath: '/templates/email',
-          tags: ['template', 'email'],
+          tags: ['template', 'email','support'],
         },
         matchType: 'title',
       },
@@ -33,6 +33,19 @@ describe('MockKBClient search', () => {
     expect(results[0]?.document.id).toBe('doc-001');
     expect(results[0]?.matchType).toBe('content');
 
-  })
+  });
+
+  it('return a tag match case-insensitively' , async()=>{
+    const client = new MockKBClient();
+
+    const results = await client.search({
+      query : 'SuPpOrT',
+    });
+
+    expect(results).toHaveLength(1);
+    expect(results[0]?.document.id).toBe('doc-001');
+    expect(results[0]?.matchType).toBe('tag');
+
+  });
 
 });

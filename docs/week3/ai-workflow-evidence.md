@@ -42,6 +42,21 @@ content matching while preserving title precedence.
 Scope review confirmed that tag matching, `topK`, validation, list, retrieve,
 add, commands, and HTTP behavior were not implemented early.
 
+## Week 3 Cycle 3
+
+The human selected the tag-only query `support` so the test could distinguish
+tag matching from title or content matching. Scope remained limited to the tag
+search branch and preservation of title, content, then tag precedence.
+
+No verified pre-implementation failing run is available for Cycle 3, so no
+behavioral RED is claimed. Future cycles must run and capture their focused RED
+before production implementation.
+
+Validation exposed a stale Cycle 1 full-object expectation after `support` was
+added to the deterministic seed tags. The expected fixture was corrected to
+match the approved seed change; production search behavior was not altered to
+satisfy the stale assertion. The title, content, and tag tests then passed.
+
 ## Evidence standard
 
 AI statements are not proof that behavior works. Evidence comes from:
