@@ -718,3 +718,170 @@ Cycle 5A and 5B behavior is implemented and covered by the current focused
 suite, but neither slice has a verified pre-implementation behavioral RED.
 Search and `MockKBClient` remain partial because later operations, filters,
 commands, HTTP behavior, and environment switching have not been implemented.
+
+## Cycle 6 — Mock list exact nodePath and insertion order
+
+### Behavior
+
+`MockKBClient.list()` returns only documents whose `nodePath` exactly equals
+the requested path and preserves deterministic seed/insertion order.
+
+For:
+
+```text
+nodePath = "/templates/email"
+```
+
+the expected document IDs are:
+
+```text
+["doc-001", "doc-002"]
+```
+
+`doc-003`, whose path is `/team/devops`, is excluded.
+
+### Structural setup
+
+Before the behavioral RED, Cycle 6 introduced the minimum structure required
+to make the list test executable:
+
+- `ListInput` with `nodePath: string`;
+- the asynchronous `KBClient.list(input)` contract returning `Document[]`;
+- `MockKBClient.list(input)` as a temporary stub returning `[]`.
+
+Interface creation, imports, and the empty stub are structural setup, not
+behavioral RED evidence. Their purpose was to allow the test file to load and
+the behavior assertion to execute normally.
+
+### RED
+
+The behavioral test requested:
+
+```text
+nodePath = "/templates/email"
+expected = ["doc-001", "doc-002"]
+received = []
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+The test file loaded, `client.list()` existed, and there was no missing-module,
+import, or type-setup failure. The assertion failed specifically because the
+temporary stub returned no documents and the required exact-node behavior did
+not yet exist. No unrecorded RED timing or duration is claimed.
+
+### GREEN
+
+The minimum implementation filters the deterministic seed using exact
+`nodePath` equality:
+
+```typescript
+return documents.filter(
+  (document) => document.nodePath === input.nodePath
+);
+```
+
+`Array.filter()` preserves source-array order, so `doc-001` remains before
+`doc-002`. No sorting, substring/prefix matching, or recursive hierarchy
+traversal was added.
+
+### Focused GREEN evidence
+
+Human-reported results after test cleanup:
+
+```text
+Search regression:
+Test Files  1 passed (1)
+Tests       8 passed (8)
+
+List focused suite:
+Test Files  1 passed (1)
+Tests       1 passed (1)
+```
+
+The list test is:
+
+```text
+returns documents for the exact nodePath in insertion order
+```
+
+### Refactor / cleanup
+
+A duplicate copy of the list test temporarily existed in the search test file
+and was removed as test-organization cleanup, not as new behavior. The final
+separation is:
+
+```text
+tests/unit/mock-kb-client-search.test.ts -> search behavior only (8 tests)
+tests/unit/mock-kb-client-list.test.ts   -> list behavior only (1 test)
+```
+
+### Post-documentation focused validation
+
+List focused suite:
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    634ms
+Exit code   0
+```
+
+Search regression:
+
+```text
+Test Files  1 passed (1)
+Tests       8 passed (8)
+Duration    730ms
+Exit code   0
+```
+
+### Full regression
+
+```text
+Test Files  12 passed (12)
+Tests       49 passed (49)
+Duration    8.13s
+Exit code   0
+```
+
+### Typecheck
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+### Build
+
+```text
+npm run build
+tsc -p tsconfig.build.json
+Exit code: 0
+```
+
+The initial sandboxed focused attempts could not start Vitest because of the
+known environment-only `EPERM` restriction while Node resolved
+`C:\Users\anhde`. Approved out-of-sandbox retries passed both focused suites,
+the full regression, typecheck, and build. This was an execution-environment
+restriction, not a test, TypeScript, or production build failure.
+
+### Scope review
+
+- Exact `nodePath` matching: implemented.
+- Deterministic insertion order: implemented.
+- Documents from other node paths are excluded: implemented.
+- List limit: not implemented.
+- Blank-`nodePath` validation: not implemented.
+- Invalid-limit validation: not implemented.
+- Recursive hierarchy traversal: not implemented.
+- List CLI command: not implemented.
+- Retrieve and add: not implemented.
+- `HTTPKBClient` and environment switching: not implemented.
+
+### Cycle assessment
+
+Cycle 6 contains a valid behavioral RED and the minimum exact-node GREEN
+behavior. List remains partial because Cycle 7 limit/validation behavior, CLI,
+and HTTP integration have not been implemented.

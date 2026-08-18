@@ -2,6 +2,7 @@ import { ValidationError } from '../errors/validation-error.js';
 import type { Document } from '../models/kb/document.js';
 import type { SearchInput } from '../models/kb/search-input.js';
 import type { SearchResult } from '../models/kb/search-result.js';
+import type { ListInput } from '../models/kb/list-input.js'; 
 import type { KBClient } from './kb-client.js';
 
 const documents: Document[] = [
@@ -29,23 +30,26 @@ const documents: Document[] = [
 ];
 
 export class MockKBClient implements KBClient {
-  async search(input: SearchInput): Promise<SearchResult[]> {
+  async search(input: SearchInput): Promise<SearchResult[]>{
     const normalizedQuery = input.query.trim().toLowerCase();
+
     if (!normalizedQuery) {
       throw new ValidationError('Search query must not be blank');
     }
+
     if (!Number.isInteger(input.topK) || input.topK <= 0) {
       throw new ValidationError('topK must be a positive integer');
    }
+
     const results: SearchResult[] = [];
 
     for(const document of documents){
       const titleMatches = document.title
-        .toLocaleLowerCase()
+        .toLowerCase()
         .includes(normalizedQuery);
       
       const contentMatches = document.content
-        .toLocaleLowerCase()
+        .toLowerCase()
         .includes(normalizedQuery);
       
       const tagMatches = document.tags.some((tag)=>
@@ -71,5 +75,10 @@ export class MockKBClient implements KBClient {
     }
 
     return results.slice(0, input.topK);
+  }
+  async list(input: ListInput): Promise<Document[]> {
+    return documents.filter(
+      (document) => document.nodePath === input.nodePath
+    );
   }
 }

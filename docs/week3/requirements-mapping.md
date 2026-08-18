@@ -23,10 +23,10 @@ reported as completed behavior.
 | Five-field `Document` entity | `src/models/kb/document.ts` defines `id`, `title`, `content`, `nodePath`, and `tags`. | **COMPLETE** |
 | `SearchResult` concept | The provisional mock-phase result contains a full `Document` and `matchType`. Executable evidence covers title, content, and tag matches. | **PARTIAL** |
 | `KBQuery` with query, filters, and `topK` | `SearchInput` contains `query` and `topK`. Filter shape and behavior remain deferred. | **PARTIAL** |
-| `KBClient` supports search, list, retrieve, and add | The interface currently exposes asynchronous `search` only. `list`, `retrieve`, and `add` have not been introduced. | **PARTIAL** |
-| In-memory `MockKBClient` with 2–3 documents | All three intended deterministic seed documents exist. Title, content, tag, insertion-order, `topK` limiting, and search-input validation are implemented; list, retrieve, and add remain absent. | **PARTIAL** |
+| `KBClient` supports search, list, retrieve, and add | The interface exposes asynchronous `search` and `list`. `retrieve` and `add` have not been introduced. | **PARTIAL** |
+| In-memory `MockKBClient` with 2–3 documents | All three intended deterministic seed documents exist. The approved search slices and exact-node list behavior are implemented; list limit/validation, retrieve, and add remain absent. | **PARTIAL** |
 | Search operation | Case-insensitive substring matching is implemented for title, content, and individual tags with title > content > tag precedence. Results preserve seed order, support positive-`topK` limiting, and reject blank queries or non-positive/non-integer `topK`. Filters and ranking remain absent. | **PARTIAL** |
-| List operation | No model, client behavior, command, or test exists. | **NOT STARTED** |
+| List operation | `ListInput`, `KBClient.list`, and `MockKBClient.list` exist. One focused test proves exact `nodePath` matching, seed/insertion order, and exclusion of a document on another path. Limit and validation remain absent. | **PARTIAL** |
 | Retrieve operation | No model, client behavior, command, or test exists. | **NOT STARTED** |
 | Add operation | No model, client behavior, file handling, command, or test exists. | **NOT STARTED** |
 | `kb search` command | The command is not registered or tested. | **NOT STARTED** |
@@ -39,9 +39,9 @@ reported as completed behavior.
 | HTTP client supports all four operations | The real base URL, authentication, response schemas, and error behavior remain unresolved. | **BLOCKED** |
 | Real KB API integration is tested | API access and a safe policy for testing the mutating add operation are unavailable. | **BLOCKED** |
 | Real API integration is documented | Accurate integration documentation requires the production API contract and access. | **BLOCKED** |
-| Mock client is independently testable | `tests/unit/mock-kb-client-search.test.ts` independently verifies title, content, tag, insertion-order, `topK` limiting, and current search-input validation. The remaining mock behaviors are not implemented. | **PARTIAL** |
+| Mock client is independently testable | Separate focused suites verify current search behavior and exact-node list behavior. List limit/validation and the remaining mock operations are not implemented. | **PARTIAL** |
 | Error handling for missing or invalid data | Blank search queries and invalid `topK` values use the existing `ValidationError`. KB not-found, file, configuration, and HTTP error behavior remains absent. | **PARTIAL** |
-| Continue the TDD and mock-first workflow | Cycle 1 records a structural failure; Cycle 2 has a valid behavioral RED; Cycle 3 lacks captured RED evidence; Cycle 4 corrects an invalid test expectation; Cycle 5 records validation without claiming an uncaptured pre-GREEN RED. | **PARTIAL** |
+| Continue the TDD and mock-first workflow | Earlier cycle classifications remain recorded. Cycle 6 separates list structural setup from a valid behavioral RED and minimum exact-node GREEN. | **PARTIAL** |
 | Architecture and setup/deployment documentation | Mentor architecture and project decision/evidence documents exist. Configuration, HTTP setup, and deployment documentation remain incomplete. | **PARTIAL** |
 
 ## Current search implementation
@@ -69,6 +69,29 @@ reported as completed behavior.
 - [ ] Search scoring or ranking
 
 The overall search requirement remains **PARTIAL**.
+
+## Current list implementation
+
+`MockKBClient.list()` currently has executable evidence for:
+
+- [x] List operation exists in `KBClient`
+- [x] `MockKBClient.list()` exists
+- [x] Exact `nodePath` matching
+- [x] Deterministic seed/insertion order
+- [x] Documents from other node paths are excluded
+- [ ] List limit
+- [ ] Blank-`nodePath` validation
+- [ ] Invalid-limit validation
+- [ ] List CLI command
+- [ ] HTTP list integration
+
+The deterministic seed is confirmed to contain:
+
+- [x] `doc-001` at `/templates/email`
+- [x] `doc-002` at `/templates/email`
+- [x] `doc-003` at `/team/devops`
+
+The overall list requirement remains **PARTIAL**.
 
 ## TDD evidence
 
@@ -229,6 +252,26 @@ Post-documentation validation results are recorded in `tdd-cycle-log.md`.
 Cycle 5 did not introduce filters, ranking, list, retrieve, add, KB commands,
 HTTP behavior, environment switching, or live API integration.
 
+### Cycle 6 — Exact-node list and insertion order
+
+Structural setup introduced `ListInput`, the `KBClient.list()` contract, and a
+temporary `MockKBClient.list()` stub returning `[]`. This setup made the test
+executable and is not classified as behavioral RED evidence.
+
+The test requested `/templates/email`, expected `doc-001` followed by
+`doc-002`, and received `[]` from the stub. Because the suite loaded and the
+failure was caused by absent list behavior, this is classified as a **VALID
+BEHAVIORAL RED**.
+
+The minimum GREEN uses exact `nodePath` equality with `Array.filter()`, which
+also preserves deterministic seed order. It adds no sorting, prefix/substring
+matching, recursive traversal, limit, validation, CLI, or HTTP behavior.
+
+The final test organization keeps eight search tests in
+`mock-kb-client-search.test.ts` and one list test in
+`mock-kb-client-list.test.ts`. Removal of a temporary duplicate list test from
+the search file was cleanup, not new behavior.
+
 ## Acceptance criteria status
 
 | Acceptance criterion | Status | Current evidence or blocker |
@@ -243,10 +286,10 @@ HTTP behavior, environment switching, or live API integration.
 | Area | Status | Implemented slice |
 | --- | --- | --- |
 | `Document` model | **COMPLETE** | Five mentor-specified fields |
-| `KBClient` contract | **PARTIAL** | Asynchronous `search` only |
-| `MockKBClient` | **PARTIAL** | Three deterministic seed documents; title/content/tag search; insertion order; `topK` limiting; search-input validation |
+| `KBClient` contract | **PARTIAL** | Asynchronous `search` and `list` |
+| `MockKBClient` | **PARTIAL** | Three deterministic seed documents; approved search slices; exact-node list in insertion order |
 | Search | **PARTIAL** | Case-insensitive title/content/tag substring matching, precedence, deterministic order, `topK` limiting, and blank-query/invalid-`topK` validation |
-| List | **NOT STARTED** | None |
+| List | **PARTIAL** | Exact `nodePath` equality, insertion order, and exclusion of other paths; no limit or validation |
 | Retrieve | **NOT STARTED** | None |
 | Add | **NOT STARTED** | None |
 | KB commands | **NOT STARTED** | None |
@@ -256,6 +299,6 @@ HTTP behavior, environment switching, or live API integration.
 
 ## Overall assessment
 
-Week 3 is not complete. After Cycle 5, `MockKBClient` and the search
-requirement remain **PARTIAL**. All unimplemented behavior remains explicitly
-separated from completed, executable evidence.
+Week 3 is not complete. After Cycle 6, `MockKBClient`, search, and list remain
+**PARTIAL**. All unimplemented behavior remains explicitly separated from
+completed, executable evidence.

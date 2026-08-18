@@ -73,6 +73,38 @@ This cycle records the distinction between a failing test and evidence of
 missing behavior: every failure must be checked against the approved contract
 before it is accepted as a behavioral RED.
 
+## Week 3 Cycle 5
+
+Cycle 5 remained limited to search input validation. The implementation reused
+the existing `ValidationError` for blank queries and invalid `topK` values;
+no KB-specific validation hierarchy or later-cycle behavior was introduced.
+
+No verified pre-GREEN behavioral RED was captured for Cycle 5A or Cycle 5B,
+so none is claimed. The negative and decimal `topK` tests were added after the
+implementation already handled those values and are recorded as
+regression/edge-case coverage, not as separate RED/GREEN evidence.
+
+Human review continues to accept a RED only when an observed failing run shows
+that approved behavior is absent or incorrect. Passing tests, source
+inspection, typecheck, and build are current validation evidence; they do not
+rewrite the order of earlier implementation events.
+
+## Week 3 Cycle 6
+
+Structural setup was deliberately separated from behavioral TDD evidence.
+`ListInput`, the client contract, and an empty `MockKBClient.list()` stub were
+introduced so the list test could execute. The test then received `[]` instead
+of the expected exact-node documents, which was accepted as a valid behavioral
+RED because the required behavior—not module or type setup—was missing.
+
+The minimum GREEN used exact `nodePath` filtering, preserving deterministic
+seed order without sorting or recursive traversal. A duplicate list test found
+in the search test file was removed as organization cleanup, leaving search
+and list behavior in separate focused suites.
+
+Human-controlled scope kept list limit and validation, CLI behavior, retrieve,
+add, HTTP integration, and environment switching out of Cycle 6.
+
 ## Evidence standard
 
 AI statements are not proof that behavior works. Evidence comes from:

@@ -73,35 +73,35 @@ describe('MockKBClient search', () => {
     ).rejects.toThrow(ValidationError);
   });
 
-it('rejects topK when it is zero', async () => {
-  const client = new MockKBClient();
+  it ('rejects topK when it is zero', async () => {
+    const client = new MockKBClient();
 
-  await expect(
-    client.search({
-      query: 'template',
-      topK: 0,
-    })
-  ).rejects.toThrow(ValidationError);
-});
-it('rejects a negative topK', async () => {
-  const client = new MockKBClient();
+    await expect(
+      client.search({
+        query: 'template',
+        topK: 0,
+     })
+    ).rejects.toThrow(ValidationError);
+  });
+  it ('rejects a negative topK', async () => {
+    const client = new MockKBClient();
 
-  await expect(
-    client.search({
+    await expect(
+      client.search({
       query: 'template',
       topK: -1,
     })
-  ).rejects.toThrow(ValidationError);
-});
-it('rejects a non-integer topK', async () => {
-  const client = new MockKBClient();
+   ).rejects.toThrow(ValidationError);
+  });
+  it ('rejects a non-integer topK', async () => {
+    const client = new MockKBClient();
 
-  await expect(
-    client.search({
+    await expect(
+      client.search({
       query: 'template',
       topK: 1.5,
     })
-  ).rejects.toThrow(ValidationError);
-});
-
+   ).rejects.toThrow(ValidationError);
+ });
+ 
 });
