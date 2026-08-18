@@ -918,7 +918,7 @@ The actual implementation filters by exact path and then slices the result:
 
 ```typescript
 return documents.filter(
-  (document) => document.nodePath === input.nodePath
+  (document) => document.nodePath === normalizedNodePath
 )
 .slice(0,input.limit);
 ```
@@ -947,7 +947,7 @@ if(!normalizedNodePath){
 
 The focused suite tests a whitespace-only value. An empty string reaches the
 same guard, but no separate empty-string test exists. The current matching
-expression still compares against raw `input.nodePath`; no executable test
+expression compares against `normalizedNodePath`. No executable test separately
 establishes matching behavior for a nonblank path with surrounding whitespace.
 
 #### RED evidence
@@ -965,13 +965,13 @@ The implementation requires a positive integer and rejects `0`, `-1`, and
 
 ```typescript
 if (!Number.isInteger(input.limit) || input.limit <= 0) {
-  throw new ValidationError('topK must be a positive integer');
+  throw new ValidationError('limit must be a positive integer');
 }
 ```
 
 Current tests assert the error class, not the exact message. The production
-message refers to `topK`, so it is not recorded as an approved list error
-message contract.
+message now refers to the list input field `limit`; exact message text is not
+recorded as an approved contract.
 
 #### RED evidence
 
@@ -1056,3 +1056,163 @@ current behavior. No new error class or behavioral abstraction was needed.
 Cycle 7 behavior is implemented and covered by the current list suite, but no
 verified pre-implementation behavioral RED is available for 7A, 7B, or 7C.
 List remains partial because CLI, HTTP, and live API integration are absent.
+
+## Cycle 8 — In-process KB list command delegation
+
+Cycle 8 begins the mock-first CLI adapter for the human-approved invocation:
+
+```text
+tickets kb list --node <path> --limit <number>
+```
+
+Both options are required and have no defaults. Commander parses the CLI
+representation and converts `limit` to a number; business validation remains
+in `KBClient` / `MockKBClient`.
+
+### Structural preparation
+
+Two accidental zero-byte files had previously caused a structural suite
+failure and were removed during pre-cycle cleanup. They were not presented as
+Cycle 8 RED evidence.
+
+Cycle 8 then intentionally created typed registrar stubs and a non-executing
+`it.todo` scaffold. This established that the modules could load before the
+behavioral test was introduced:
+
+```text
+Test Files  1 skipped (1)
+Tests       1 todo (1)
+Typecheck   PASS
+```
+
+This was structural preparation, not behavioral RED.
+
+### RED
+
+The first executable Cycle 8 test invokes the parent registrar in process and
+parses:
+
+```text
+kb list --node /templates/email --limit 2
+```
+
+It expects `KBClient.list()` to be called exactly once with:
+
+```typescript
+{
+  nodePath: '/templates/email',
+  limit: 2,
+}
+```
+
+The client returns an empty array so this slice does not test or require stdout
+behavior.
+
+Initial focused result:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Error       CommanderError: error: unknown option '--node'
+Duration    789ms
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 12 passed (13)
+Tests       1 failed | 54 passed (55)
+Duration    7.18s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+The suite loaded, the Cycle 8 test executed, and all 54 prior tests passed. The
+failure occurred because the typed parent registrar still registered no `kb`
+or nested `list` command, so the approved `--node` option was unknown. This was
+missing command behavior, not a module, import, fixture, type, configuration,
+or environment failure.
+
+### GREEN
+
+The minimum implementation:
+
+- registers a `kb` parent command;
+- registers its nested `list` command;
+- makes `--node <path>` and `--limit <number>` required;
+- converts the CLI limit string with Commander's number parser;
+- delegates once to `KBClient.list({ nodePath, limit })`;
+- introduces no `KBService` or business validation in the command adapter.
+
+The first focused behavior run passed. The subsequent typecheck found a
+Commander overload error because `undefined` had been supplied as the option
+description alongside the number parser:
+
+```text
+TS2769: No overload matches this call.
+Argument of type 'undefined' is not assignable to parameter of type 'string'.
+```
+
+This was a type-validation failure in the GREEN implementation, not a new
+behavioral RED. Supplying a static option description resolved the overload
+without changing the approved command contract.
+
+Final focused result:
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    572ms
+Exit code   0
+```
+
+Final full regression:
+
+```text
+Test Files  13 passed (13)
+Tests       55 passed (55)
+Duration    7.65s
+Exit code   0
+```
+
+Final typecheck:
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+Build was not run for this slice.
+
+### Refactor review
+
+**Decision:** No-op behavioral refactor
+
+The parent registrar and direct `KB command -> KBClient` delegation match the
+approved mock-first architecture. No additional layer or abstraction is
+needed for the current behavior.
+
+### Scope review
+
+- In-process `kb list` registration: implemented.
+- Required `--node` and `--limit` declarations: implemented.
+- Numeric conversion and exact-once list delegation: implemented and tested.
+- Missing-option behavior: provided by Commander but not independently tested.
+- Human-approved title-per-line stdout: not implemented or tested.
+- Empty-list stdout behavior: not implemented or tested.
+- `src/cli.ts` production wiring: not implemented.
+- Subprocess E2E: not implemented.
+- Search, retrieve, and add commands: not implemented.
+- `HTTPKBClient`, environment switching, and live API validation: not
+  implemented.
+
+### Cycle assessment
+
+Cycle 8 contains a valid behavioral RED and a minimal GREEN for in-process
+list-command registration, parsing, numeric conversion, and exact-once client
+delegation. The Cycle 8 command remains partial until its approved stdout
+behavior is implemented and covered. Production composition and E2E remain
+later-cycle work.

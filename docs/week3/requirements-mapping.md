@@ -290,10 +290,30 @@ No verified pre-GREEN behavioral RED is available for Cycle 7A, 7B, or 7C.
 Negative and decimal limits are classified as regression/edge-case validation
 of the general positive-integer guard, not separate RED/GREEN cycles.
 
-The implementation trims the path for blank validation but compares the raw
-`input.nodePath` during matching. No current test establishes whether a
-nonblank padded path should match its trimmed equivalent. Search behavior is
-unchanged.
+The implementation uses the trimmed `normalizedNodePath` for both blank
+validation and exact matching. No current test separately establishes behavior
+for a nonblank path with surrounding whitespace. Search behavior is unchanged.
+
+### Cycle 8 — In-process KB list command delegation
+
+Cycle 8 introduces the minimum mock-first command structure under
+`src/commands/kb/`: a `kb` parent registrar and a nested `list` registrar. The
+focused test parses `kb list --node /templates/email --limit 2` in process and
+proves exact-once delegation to `KBClient.list()` with a numeric limit.
+
+Both CLI options are required and have no defaults. Commander handles presence,
+CLI parsing, and string-to-number conversion; domain validation remains in the
+client. The test's fake client returns an empty array, so the approved stdout
+contract is not yet implemented or covered.
+
+The observed pre-GREEN failure was `CommanderError: error: unknown option
+'--node'`. Because the new test executed and all 54 earlier tests passed, this
+is classified as a valid behavioral RED. The minimum GREEN completed with one
+focused test passing, 13 test files and 55 tests passing in the full suite, and
+a passing typecheck.
+
+Production `src/cli.ts` wiring, subprocess E2E, other KB commands, HTTP
+integration, and environment selection remain outside this slice.
 
 ## Acceptance criteria status
 
@@ -301,7 +321,7 @@ unchanged.
 | --- | --- | --- |
 | CLI can query the external Knowledge Base API | **BLOCKED** | No `HTTPKBClient` exists, and the production API contract is incomplete. |
 | Mock and HTTP clients work and are environment-swappable | **BLOCKED** | The mock implementation is partial; the HTTP and environment contracts are deferred. |
-| Search, list, retrieve, and add work end-to-end | **NOT STARTED** | No KB commands or KB end-to-end coverage exists. |
+| Search, list, retrieve, and add work end-to-end | **PARTIAL** | An in-process mock list command delegates correctly, but production wiring, stdout coverage, the other commands, and end-to-end coverage are absent. |
 | Real KB integration is tested and documented | **BLOCKED** | The real API contract, access, and safe live-test policy are unresolved. |
 
 ## Implementation summary
@@ -312,16 +332,16 @@ unchanged.
 | `KBClient` contract | **PARTIAL** | Asynchronous `search` and `list` |
 | `MockKBClient` | **PARTIAL** | Three deterministic seed documents; approved search slices; exact-node list with insertion order, limit, and validation |
 | Search | **PARTIAL** | Case-insensitive title/content/tag substring matching, precedence, deterministic order, `topK` limiting, and blank-query/invalid-`topK` validation |
-| List | **PARTIAL** | Exact `nodePath`, insertion order, exclusion of other paths, result limiting, and input validation; no CLI/HTTP/live integration |
+| List | **PARTIAL** | Exact `nodePath`, insertion order, limiting, validation, and in-process CLI parsing/delegation; no stdout coverage, production wiring, E2E, HTTP, or live integration |
 | Retrieve | **NOT STARTED** | None |
 | Add | **NOT STARTED** | None |
-| KB commands | **NOT STARTED** | None |
+| KB commands | **PARTIAL** | Parent `kb` and nested `list` registrars support required options, numeric conversion, and exact-once client delegation in process |
 | `HTTPKBClient` | **BLOCKED** | Production HTTP contract unresolved |
 | Environment switching | **BLOCKED** | Selection contract unresolved |
 | Real API integration | **BLOCKED** | Contract, access, and live-test policy unresolved |
 
 ## Overall assessment
 
-Week 3 is not complete. After Cycle 7, `MockKBClient`, search, and list remain
-**PARTIAL**. All unimplemented behavior remains explicitly separated from
-completed, executable evidence.
+Week 3 is not complete. After the first Cycle 8 slice, `MockKBClient`, search,
+list, and KB commands remain **PARTIAL**. All unimplemented behavior remains
+explicitly separated from completed, executable evidence.

@@ -121,6 +121,33 @@ List validation reused `ValidationError` instead of introducing another error
 class. Scope remained limited to `MockKBClient.list`; CLI, retrieve, add,
 recursive listing, HTTP integration, and environment switching were not added.
 
+## Week 3 Cycle 8
+
+Human review resolved the pre-cycle CLI contract before implementation:
+`tickets kb list`, required `--node` and `--limit` options without defaults,
+and title-per-line stdout with silent empty results. These choices are recorded
+as project technical decisions rather than mentor-specified syntax or schemas.
+
+Accidental zero-byte scaffolds were removed before Cycle 8 because their
+module/test-suite failure was structural and could not be used as RED evidence.
+Typed registrar stubs plus an `it.todo` scaffold were then validated separately
+as structural preparation.
+
+The executable test was accepted as a valid behavioral RED only after it ran,
+failed because `--node` was not registered, and the 54 prior tests remained
+green. The minimum GREEN added nested command registration, required option
+parsing, numeric conversion, and exact-once `KBClient.list()` delegation.
+
+Typecheck subsequently caught a Commander overload problem involving an
+`undefined` option description. It was corrected as a type-validation issue,
+not relabeled as behavioral RED. Final evidence was one focused test passing,
+55 full-suite tests passing, and a passing typecheck.
+
+Scope review prevented stdout implementation, production `src/cli.ts` wiring,
+subprocess E2E, other KB commands, HTTP integration, and environment switching
+from entering this first Cycle 8 slice. The approved stdout behavior remains a
+future test-driven slice.
+
 ## Evidence standard
 
 AI statements are not proof that behavior works. Evidence comes from:

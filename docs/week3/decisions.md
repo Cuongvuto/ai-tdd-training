@@ -151,7 +151,7 @@ environment details.
 ## W3-D14 — CLI organization
 
 **Source:** PROJECT TECHNICAL DECISION  
-**Status:** Approved but not implemented
+**Status:** Approved
 
 KB command registration will be grouped under `src/commands/kb/`, with one
 parent registrar and one file per operation. No `src/week3/` directory will be
@@ -160,11 +160,22 @@ created.
 ## W3-D15 — CLI nesting
 
 **Source:** PROJECT TECHNICAL DECISION  
-**Status:** Approved provisionally but not implemented
+**Status:** Approved for the mock-first CLI contract
 
-The project preference is to preserve the existing `tickets` executable and
-nest KB commands beneath it. The mentor examples use `kb ...`; therefore this
-is a project integration choice rather than a mentor-authored requirement.
+The project will preserve the existing `tickets` executable and nest KB
+commands beneath it. The mock-first list invocation is `tickets kb list`.
+The mentor examples use `kb ...`; therefore this is a project integration
+choice rather than a mentor-authored requirement.
+
+For the Cycle 8 list command, `--node <path>` and `--limit <number>` are both
+required and have no defaults. Commander handles presence and CLI parsing;
+business validation remains in `KBClient` / `MockKBClient`.
+
+The human-approved list stdout contract prints each document title on its own
+line in the order returned by `KBClient.list()`, with no header or additional
+fields. An empty result produces no stdout and completes successfully. This
+format is a project integration choice based on the existing Week 2 list
+convention, not a mentor-specified response format.
 
 ## W3-D16 — Service layer
 
