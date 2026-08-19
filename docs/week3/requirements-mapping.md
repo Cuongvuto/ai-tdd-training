@@ -366,13 +366,33 @@ suite, plus passing typecheck and build.
 Retrieve CLI parsing/output, production composition, subprocess E2E, add,
 HTTP integration, and environment selection remain outside Cycle 10.
 
+### Cycle 11 — In-process KB retrieve command
+
+Cycle 11 adds a nested retrieve registrar for
+`tickets kb retrieve <documentId>`. Commander requires the positional ID, and
+the command delegates it unchanged exactly once to `KBClient.retrieve()`.
+
+The first valid behavioral RED was unknown command `retrieve`, with all 67
+earlier tests passing. The second valid behavioral RED received no stdout calls
+while delegation and all pre-Cycle-11 tests remained green.
+
+The command now prints the full document as five labeled lines: ID, title,
+content, node path, and comma-space-separated tags. Regression coverage verifies
+missing-ID rejection before delegation and unchanged propagation of
+`KBDocumentNotFoundError`.
+
+Final Cycle 11 evidence is four focused tests passing, 16 test files and 71
+tests passing in the full suite, plus passing typecheck and build. Production
+CLI wiring/error mapping, subprocess E2E, add, HTTP integration, and environment
+selection remain outside this cycle.
+
 ## Acceptance criteria status
 
 | Acceptance criterion | Status | Current evidence or blocker |
 | --- | --- | --- |
 | CLI can query the external Knowledge Base API | **BLOCKED** | No `HTTPKBClient` exists, and the production API contract is incomplete. |
 | Mock and HTTP clients work and are environment-swappable | **BLOCKED** | The mock implementation is partial; the HTTP and environment contracts are deferred. |
-| Search, list, retrieve, and add work end-to-end | **PARTIAL** | In-process mock search/list commands and mock retrieve behavior work, but retrieve/add commands, production wiring, and end-to-end coverage are absent. |
+| Search, list, retrieve, and add work end-to-end | **PARTIAL** | In-process mock search, list, and retrieve commands work, but add, production wiring, and end-to-end coverage are absent. |
 | Real KB integration is tested and documented | **BLOCKED** | The real API contract, access, and safe live-test policy are unresolved. |
 
 ## Implementation summary
@@ -384,15 +404,15 @@ HTTP integration, and environment selection remain outside Cycle 10.
 | `MockKBClient` | **PARTIAL** | Three deterministic seed documents; approved search/list behavior; exact case-sensitive retrieve with KB-specific not-found error; add remains absent |
 | Search | **PARTIAL** | Mock matching, precedence, order, limiting, and validation plus in-process CLI parsing/delegation, ordered title-plus-match-type output, and silent empty results; no production wiring, E2E, HTTP, or live integration |
 | List | **PARTIAL** | Exact `nodePath`, insertion order, limiting, validation, in-process CLI parsing/delegation, ordered title output, and silent empty results; no production wiring, E2E, HTTP, or live integration |
-| Retrieve | **PARTIAL** | Mock exact case-sensitive lookup, full-document return, and KB-specific not-found error; no CLI, E2E, HTTP, or live integration |
+| Retrieve | **PARTIAL** | Mock exact case-sensitive lookup, full-document return, KB-specific not-found error, and in-process CLI delegation/output/error propagation; no production wiring, E2E, HTTP, or live integration |
 | Add | **NOT STARTED** | None |
-| KB commands | **PARTIAL** | Nested search and list registrars support required inputs, numeric conversion, exact-once delegation, approved ordered output, and silent empty results in process |
+| KB commands | **PARTIAL** | Nested search, list, and retrieve registrars support required inputs, exact-once delegation, approved output, empty results where applicable, and retrieve error propagation in process |
 | `HTTPKBClient` | **BLOCKED** | Production HTTP contract unresolved |
 | Environment switching | **BLOCKED** | Selection contract unresolved |
 | Real API integration | **BLOCKED** | Contract, access, and live-test policy unresolved |
 
 ## Overall assessment
 
-Week 3 is not complete. After Cycle 10, `KBClient`, `MockKBClient`, retrieve,
+Week 3 is not complete. After Cycle 11, `KBClient`, `MockKBClient`, retrieve,
 search, list, and KB commands remain **PARTIAL**. All unimplemented behavior
 remains explicitly separated from completed, executable evidence.

@@ -2,6 +2,7 @@ import type { Command } from 'commander';
 
 import type { KBClient } from '../../clients/kb-client.js';
 import { registerKBListCommand } from './list-command.js';
+import { registerKBRetrieveCommand } from './retrieve-command.js';
 import { registerKBSearchCommand } from './search-command.js';
 
 export function registerKBCommand(
@@ -12,4 +13,5 @@ export function registerKBCommand(
 
   registerKBSearchCommand(kbCommand, client);
   registerKBListCommand(kbCommand, client);
+  registerKBRetrieveCommand(kbCommand, client);
 }

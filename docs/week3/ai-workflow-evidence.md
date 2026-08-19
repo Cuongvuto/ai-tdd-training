@@ -223,6 +223,35 @@ Scope review kept retrieve CLI/output, add, production composition, subprocess
 E2E, HTTP behavior, environment selection, and live API validation out of
 Cycle 10.
 
+## Week 3 Cycle 11
+
+Human review approved the retrieve-command contract before behavioral tests:
+`tickets kb retrieve <documentId>`, unchanged exact-once ID delegation, five
+labeled output lines following the Week 2 show convention, and unchanged
+propagation of `KBDocumentNotFoundError`. These formatting/error-flow choices
+are recorded as project technical decisions rather than mentor-specified text.
+
+Structural preparation introduced a typed registrar stub and `it.todo` test.
+Module loading and typecheck passed before the executable test, so this setup
+was not presented as RED evidence.
+
+The first test failed with unknown command `retrieve` while all 67 earlier
+tests passed. Minimal GREEN registered the positional command and delegated the
+ID without normalization. The second test received no log calls while
+delegation and all earlier behavior remained green. Minimal GREEN printed the
+five approved document lines. Both failures were accepted as valid behavioral
+REDs caused by absent approved behavior.
+
+Missing positional ID and not-found error propagation were covered only after
+GREEN and are classified as regression/contract coverage. Test setup was
+consolidated without production behavior changes. Final evidence is four
+focused tests passing, 71 full-suite tests passing, typecheck passing, and build
+passing.
+
+Scope review kept production CLI composition/error mapping, subprocess E2E,
+add, HTTP behavior, environment selection, and live API validation out of
+Cycle 11.
+
 ## Evidence standard
 
 AI statements are not proof that behavior works. Evidence comes from:

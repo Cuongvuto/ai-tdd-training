@@ -193,6 +193,17 @@ successfully. Required/default behavior and output formatting are project
 technical decisions; the mentor example establishes the query and `--top-k`
 syntax but does not specify those details.
 
+For the Cycle 11 retrieve command, the mock-first invocation is
+`tickets kb retrieve <documentId>`. The positional document ID is required and
+is delegated unchanged to `KBClient.retrieve()`.
+
+The human-approved retrieve stdout contract follows the existing Week 2 show
+convention and prints five labeled lines in this order: `ID`, `Title`,
+`Content`, `Node Path`, and comma-space-separated `Tags`. The command does not
+translate `KBDocumentNotFoundError`; it propagates the client error to its
+caller. The `tickets` nesting, label formatting, and error propagation are
+project technical decisions rather than mentor-specified output/error text.
+
 ## W3-D16 — Service layer
 
 **Source:** PROJECT TECHNICAL DECISION  

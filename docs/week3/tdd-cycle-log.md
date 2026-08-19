@@ -1778,3 +1778,214 @@ three-document mock. No repository, service, or lookup abstraction was added.
 Cycle 10 is complete for its approved mock-client scope. It contains two valid
 behavioral REDs: exact-ID retrieval and KB-specific not-found classification.
 Retrieve CLI behavior is reserved for Cycle 11.
+
+## Cycle 11 — In-process KB retrieve command
+
+Cycle 11 adds the human-approved mock-first invocation:
+
+```text
+tickets kb retrieve <documentId>
+```
+
+The positional ID is required and delegated unchanged to
+`KBClient.retrieve()`. The approved stdout follows the Week 2 show convention:
+
+```text
+ID: doc-001
+Title: Customer Response Template
+Content: A reusable email template for customer requests.
+Node Path: /templates/email
+Tags: template, email, support
+```
+
+The command propagates `KBDocumentNotFoundError` rather than translating it.
+Production `src/cli.ts` error mapping remains outside this cycle.
+
+### Structural preparation
+
+A typed `registerKBRetrieveCommand()` stub, parent-registrar call, and
+non-executing `it.todo` scaffold were added before the behavioral test.
+
+```text
+Test Files  1 skipped (1)
+Tests       1 todo (1)
+Duration    580ms
+Typecheck   PASS
+```
+
+This made the test boundary loadable without implementing retrieve-command
+behavior and is not behavioral RED evidence.
+
+### Cycle 11A — Positional ID delegation
+
+The first executable test parses `kb retrieve doc-001` and expects exactly one
+client call containing the unchanged string `doc-001`.
+
+#### RED evidence
+
+Focused RED:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Error       CommanderError: error: unknown command 'retrieve'
+Duration    851ms
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 15 passed (16)
+Tests       1 failed | 67 passed (68)
+Duration    9.08s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+The module loaded, the new test executed, and all 67 prior tests passed. The
+failure was caused by the typed stub not registering the approved command, not
+by setup, typing, fixtures, or the environment.
+
+#### GREEN
+
+The minimum implementation registers `retrieve <documentId>` and awaits one
+`KBClient.retrieve(documentId)` call. It does not trim, normalize, catch errors,
+or print output in this first slice.
+
+Focused GREEN:
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    925ms
+Exit code   0
+```
+
+### Cycle 11B — Full-document stdout
+
+The second executable test configures a fake client to return the complete
+`doc-001` document and expects the five approved labeled lines in their exact
+order.
+
+#### RED evidence
+
+The delegation test remained green, while the stdout test observed no log
+calls:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 1 passed (2)
+Expected    Five labeled document lines
+Received    []
+Duration    1.22s
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 15 passed (16)
+Tests       1 failed | 68 passed (69)
+Duration    9.39s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+Delegation and all 67 pre-Cycle-11 tests passed. The only missing behavior was
+formatting the returned document for stdout.
+
+#### GREEN
+
+The minimum change stores the returned document and logs `ID`, `Title`,
+`Content`, `Node Path`, and `Tags` in approved order. Tags are joined with
+comma-space. No generic formatter or service layer was introduced.
+
+Focused GREEN:
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    1.47s
+Exit code   0
+```
+
+### Regression and contract coverage
+
+After GREEN, two cases were added:
+
+- omission of `<documentId>` is rejected by Commander before delegation;
+- `KBDocumentNotFoundError` from the client is propagated unchanged.
+
+Both behaviors were already satisfied by the minimal command, so these are
+regression/contract coverage rather than additional RED/GREEN cycles. Test-only
+client and program setup was consolidated without production behavior changes.
+
+### Final validation
+
+Focused Cycle 11 suite:
+
+```text
+Test Files  1 passed (1)
+Tests       4 passed (4)
+Duration    629ms
+Exit code   0
+```
+
+Full regression:
+
+```text
+Test Files  16 passed (16)
+Tests       71 passed (71)
+Duration    11.68s
+Exit code   0
+```
+
+Typecheck:
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+Build:
+
+```text
+npm run build
+tsc -p tsconfig.build.json
+Exit code: 0
+```
+
+These Node-based validations used approved out-of-sandbox execution because
+the environment's `C:\Users\anhde` resolution has already been established to
+produce sandbox-only `EPERM` failures. No project failure was observed.
+
+### Refactor review
+
+**Decision:** No-op production refactor
+
+The direct delegation and five explicit output lines match the approved command
+contract and existing Week 2 style. Only test setup duplication was reduced.
+
+### Scope review
+
+- Parent `kb` and nested `retrieve` registration: implemented and tested in
+  process.
+- Required positional document ID: implemented and covered.
+- Unchanged exact-once client delegation: implemented and tested.
+- Full five-field labeled stdout: implemented and tested.
+- KB-specific not-found propagation: implemented and covered.
+- Existing search/list/retrieve-client behavior: preserved.
+- `src/cli.ts` production wiring and central KB error mapping: not implemented.
+- Subprocess E2E: not implemented.
+- Add behavior and command: not implemented.
+- `HTTPKBClient`, environment switching, and live API validation: deferred.
+
+### Cycle assessment
+
+Cycle 11 is complete for its approved in-process mock-first scope. It contains
+two valid behavioral REDs: positional-ID delegation and full-document stdout.
+Production composition and E2E remain reserved for a later cycle.
