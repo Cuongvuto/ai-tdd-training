@@ -1,12 +1,13 @@
 import { ValidationError } from '../errors/validation-error.js';
 import { KBDocumentNotFoundError } from '../errors/kb-document-not-found-error.js';
+import type { AddInput } from '../models/kb/add-input.js';
 import type { Document } from '../models/kb/document.js';
 import type { SearchInput } from '../models/kb/search-input.js';
 import type { SearchResult } from '../models/kb/search-result.js';
 import type { ListInput } from '../models/kb/list-input.js'; 
 import type { KBClient } from './kb-client.js';
 
-const documents: Document[] = [
+const seedDocuments: Document[] = [
   {
     id: 'doc-001',
     title: 'Customer Response Template',
@@ -31,6 +32,12 @@ const documents: Document[] = [
 ];
 
 export class MockKBClient implements KBClient {
+  private readonly documents = seedDocuments.map((document) => ({
+    ...document,
+    tags: [...document.tags],
+  }));
+  private nextDocumentNumber = seedDocuments.length + 1;
+
   async search(input: SearchInput): Promise<SearchResult[]>{
     const normalizedQuery = input.query.trim().toLowerCase();
 
@@ -44,7 +51,7 @@ export class MockKBClient implements KBClient {
 
     const results: SearchResult[] = [];
 
-    for(const document of documents){
+    for(const document of this.documents){
       const titleMatches = document.title
         .toLowerCase()
         .includes(normalizedQuery);
@@ -85,19 +92,31 @@ export class MockKBClient implements KBClient {
     if (!Number.isInteger(input.limit) || input.limit <= 0) {
       throw new ValidationError('limit must be a positive integer');
     }
-    return documents.filter(
+    return this.documents.filter(
       (document) => document.nodePath === normalizedNodePath
     )
     .slice(0,input.limit);
   }
   async retrieve(documentId: string): Promise<Document> {
-    const document = documents.find(
+    const document = this.documents.find(
       (candidate) => candidate.id === documentId
     );
 
     if (document === undefined) {
       throw new KBDocumentNotFoundError('KB document not found');
     }
+
+    return document;
+  }
+  async add(input: AddInput): Promise<Document> {
+    const document: Document = {
+      id: `doc-${String(this.nextDocumentNumber).padStart(3, '0')}`,
+      ...input,
+      tags: [...input.tags],
+    };
+
+    this.nextDocumentNumber += 1;
+    this.documents.push(document);
 
     return document;
   }

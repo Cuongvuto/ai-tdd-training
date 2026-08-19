@@ -252,6 +252,35 @@ Scope review kept production CLI composition/error mapping, subprocess E2E,
 add, HTTP behavior, environment selection, and live API validation out of
 Cycle 11.
 
+## Week 3 Cycle 12
+
+The human-approved add/state decisions were rechecked before implementation:
+typed title/content/nodePath/tags input, append-and-return behavior,
+deterministic per-instance sequential IDs, cross-operation visibility,
+duplicate allowance, and no persistence. No add validation or HTTP schema was
+invented.
+
+Structural preparation extended the client interface, created an add stub,
+updated typed fakes, and moved seed documents into cloned per-instance state.
+Existing search/list/retrieve suites and typecheck passed before the executable
+add test, so this refactor was not used as RED evidence.
+
+The first test then failed on the intentional add stub while all 71 earlier
+tests passed. Minimal GREEN created, appended, returned, and made `doc-004`
+retrievable without implementing a sequence. The second test received
+`doc-004` twice instead of `doc-004` then `doc-005`, while earlier behavior
+remained green. A private instance counter supplied the second minimal GREEN.
+Both failures were accepted as valid behavioral REDs.
+
+Search/list visibility, state/counter isolation, and duplicate-input acceptance
+were covered only after GREEN and remain classified as regression/contract
+coverage. Final evidence is five focused tests passing, 76 full-suite tests
+passing, typecheck passing, and build passing.
+
+Scope review kept file reading, add command, production composition, subprocess
+E2E, HTTP behavior, environment selection, and live API validation out of
+Cycle 12.
+
 ## Evidence standard
 
 AI statements are not proof that behavior works. Evidence comes from:

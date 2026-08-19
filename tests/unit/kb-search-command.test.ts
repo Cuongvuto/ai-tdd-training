@@ -12,6 +12,9 @@ function createClient(search: KBClient['search']): KBClient {
     retrieve: async () => {
       throw new Error('Unexpected retrieve call');
     },
+    add: async () => {
+      throw new Error('Unexpected add call');
+    },
   };
 }
 

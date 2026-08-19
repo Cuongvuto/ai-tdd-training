@@ -10,6 +10,9 @@ function createClient(retrieve: KBClient['retrieve']): KBClient {
     search: async () => [],
     list: async () => [],
     retrieve,
+    add: async () => {
+      throw new Error('Unexpected add call');
+    },
   };
 }
 

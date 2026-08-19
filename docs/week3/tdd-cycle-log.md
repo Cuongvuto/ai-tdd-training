@@ -1989,3 +1989,215 @@ contract and existing Week 2 style. Only test setup duplication was reduced.
 Cycle 11 is complete for its approved in-process mock-first scope. It contains
 two valid behavioral REDs: positional-ID delegation and full-document stdout.
 Production composition and E2E remain reserved for a later cycle.
+
+## Cycle 12 — Mock add and per-instance state
+
+Cycle 12 adds `KBClient.add(input: AddInput): Promise<Document>`, where
+`AddInput` contains exactly `title`, `content`, `nodePath`, and `tags`. The
+approved mock behavior generates deterministic per-instance sequential IDs,
+appends and returns the full document, exposes it to search/list/retrieve on the
+same client, permits duplicate input, and does not persist or share state.
+
+No add-input validation, file handling, CLI, persistence, or HTTP behavior is
+introduced in this cycle.
+
+### Structural preparation
+
+The structural setup added `AddInput`, the client-interface method, a typed
+not-implemented add stub, and an `it.todo` scaffold. Existing command fakes were
+updated mechanically for the extended interface.
+
+The previous module-level seed array was also converted into a cloned
+per-instance document collection, and existing search/list/retrieve methods were
+redirected to that collection. This internal refactor did not implement add or
+ID generation.
+
+Validation before the behavioral test:
+
+```text
+Test Files  3 passed | 1 skipped (4)
+Tests       17 passed | 1 todo (18)
+Duration    2.32s
+Typecheck   PASS
+```
+
+The existing mock suites remained green. This was structural preparation, not
+behavioral RED.
+
+### Cycle 12A — Add, return, and store a document
+
+The first executable test adds an SMS template, expects the full returned
+document with ID `doc-004`, and retrieves that document from the same client to
+prove it was appended to instance state.
+
+#### RED evidence
+
+Focused RED:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Error       MockKBClient.add is not implemented
+Duration    618ms
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 16 passed (17)
+Tests       1 failed | 71 passed (72)
+Duration    9.62s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+The module loaded, the add test executed, and all 71 prior tests passed. The
+failure was caused by the intentional add stub rather than a structural or
+environment problem.
+
+#### GREEN
+
+The minimum implementation creates `doc-004`, copies the input fields, clones
+the tag array, appends the document to the instance collection, and returns it.
+The ID was deliberately fixed at `doc-004` so sequential generation was not
+implemented before its own test.
+
+Focused GREEN:
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    583ms
+Exit code   0
+```
+
+### Cycle 12B — Sequential IDs within one instance
+
+The second executable test performs two adds on one client and expects IDs
+`doc-004` followed by `doc-005`.
+
+#### RED evidence
+
+Focused RED:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 1 passed (2)
+Expected    ['doc-004', 'doc-005']
+Received    ['doc-004', 'doc-004']
+Duration    665ms
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 16 passed (17)
+Tests       1 failed | 72 passed (73)
+Duration    9.69s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+The first add/append behavior and all 71 pre-Cycle-12 tests remained green. The
+failure was specific to the hard-coded ID not advancing on the second add.
+
+#### GREEN
+
+A private per-instance counter starts after the three seed documents. Each add
+formats the current number as a zero-padded `doc-NNN` ID, then increments the
+counter. No global counter or persistence is introduced.
+
+Focused GREEN:
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    721ms
+Exit code   0
+```
+
+### Regression and contract coverage
+
+After GREEN, three cases were added:
+
+- an added document is found by search and exact-node list on the same client;
+- another client cannot retrieve/list the added document and starts its own ID
+  counter at `doc-004`;
+- duplicate add input is accepted and receives distinct sequential IDs.
+
+The append behavior, per-instance collection, and counter already satisfied
+these cases, so they are regression/contract coverage rather than additional
+RED/GREEN cycles. A typed input-fixture helper reduced test duplication without
+production behavior changes.
+
+### Final validation
+
+Focused Cycle 12 suite:
+
+```text
+Test Files  1 passed (1)
+Tests       5 passed (5)
+Duration    619ms
+Exit code   0
+```
+
+Full regression:
+
+```text
+Test Files  17 passed (17)
+Tests       76 passed (76)
+Duration    8.79s
+Exit code   0
+```
+
+Typecheck:
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+Build:
+
+```text
+npm run build
+tsc -p tsconfig.build.json
+Exit code: 0
+```
+
+These Node-based validations used approved out-of-sandbox execution because
+the environment's `C:\Users\anhde` resolution has already been established to
+produce sandbox-only `EPERM` failures. No project failure was observed.
+
+### Refactor review
+
+**Decision:** No additional production refactor
+
+Per-instance cloned state and a private numeric counter are sufficient for the
+small mock. No persistence, repository, UUID generator, or service abstraction
+was introduced.
+
+### Scope review
+
+- `AddInput` and asynchronous `KBClient.add()`: implemented.
+- Append, return, and same-client retrieve visibility: implemented and tested.
+- Deterministic per-instance sequential IDs: implemented and tested.
+- Search/list visibility: implemented and covered.
+- Per-instance state/counter isolation: implemented and covered.
+- Duplicate input: allowed and covered.
+- Add validation or uniqueness rules: not invented.
+- File reading and add command: not implemented.
+- Production KB CLI composition and subprocess E2E: not implemented.
+- `HTTPKBClient`, environment switching, and live API validation: deferred.
+
+### Cycle assessment
+
+Cycle 12 is complete for its approved mock-client scope. It contains two valid
+behavioral REDs: append/return behavior and sequential per-instance IDs. The
+mock now implements all four KB operations; add CLI behavior remains for the
+next cycle.

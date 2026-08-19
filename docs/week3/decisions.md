@@ -116,7 +116,7 @@ this does not establish the deferred HTTP request schema. The error class is
 ## W3-D10 — Add command mapping
 
 **Source:** PROJECT TECHNICAL DECISION  
-**Status:** Approved but not implemented
+**Status:** Approved
 
 The add command will read UTF-8 file content, derive the title from the file
 name stem, parse comma-separated tags, and pass title, content, node path, and
@@ -125,7 +125,7 @@ tags to `KBClient.add`. File paths do not belong in the client contract.
 ## W3-D11 — Mock add behavior
 
 **Source:** PROJECT TECHNICAL DECISION  
-**Status:** Approved but not implemented
+**Status:** Approved
 
 Mock add will generate deterministic per-instance sequential IDs, append and
 return the document, and make it visible to search, list, and retrieve within
@@ -135,7 +135,7 @@ uniqueness rule is specified.
 ## W3-D12 — Mock state lifetime
 
 **Source:** PROJECT TECHNICAL DECISION  
-**Status:** Approved but not implemented
+**Status:** Approved
 
 Mock state belongs to one `MockKBClient` instance. It is not shared globally
 and is not persisted across processes. JSON persistence will not be added to
