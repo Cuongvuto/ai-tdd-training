@@ -312,6 +312,37 @@ passing, plus passing typecheck and build. Scope review kept `src/cli.ts`
 production composition, subprocess E2E, HTTP behavior, environment selection,
 and live API validation out of Cycle 13.
 
+## Week 3 Cycle 14
+
+Human review approved Cycle 14 as the final no-API cycle before code changes.
+The approved scope was a fresh `MockKBClient` in the actual CLI, independent
+subprocess state, E2E coverage for all four KB commands, preservation of Week 2
+commands, and exact concise CLI messages for KB document-not-found and add-file
+failures. No environment variable, selector, persistence, HTTP behavior, or
+claim of overall Week 3 completion was authorized.
+
+Structural preparation recorded these decisions and created an `it.todo` E2E
+scaffold. The module loaded, so setup was not used as behavioral RED evidence.
+
+The first executable group ran four real CLI subprocesses. All failed with
+`unknown command 'kb'` while the 83 earlier tests passed. Minimal GREEN added
+only one mock client instance and one KB registrar call to `src/cli.ts`. The
+second group then demonstrated that two approved KB errors leaked stack traces
+while the four new happy paths and all earlier behavior stayed green. Minimal
+GREEN added only the two top-level error branches. Both groups were classified
+as valid behavioral RED evidence.
+
+Validation-error presentation, help visibility, Week 2 command preservation,
+and per-process non-persistence were tested after GREEN and recorded as
+regression coverage rather than new REDs. Final evidence is ten focused E2E
+tests, 93 full-suite tests, passing typecheck/build, and direct help output from
+the built CLI.
+
+Scope review confirms the local mock-only phase is complete while external API
+work remains blocked. `final-validation.md` was not created because the full
+mentor acceptance criteria still require a real HTTP client, environment
+switching, real API validation, and integration documentation.
+
 ## Evidence standard
 
 AI statements are not proof that behavior works. Evidence comes from:

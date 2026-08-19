@@ -2450,3 +2450,221 @@ Cycle 13 is complete for its approved in-process mock-first scope. It contains
 three valid behavioral REDs: command mapping/delegation, stdout, and file-read
 error translation. All four in-process KB command registrars now exist;
 production composition and E2E remain for later cycles.
+
+## Cycle 14 — Local mock CLI composition and subprocess E2E
+
+Cycle 14 is the final cycle that can be completed without the real API. It
+composes a fresh `MockKBClient` into the actual `tickets` entrypoint, preserves
+the four Week 2 commands, exercises search/list/retrieve/add through real CLI
+subprocesses, and presents approved KB errors without stack traces.
+
+Each CLI process owns fresh in-memory mock state. Add persistence across
+processes, environment-based client selection, `HTTPKBClient`, HTTP schemas,
+authentication, and live API testing remain outside this cycle.
+
+### Structural preparation
+
+The human-approved composition, independent-subprocess strategy, and CLI error
+messages were recorded in `decisions.md`. A new E2E suite began as `it.todo`
+and imported only test infrastructure.
+
+Focused scaffold result:
+
+```text
+Test Files  1 skipped (1)
+Tests       1 todo (1)
+Duration    539ms
+Exit code   0
+```
+
+The test module loaded. This was structural preparation, not behavioral RED.
+
+### Cycle 14A — Production mock composition for all four commands
+
+Four executable tests invoked the actual TypeScript CLI process for:
+
+- `kb search template --top-k 2`;
+- `kb list --node /templates/email --limit 2`;
+- `kb retrieve doc-001`;
+- `kb add` with a temporary UTF-8 file.
+
+#### RED evidence
+
+Focused RED:
+
+```text
+Test Files  1 failed (1)
+Tests       4 failed (4)
+Error       Commander: unknown command 'kb'
+Duration    4.47s
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 18 passed (19)
+Tests       4 failed | 83 passed (87)
+Duration    8.22s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+Every subprocess reached the actual CLI and failed for the same missing
+composition behavior. All 83 pre-Cycle-14 tests passed; there was no module,
+setup, or environment failure.
+
+#### GREEN
+
+The minimum implementation imports `MockKBClient` and `registerKBCommand`,
+creates one mock client for the process, and registers the `kb` command group
+alongside `create`, `list`, `show`, and `update`. No selector, environment
+variable, persistence, or HTTP behavior was added.
+
+```text
+Test Files  1 passed (1)
+Tests       4 passed (4)
+Duration    4.48s
+Exit code   0
+```
+
+### Cycle 14B — Concise KB errors at the CLI boundary
+
+Two executable tests invoked a missing retrieve ID and an unreadable add file.
+They required exit code 1 and exactly the approved concise stderr messages,
+without implementation paths or stack frames.
+
+#### RED evidence
+
+Focused RED:
+
+```text
+Test Files  1 failed (1)
+Tests       2 failed | 4 passed (6)
+Received    KBDocumentNotFoundError / KBAddFileError stack traces
+Expected    KB document not found / KB file error
+Duration    6.33s
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 18 passed (19)
+Tests       2 failed | 87 passed (89)
+Duration    10.25s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+All four newly composed commands and all 83 earlier tests remained green. The
+failure was specifically that the top-level CLI did not yet translate the two
+approved KB error classes.
+
+#### GREEN
+
+Two top-level error branches now print `KB document not found` or
+`KB file error` to stderr and set exit code 1. Existing Week 2 handling and the
+existing `ValidationError` branch were unchanged.
+
+```text
+Test Files  1 passed (1)
+Tests       6 passed (6)
+Duration    6.41s
+Exit code   0
+```
+
+### Regression and contract coverage
+
+After GREEN, four additional test cases covered behavior already supplied by
+the composition and existing code:
+
+- blank search input uses the existing `Invalid input` CLI handling;
+- blank list input uses the existing `Invalid input` CLI handling;
+- root help preserves `create`, `list`, `show`, and `update` and adds `kb`,
+  while nested help lists all four KB commands;
+- an add in one subprocess is not retrievable from another subprocess because
+  mock state is deliberately fresh and non-persistent.
+
+These are regression/contract coverage, not additional RED/GREEN cycles.
+
+### Final validation
+
+Focused Cycle 14 E2E suite:
+
+```text
+Test Files  1 passed (1)
+Tests       10 passed (10)
+Duration    12.09s
+Exit code   0
+```
+
+Full regression:
+
+```text
+Test Files  19 passed (19)
+Tests       93 passed (93)
+Duration    16.12s
+Exit code   0
+```
+
+Typecheck:
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+Build:
+
+```text
+npm run build
+tsc -p tsconfig.build.json
+Exit code: 0
+```
+
+Built CLI help validation:
+
+```text
+node dist/cli.js --help
+Commands: create, list, show, update, kb
+
+node dist/cli.js kb --help
+Commands: add, search, list, retrieve
+```
+
+Node-based validation used the previously approved out-of-sandbox execution
+path because this environment has an established sandbox-only `EPERM`
+restriction. No project or new environment failure was observed.
+
+### Refactor review
+
+**Decision:** No additional production refactor
+
+The composition requires one client instance and one registrar call. A client
+factory or environment selector would invent deferred API/configuration
+behavior, so neither was introduced.
+
+### Scope review
+
+- Production CLI registration with a fresh `MockKBClient`: implemented.
+- Search/list/retrieve/add subprocess happy paths: implemented and tested.
+- Concise retrieve/add errors: implemented and tested.
+- Existing validation handling: preserved and covered for KB inputs.
+- Week 2 commands and help: preserved and covered.
+- Independent, non-persistent subprocess state: covered.
+- `HTTPKBClient`, API contract, auth, environment switching, and live tests:
+  blocked/deferred.
+- `final-validation.md`: not created because Week 3 external-API acceptance
+  criteria cannot yet be completed.
+
+### Cycle assessment
+
+Cycle 14 completes the approved local mock-only phase. It contains two valid
+behavioral RED groups: production composition for all four commands and
+top-level KB error presentation. Week 3 as a whole remains incomplete because
+the authoritative objective requires real HTTP integration that cannot be
+implemented accurately without the real API contract.

@@ -248,11 +248,13 @@ requirement.
 ## W3-D19 — Mock E2E strategy
 
 **Source:** PROJECT TECHNICAL DECISION  
-**Status:** Approved but not implemented
+**Status:** Approved and implemented
 
 Subprocess tests will remain independent. Add visibility across operations is
 tested in process with one client instance rather than by adding mock
-persistence.
+persistence. Cycle 14 covers all four KB commands through the real CLI process.
+Because each subprocess creates a fresh mock client, an added document is not
+expected to be retrievable from another process.
 
 ## W3-D20 — HTTP and environment contract
 
@@ -264,3 +266,25 @@ response schemas, HTTP error mapping, timeout/retry behavior, response
 validation, and live-test cleanup policy remain unresolved. These decisions
 will be reviewed when the real API contract is available. No mock-phase
 decision is presented as an authoritative HTTP wire requirement.
+
+## W3-D21 — Local mock composition and CLI error presentation
+
+**Source:** PROJECT TECHNICAL DECISION
+**Status:** Approved and implemented
+
+Until a real API contract exists, the production CLI entrypoint will create a
+fresh `MockKBClient` and register the approved `kb` command group alongside the
+existing Week 2 commands. This is a local mock-first composition decision, not
+an environment-selection or production-HTTP contract. No environment variable
+or client selector is introduced.
+
+The CLI presents `KBDocumentNotFoundError` as `KB document not found` and
+`KBAddFileError` as `KB file error`, writes the concise message to stderr, and
+sets a failing exit code without exposing a stack trace. Existing
+`ValidationError` handling remains `Invalid input` for KB search/list input
+failures.
+
+Cycle 14 is the final cycle that can be completed without the real API. It does
+not make the external-API acceptance criteria complete and does not authorize
+`HTTPKBClient`, authentication, HTTP schemas, environment switching, or live
+API tests.

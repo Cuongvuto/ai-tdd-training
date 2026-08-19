@@ -19,29 +19,29 @@ reported as completed behavior.
 
 | Mentor requirement | Current implementation and evidence | Status |
 | --- | --- | --- |
-| Extend the Week 2 CLI with KB integration | Week 2 behavior remains intact. All four nested KB commands are registered and tested in process, but production `src/cli.ts` composition and subprocess E2E are absent. | **PARTIAL** |
+| Extend the Week 2 CLI with KB integration | Week 2 behavior remains intact. The actual CLI composes `MockKBClient`, exposes all four nested KB commands, and passes subprocess E2E; external HTTP integration remains absent. | **PARTIAL** |
 | Five-field `Document` entity | `src/models/kb/document.ts` defines `id`, `title`, `content`, `nodePath`, and `tags`. | **COMPLETE** |
 | `SearchResult` concept | The provisional mock-phase result contains a full `Document` and `matchType`. Executable evidence covers title, content, and tag matches. | **PARTIAL** |
 | `KBQuery` with query, filters, and `topK` | `SearchInput` contains `query` and `topK`. Filter shape and behavior remain deferred. | **PARTIAL** |
 | `KBClient` supports search, list, retrieve, and add | The interface exposes all four asynchronous typed operations with focused mock/command evidence. | **COMPLETE** |
 | In-memory `MockKBClient` with 2–3 documents | Three deterministic per-instance seed documents support all approved search/list/retrieve/add behavior, including validation, errors, sequential IDs, and cross-operation visibility. | **COMPLETE** |
-| Search operation | Approved mock matching/order/validation and in-process CLI behavior are implemented; filters, production composition, E2E, HTTP, and live coverage remain absent. | **PARTIAL** |
-| List operation | Approved mock matching/order/limit/validation and in-process CLI behavior are implemented; production composition, E2E, HTTP, and live coverage remain absent. | **PARTIAL** |
-| Retrieve operation | Exact case-sensitive mock retrieval, not-found error, and in-process command delegation/output are implemented; production composition, E2E, HTTP, and live coverage remain absent. | **PARTIAL** |
-| Add operation | Mock state behavior plus the in-process UTF-8 file adapter, mapping, output, and file-error translation are implemented; production composition, E2E, HTTP, and live coverage remain absent. | **PARTIAL** |
-| `kb search` command | Required inputs, numeric conversion, delegation, ordered output, and empty output are tested in process; production wiring and E2E are absent. | **PARTIAL** |
-| `kb list` command | Required inputs, numeric conversion, delegation, ordered output, and empty output are tested in process; production wiring and E2E are absent. | **PARTIAL** |
-| `kb retrieve` command | Required ID, unchanged delegation, five-field output, and client-error propagation are tested in process; production wiring and E2E are absent. | **PARTIAL** |
-| `kb add` command | Required options, UTF-8 file mapping, tag cleanup, exact-once delegation, five-field output, file-error translation, and client-error propagation are tested in process; production wiring and E2E are absent. | **PARTIAL** |
-| All four commands work end-to-end | No KB end-to-end tests exist. | **NOT STARTED** |
+| Search operation | Approved mock matching/order/validation, CLI behavior, production mock composition, and subprocess E2E are implemented; filters, HTTP, and live coverage remain absent. | **PARTIAL** |
+| List operation | Approved mock matching/order/limit/validation, CLI behavior, production mock composition, and subprocess E2E are implemented; HTTP and live coverage remain absent. | **PARTIAL** |
+| Retrieve operation | Exact mock retrieval, concise not-found handling, production mock composition, and subprocess E2E are implemented; HTTP and live coverage remain absent. | **PARTIAL** |
+| Add operation | Mock state behavior, UTF-8 file adapter, concise file-error handling, production mock composition, and subprocess E2E are implemented; HTTP and live coverage remain absent. | **PARTIAL** |
+| `kb search` command | Required inputs, delegation/output, production mock composition, validation presentation, and subprocess E2E are covered; HTTP execution is absent. | **PARTIAL** |
+| `kb list` command | Required inputs, delegation/output, production mock composition, validation presentation, and subprocess E2E are covered; HTTP execution is absent. | **PARTIAL** |
+| `kb retrieve` command | Required ID, delegation/output, production mock composition, concise not-found handling, and subprocess E2E are covered; HTTP execution is absent. | **PARTIAL** |
+| `kb add` command | Required options, file mapping, output/error behavior, production mock composition, and subprocess E2E are covered; HTTP execution is absent. | **PARTIAL** |
+| All four commands work end-to-end | All four pass independent subprocess E2E against `MockKBClient`; real HTTP end-to-end coverage is blocked. | **PARTIAL** |
 | Mock and HTTP clients behave consistently | The approved `MockKBClient` scope is complete; no comparison is possible because the HTTP contract/client is deferred. | **BLOCKED** |
 | Client selection through environment configuration | The environment contract and HTTP client remain unresolved until the real API contract is available. | **BLOCKED** |
 | HTTP client supports all four operations | The real base URL, authentication, response schemas, and error behavior remain unresolved. | **BLOCKED** |
 | Real KB API integration is tested | API access and a safe policy for testing the mutating add operation are unavailable. | **BLOCKED** |
 | Real API integration is documented | Accurate integration documentation requires the production API contract and access. | **BLOCKED** |
 | Mock client is independently testable | Separate focused suites verify all four approved mock operations, including validation, not-found behavior, state visibility, and instance isolation. | **COMPLETE** |
-| Error handling for missing or invalid data | Search/list validation, retrieve not-found, add file-read translation, and unchanged client-error propagation are covered; configuration and HTTP errors remain deferred. | **PARTIAL** |
-| Continue the TDD and mock-first workflow | Cycle logs preserve setup/invalid-test classifications and record three reviewed behavioral REDs for Cycle 13. Final delivery remains incomplete. | **PARTIAL** |
+| Error handling for missing or invalid data | Search/list validation and concise retrieve/add failures are covered through the real CLI; configuration and HTTP errors remain deferred. | **PARTIAL** |
+| Continue the TDD and mock-first workflow | Cycle logs preserve setup/invalid-test classifications and record two reviewed behavioral RED groups for Cycle 14. Final HTTP delivery remains incomplete. | **PARTIAL** |
 | Architecture and setup/deployment documentation | Mentor architecture and project decision/evidence documents exist. Configuration, HTTP setup, and deployment documentation remain incomplete. | **PARTIAL** |
 
 ## Current search implementation
@@ -427,13 +427,37 @@ passing in the full suite, plus passing typecheck and build. Production
 `src/cli.ts` composition, subprocess E2E, HTTP integration, environment
 selection, and live API validation remain outside Cycle 13.
 
+### Cycle 14 — Local mock CLI composition and subprocess E2E
+
+Cycle 14 creates a fresh `MockKBClient` in the actual CLI entrypoint and
+registers the KB command group alongside the four preserved Week 2 commands.
+Subprocess tests prove the approved search, list, retrieve, and file-backed add
+happy paths through the complete local CLI flow.
+
+The first valid behavioral RED group contained four `unknown command 'kb'`
+failures while all 83 earlier tests passed. Minimal GREEN added only the mock
+client instance and registrar call. The second valid RED group kept all 87
+earlier behaviors green but exposed full stack traces for missing retrieve and
+unreadable add-file errors. Minimal GREEN added the two approved top-level
+error branches.
+
+Post-GREEN coverage verifies existing `Invalid input` handling for search/list,
+root and nested command help, preservation of Week 2 commands, and fresh
+non-persistent state across subprocesses. Final evidence is ten focused E2E
+tests, 19 test files and 93 tests in the full suite, passing typecheck/build,
+and successful help checks against `dist/cli.js`.
+
+This completes the approved local mock-only phase. It does not complete HTTP,
+environment switching, real API testing/documentation, or the overall Week 3
+acceptance criteria.
+
 ## Acceptance criteria status
 
 | Acceptance criterion | Status | Current evidence or blocker |
 | --- | --- | --- |
 | CLI can query the external Knowledge Base API | **BLOCKED** | No `HTTPKBClient` exists, and the production API contract is incomplete. |
 | Mock and HTTP clients work and are environment-swappable | **BLOCKED** | The approved mock implementation is complete; the HTTP client and environment-selection contracts are deferred. |
-| Search, list, retrieve, and add work end-to-end | **PARTIAL** | All four mock operations and all four command registrars work in process, but production wiring and subprocess end-to-end coverage are absent. |
+| Search, list, retrieve, and add work end-to-end | **PARTIAL** | All four operations pass through the production CLI against the mock in independent subprocesses; HTTP end-to-end coverage is blocked. |
 | Real KB integration is tested and documented | **BLOCKED** | The real API contract, access, and safe live-test policy are unresolved. |
 
 ## Implementation summary
@@ -443,19 +467,21 @@ selection, and live API validation remain outside Cycle 13.
 | `Document` model | **COMPLETE** | Five mentor-specified fields |
 | `KBClient` contract | **COMPLETE** | Asynchronous typed `search`, `list`, `retrieve`, and `add` operations |
 | `MockKBClient` | **COMPLETE** | Three per-instance seed documents and approved search/list/retrieve/add behavior with isolated state and deterministic IDs |
-| Search | **PARTIAL** | Mock matching, precedence, order, limiting, and validation plus in-process CLI parsing/delegation, ordered title-plus-match-type output, and silent empty results; no production wiring, E2E, HTTP, or live integration |
-| List | **PARTIAL** | Exact `nodePath`, insertion order, limiting, validation, in-process CLI parsing/delegation, ordered title output, and silent empty results; no production wiring, E2E, HTTP, or live integration |
-| Retrieve | **PARTIAL** | Mock exact case-sensitive lookup, full-document return, KB-specific not-found error, and in-process CLI delegation/output/error propagation; no production wiring, E2E, HTTP, or live integration |
-| Add | **PARTIAL** | Mock state behavior plus in-process required options, UTF-8 file mapping, tag cleanup, exact-once delegation, five-field output, `KBAddFileError`, and unchanged client-error propagation; no production wiring, E2E, HTTP, or live integration |
-| KB commands | **PARTIAL** | Nested search, list, retrieve, and add registrars implement their approved parsing/delegation/output/error behavior in process; production composition and subprocess E2E are absent |
+| Search | **PARTIAL** | Approved mock/client/command behavior plus production mock composition and subprocess E2E; no HTTP or live integration |
+| List | **PARTIAL** | Approved mock/client/command behavior plus production mock composition and subprocess E2E; no HTTP or live integration |
+| Retrieve | **PARTIAL** | Approved mock/client/command behavior, concise CLI not-found handling, production mock composition, and subprocess E2E; no HTTP or live integration |
+| Add | **PARTIAL** | Approved mock/client/file-command behavior, concise CLI file-error handling, production mock composition, and subprocess E2E; no HTTP or live integration |
+| KB commands | **COMPLETE** | All four approved mock-first commands are registered in `src/cli.ts`, visible in help, and covered through independent subprocesses while preserving Week 2 commands |
+| Mock subprocess E2E | **COMPLETE** | Search, list, retrieve, add, validation/error presentation, help, and per-process state behavior are covered |
 | `HTTPKBClient` | **BLOCKED** | Production HTTP contract unresolved |
 | Environment switching | **BLOCKED** | Selection contract unresolved |
 | Real API integration | **BLOCKED** | Contract, access, and live-test policy unresolved |
 
 ## Overall assessment
 
-Week 3 is not complete. After Cycle 13, the `KBClient` contract and
-`MockKBClient` are **COMPLETE** for the approved mock phase, and all four KB
-commands are covered in process. Search, list, retrieve, add, and KB commands
-remain **PARTIAL** until production composition/E2E work is complete. HTTP
-requirements remain blocked/deferred.
+Week 3 is not complete. After Cycle 14, the local mock-only phase is complete:
+the `KBClient` contract, `MockKBClient`, four mock-first commands, production
+mock composition, and subprocess E2E are covered. Search/list/retrieve/add
+remain **PARTIAL** against the full Week 3 objective because `HTTPKBClient`,
+environment switching, real API tests, and integration documentation remain
+blocked/deferred until the real API contract is available.
