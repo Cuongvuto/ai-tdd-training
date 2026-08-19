@@ -194,6 +194,35 @@ Scope review kept production CLI wiring, subprocess E2E, retrieve/add commands,
 HTTP behavior, environment selection, and live API validation out of Cycle 9.
 The cycle is complete for its approved in-process mock-first scope.
 
+## Week 3 Cycle 10
+
+The previously human-approved retrieve contract was rechecked before coding:
+exact case-sensitive document ID, full `Document` return, and a KB-specific
+not-found error. The mock application method uses a direct string ID without
+claiming that shape as the deferred HTTP request schema. Exact error message
+text was deliberately left outside the contract.
+
+Structural preparation added the typed client signature, empty error class,
+mock stub, typed fake updates, and `it.todo` scaffold. Module loading and
+typecheck passed before the executable test, so structural setup was not used
+as RED evidence.
+
+The first test then failed because the intentional stub threw a not-implemented
+error, while all 64 earlier tests passed. Minimal GREEN used strict ID equality
+and returned the full matching document. The second test failed because a
+missing ID produced generic `Error` instead of `KBDocumentNotFoundError`, while
+exact retrieval and earlier behavior stayed green. Both were accepted as valid
+behavioral REDs.
+
+The final case-sensitive mismatch test was added after strict equality already
+implemented the behavior and is classified as regression/contract coverage,
+not a third RED. Final evidence is three focused tests passing, 67 full-suite
+tests passing, typecheck passing, and build passing.
+
+Scope review kept retrieve CLI/output, add, production composition, subprocess
+E2E, HTTP behavior, environment selection, and live API validation out of
+Cycle 10.
+
 ## Evidence standard
 
 AI statements are not proof that behavior works. Evidence comes from:

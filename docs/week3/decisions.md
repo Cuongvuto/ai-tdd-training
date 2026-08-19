@@ -105,10 +105,13 @@ perform recursive hierarchy traversal.
 ## W3-D09 — Retrieve behavior
 
 **Source:** PROJECT TECHNICAL DECISION  
-**Status:** Approved but not implemented
+**Status:** Approved
 
 Mock retrieve will use exact, case-sensitive document IDs, return the full
-document, and use a KB-specific not-found error for a missing document.
+document, and use a KB-specific not-found error for a missing document. The
+mock application contract is `retrieve(documentId: string): Promise<Document>`;
+this does not establish the deferred HTTP request schema. The error class is
+`KBDocumentNotFoundError`; exact error message text is not a contract.
 
 ## W3-D10 — Add command mapping
 
@@ -202,7 +205,7 @@ orchestration requires another layer.
 ## W3-D17 — Mock-phase error model
 
 **Source:** PROJECT TECHNICAL DECISION  
-**Status:** Approved but not implemented
+**Status:** Approved
 
 The mock phase will reuse the existing input validation classification and add
 only a KB document-not-found error and a KB add-file error when those behaviors

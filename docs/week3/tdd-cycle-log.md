@@ -1586,3 +1586,195 @@ approved command architecture. Only test setup duplication was reduced.
 Cycle 9 is complete for its approved in-process mock-first scope. It contains
 two valid behavioral REDs: search delegation and ordered stdout. Production
 composition and E2E remain reserved for a later cycle.
+
+## Cycle 10 — Mock retrieve by exact document ID
+
+Cycle 10 adds `MockKBClient.retrieve(documentId: string): Promise<Document>`.
+The approved behavior uses exact, case-sensitive IDs, returns the full seeded
+document, and throws `KBDocumentNotFoundError` for a missing ID. Exact error
+message text is not part of the contract. Retrieve CLI behavior remains outside
+this cycle.
+
+### Structural preparation
+
+The `KBClient.retrieve()` signature, empty error class, typed mock stub, command
+fake updates, and non-executing `it.todo` scaffold were introduced before the
+behavioral test. The stub deliberately threw a generic not-implemented error.
+
+```text
+Test Files  1 skipped (1)
+Tests       1 todo (1)
+Duration    605ms
+Typecheck   PASS
+```
+
+This established a loadable/type-safe test boundary and is not behavioral RED
+evidence.
+
+### Cycle 10A — Return the full document for an exact ID
+
+The first executable test calls `retrieve('doc-001')` and expects the complete
+seeded `Customer Response Template` document, including ID, title, content,
+node path, and tags.
+
+#### RED evidence
+
+Focused RED:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Error       MockKBClient.retrieve is not implemented
+Duration    609ms
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 14 passed (15)
+Tests       1 failed | 64 passed (65)
+Duration    7.35s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+The module loaded, the retrieve test executed, and all 64 prior tests passed.
+The failure was caused by the intentional stub instead of exact-ID retrieval,
+not by structural setup or the environment.
+
+#### GREEN
+
+The minimum implementation uses `Array.find()` with strict ID equality and
+returns the matched full document. A missing ID still threw a generic `Error`
+at this point so the KB-specific error behavior was not implemented early.
+
+Focused GREEN:
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    1.09s
+Exit code   0
+```
+
+### Cycle 10B — KB-specific not-found error
+
+The second executable test requests `doc-999` and expects rejection with
+`KBDocumentNotFoundError`.
+
+#### RED evidence
+
+Focused RED:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 1 passed (2)
+Expected    KBDocumentNotFoundError
+Received    Error: KB document not found
+Duration    720ms
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 14 passed (15)
+Tests       1 failed | 65 passed (66)
+Duration    6.88s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+Exact-ID retrieval and all 64 pre-Cycle-10 tests remained green. The failure
+was specifically caused by the generic error type not satisfying the approved
+KB-specific error contract.
+
+#### GREEN
+
+The missing-document branch now throws `KBDocumentNotFoundError`. The existing
+message was retained for diagnostics, but tests intentionally assert only the
+error class.
+
+Focused GREEN:
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    632ms
+Exit code   0
+```
+
+### Regression and contract coverage
+
+After both GREEN slices, a test requests uppercase `DOC-001` and expects the
+KB-specific not-found error. Strict equality already made IDs case-sensitive,
+so this is regression/contract coverage rather than another RED/GREEN cycle.
+
+### Final validation
+
+Focused Cycle 10 suite:
+
+```text
+Test Files  1 passed (1)
+Tests       3 passed (3)
+Duration    622ms
+Exit code   0
+```
+
+Full regression:
+
+```text
+Test Files  15 passed (15)
+Tests       67 passed (67)
+Duration    10.85s
+Exit code   0
+```
+
+Typecheck:
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+Build:
+
+```text
+npm run build
+tsc -p tsconfig.build.json
+Exit code: 0
+```
+
+These Node-based validations used approved out-of-sandbox execution because
+the environment's `C:\Users\anhde` resolution has already been established to
+produce sandbox-only `EPERM` failures. No project failure was observed.
+
+### Refactor review
+
+**Decision:** No-op production refactor
+
+The strict `Array.find()` and explicit not-found branch are sufficient for the
+three-document mock. No repository, service, or lookup abstraction was added.
+
+### Scope review
+
+- `KBClient.retrieve(documentId)`: added.
+- Exact, case-sensitive seeded-document lookup: implemented and tested.
+- Full `Document` return: implemented and tested.
+- KB-specific missing-document error: implemented and tested.
+- Exact error message contract: not introduced.
+- Existing search/list client and command behavior: preserved.
+- Retrieve command and stdout: not implemented.
+- Add behavior and command: not implemented.
+- Production KB CLI wiring and subprocess E2E: not implemented.
+- `HTTPKBClient`, environment switching, and live API validation: deferred.
+
+### Cycle assessment
+
+Cycle 10 is complete for its approved mock-client scope. It contains two valid
+behavioral REDs: exact-ID retrieval and KB-specific not-found classification.
+Retrieve CLI behavior is reserved for Cycle 11.

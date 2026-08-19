@@ -1,4 +1,5 @@
 import { ValidationError } from '../errors/validation-error.js';
+import { KBDocumentNotFoundError } from '../errors/kb-document-not-found-error.js';
 import type { Document } from '../models/kb/document.js';
 import type { SearchInput } from '../models/kb/search-input.js';
 import type { SearchResult } from '../models/kb/search-result.js';
@@ -88,5 +89,16 @@ export class MockKBClient implements KBClient {
       (document) => document.nodePath === normalizedNodePath
     )
     .slice(0,input.limit);
+  }
+  async retrieve(documentId: string): Promise<Document> {
+    const document = documents.find(
+      (candidate) => candidate.id === documentId
+    );
+
+    if (document === undefined) {
+      throw new KBDocumentNotFoundError('KB document not found');
+    }
+
+    return document;
   }
 }
