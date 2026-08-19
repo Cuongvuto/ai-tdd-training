@@ -281,6 +281,37 @@ Scope review kept file reading, add command, production composition, subprocess
 E2E, HTTP behavior, environment selection, and live API validation out of
 Cycle 12.
 
+## Week 3 Cycle 13
+
+Human review approved the add-command contract before behavioral tests:
+`tickets kb add --file <file> --path <nodePath> --tags <tags>`, required
+options without defaults, UTF-8 file reading, filename-stem title derivation,
+node-path mapping, trimmed nonempty comma-separated tags, exact-once add
+delegation, five labeled output lines, `KBAddFileError` for file-read failures,
+and unchanged client-error propagation. These details are recorded as project
+technical decisions rather than mentor-specified HTTP or output contracts.
+
+Structural preparation created the empty error class, typed registrar stub,
+parent registration, and `it.todo`. The focused scaffold loaded and typecheck
+passed, so this setup was not presented as RED evidence.
+
+Three tests were introduced one behavior at a time before their corresponding
+production changes. They failed respectively because Commander did not know
+`add`, because no stdout was produced, and because a raw `ENOENT` escaped
+instead of `KBAddFileError`. Each failure executed the intended assertion and
+kept all earlier behavior green, so all three were accepted as valid
+behavioral REDs.
+
+Minimal GREEN was similarly staged: mapping/delegation first, output second,
+and a catch boundary around only `readFile()` third. Missing required options
+and unchanged `KBClient.add()` error propagation were added after GREEN and are
+recorded as regression coverage, not manufactured REDs.
+
+Final executable evidence is seven focused tests and 83 full-suite tests
+passing, plus passing typecheck and build. Scope review kept `src/cli.ts`
+production composition, subprocess E2E, HTTP behavior, environment selection,
+and live API validation out of Cycle 13.
+
 ## Evidence standard
 
 AI statements are not proof that behavior works. Evidence comes from:

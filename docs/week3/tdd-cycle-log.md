@@ -2201,3 +2201,252 @@ Cycle 12 is complete for its approved mock-client scope. It contains two valid
 behavioral REDs: append/return behavior and sequential per-instance IDs. The
 mock now implements all four KB operations; add CLI behavior remains for the
 next cycle.
+
+## Cycle 13 — In-process KB add command and file adapter
+
+Cycle 13 adds the human-approved mock-first command:
+
+```text
+tickets kb add --file <file> --path <nodePath> --tags <tags>
+```
+
+All three options are required. The command reads UTF-8 content, derives the
+title from the file name stem, maps `--path` to `nodePath`, splits comma-
+separated tags, trims them, discards empty entries, and delegates exactly once
+to `KBClient.add()`. On success it prints the returned document using the same
+five labeled fields as retrieve. File-read failures become `KBAddFileError`,
+while client errors propagate unchanged.
+
+No production `src/cli.ts` wiring, subprocess E2E, persistence, HTTP behavior,
+or environment selection is introduced in this cycle.
+
+### Structural preparation
+
+The structural setup recorded the approved decision, added an empty
+`KBAddFileError`, added a typed registrar stub, connected that registrar to the
+in-process `kb` parent, and created an `it.todo` scaffold.
+
+Validation before the behavioral test:
+
+```text
+Test Files  1 skipped (1)
+Tests       1 todo (1)
+Duration    578ms
+Typecheck   PASS
+```
+
+The module loaded and typecheck passed. This was structural preparation, not
+behavioral RED evidence.
+
+### Cycle 13A — UTF-8 file mapping and exact-once delegation
+
+The first executable test creates `new-template.md`, invokes the approved
+command, and expects exactly one add input containing the filename-stem title,
+exact file content, mapped node path, and cleaned tags.
+
+#### RED evidence
+
+Focused RED:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Error       CommanderError: error: unknown command 'add'
+Duration    658ms
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 17 passed (18)
+Tests       1 failed | 76 passed (77)
+Duration    7.04s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+The suite loaded, the behavioral test executed, and all 76 earlier tests
+passed. The failure was caused by the approved `add` command not being
+registered, not by module loading or test setup.
+
+#### GREEN
+
+The minimum implementation registers the three required options, reads the
+file as UTF-8, derives the title with the path parser, cleans comma-separated
+tags, and awaits one `KBClient.add()` call. It does not yet print output or
+translate file errors.
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    646ms
+Exit code   0
+```
+
+### Cycle 13B — Added-document stdout
+
+The second executable test expects the document returned by `KBClient.add()`
+to be printed as five labeled lines in the approved order.
+
+#### RED evidence
+
+Focused RED:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 1 passed (2)
+Expected    5 console.log calls
+Received    0 console.log calls
+Duration    691ms
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 17 passed (18)
+Tests       1 failed | 77 passed (78)
+Duration    7.23s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+Mapping/delegation and all pre-Cycle-13 tests remained green. The failure was
+specific to the approved stdout behavior being absent.
+
+#### GREEN
+
+The minimum implementation stores the document returned from `add()` and
+prints `ID`, `Title`, `Content`, `Node Path`, and comma-space-separated `Tags`.
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    632ms
+Exit code   0
+```
+
+### Cycle 13C — File-read error translation
+
+The third executable test supplies a missing file and expects
+`KBAddFileError`, with no client delegation.
+
+#### RED evidence
+
+Focused RED:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 2 passed (3)
+Expected    KBAddFileError
+Received    raw filesystem ENOENT error
+Duration    655ms
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 17 passed (18)
+Tests       1 failed | 78 passed (79)
+Duration    7.41s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+Both earlier Cycle 13 behaviors and all pre-cycle behavior remained green. The
+failure was specific to the missing file-error boundary.
+
+#### GREEN
+
+Only the `readFile()` call is wrapped. Its failure is translated to
+`KBAddFileError` with the original error as its cause; `KBClient.add()` remains
+outside the catch boundary so client errors are not changed.
+
+```text
+Test Files  1 passed (1)
+Tests       3 passed (3)
+Duration    655ms
+Exit code   0
+```
+
+### Regression and contract coverage
+
+After GREEN, coverage was added for:
+
+- rejection of missing `--file`, `--path`, and `--tags` before delegation;
+- unchanged propagation of the exact error object thrown by `KBClient.add()`.
+
+These cases exercised already implemented Commander/error-boundary behavior
+and are regression coverage, not additional RED/GREEN cycles. Temporary files
+and directories are created per test and removed afterward.
+
+### Final validation
+
+Focused Cycle 13 suite:
+
+```text
+Test Files  1 passed (1)
+Tests       7 passed (7)
+Duration    636ms
+Exit code   0
+```
+
+Full regression:
+
+```text
+Test Files  18 passed (18)
+Tests       83 passed (83)
+Duration    7.18s
+Exit code   0
+```
+
+Typecheck:
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+Build:
+
+```text
+npm run build
+tsc -p tsconfig.build.json
+Exit code: 0
+```
+
+Node-based validation used the previously approved out-of-sandbox execution
+path because this environment has an established sandbox-only `EPERM`
+restriction. No project failure was observed.
+
+### Refactor review
+
+**Decision:** No additional production refactor
+
+The command remains a small filesystem-to-client adapter. A separate service,
+tag parser abstraction, or general KB error hierarchy is not justified by the
+current approved behavior.
+
+### Scope review
+
+- Nested `kb add` registration and required options: implemented and tested.
+- UTF-8 file reading and filename-stem title derivation: implemented/tested.
+- Node-path mapping, tag cleanup, and exact-once delegation: implemented/tested.
+- Five-field labeled stdout: implemented and tested.
+- File-read error translation: implemented and tested.
+- Client-error propagation: covered.
+- Production `src/cli.ts` composition and subprocess E2E: not implemented.
+- `HTTPKBClient`, environment switching, and live API validation: deferred.
+
+### Cycle assessment
+
+Cycle 13 is complete for its approved in-process mock-first scope. It contains
+three valid behavioral REDs: command mapping/delegation, stdout, and file-read
+error translation. All four in-process KB command registrars now exist;
+production composition and E2E remain for later cycles.

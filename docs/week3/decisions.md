@@ -118,9 +118,23 @@ this does not establish the deferred HTTP request schema. The error class is
 **Source:** PROJECT TECHNICAL DECISION  
 **Status:** Approved
 
-The add command will read UTF-8 file content, derive the title from the file
-name stem, parse comma-separated tags, and pass title, content, node path, and
-tags to `KBClient.add`. File paths do not belong in the client contract.
+The mock-first invocation is
+`tickets kb add --file <file> --path <nodePath> --tags <tags>`. All three
+options are required and have no defaults. The command reads the file as
+UTF-8, derives the title from the file name stem, maps `--path` to `nodePath`,
+and parses tags by splitting on commas, trimming whitespace, and discarding
+empty entries. It delegates exactly once to `KBClient.add()` with `title`,
+`content`, `nodePath`, and `tags`; the file path does not belong in the client
+contract.
+
+A file-read failure is translated to `KBAddFileError`; exact error message
+text is not a contract. Errors from `KBClient.add()` propagate unchanged.
+
+Successful output follows the approved retrieve-command format and prints
+five labeled lines in this order: `ID`, `Title`, `Content`, `Node Path`, and
+comma-space-separated `Tags`. The invocation, option behavior, tag cleanup,
+error flow, and output formatting are project technical decisions rather than
+mentor-specified wire-contract requirements.
 
 ## W3-D11 — Mock add behavior
 
