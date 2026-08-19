@@ -165,6 +165,35 @@ typecheck passing, and build passing. Scope review still excludes production
 `src/cli.ts` wiring, subprocess E2E, other KB commands, HTTP integration, and
 environment switching. Cycle 8 is complete for its approved in-process scope.
 
+## Week 3 Cycle 9
+
+Human review approved the Cycle 9 contract before behavioral tests:
+`tickets kb search <query> --top-k <number>`, required inputs without defaults,
+title-plus-match-type stdout, client order, and silent empty results. The
+required/default and output choices are project technical decisions; they are
+not presented as mentor-specified details.
+
+Structural preparation used a typed search registrar stub and `it.todo` test so
+module loading and typecheck were verified separately. The first executable
+test then failed with unknown command `search` while all 59 earlier tests passed,
+which was accepted as a valid behavioral RED. Minimal GREEN added parsing,
+numeric conversion, and exact-once client delegation.
+
+The stdout test was written before output implementation. It observed no log
+calls while delegation and all earlier behavior remained green, so it was
+accepted as Cycle 9's second valid behavioral RED. Minimal GREEN printed each
+result as `<document.title> [<matchType>]` in client order.
+
+Silent empty results and missing-query/`--top-k` cases were added after GREEN
+and remain classified as regression/contract coverage. Test setup was
+consolidated without production behavior changes. Final evidence is five
+focused tests passing, 64 full-suite tests passing, typecheck passing, and build
+passing.
+
+Scope review kept production CLI wiring, subprocess E2E, retrieve/add commands,
+HTTP behavior, environment selection, and live API validation out of Cycle 9.
+The cycle is complete for its approved in-process mock-first scope.
+
 ## Evidence standard
 
 AI statements are not proof that behavior works. Evidence comes from:

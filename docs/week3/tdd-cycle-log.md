@@ -1359,3 +1359,230 @@ Cycle 8 is complete for its approved in-process mock-first scope. It contains
 two valid behavioral REDs: command delegation and ordered stdout. Production
 composition and E2E are explicitly reserved for a later cycle, so their absence
 does not rewrite or broaden Cycle 8 scope.
+
+## Cycle 9 — In-process KB search command
+
+Cycle 9 adds the human-approved mock-first invocation:
+
+```text
+tickets kb search <query> --top-k <number>
+```
+
+The positional query and `--top-k` option are required and have no defaults.
+Commander handles presence, parsing, and numeric conversion. Blank-query and
+invalid-`topK` business validation remains in `KBClient` / `MockKBClient`.
+
+The approved stdout format is `<document.title> [<matchType>]`, one result per
+line in client order, with no header. An empty result produces no stdout and
+completes successfully.
+
+### Structural preparation
+
+A typed `registerKBSearchCommand()` stub, parent-registrar call, and
+non-executing `it.todo` scaffold were introduced before the behavioral test.
+This made the module graph executable without implementing search behavior:
+
+```text
+Test Files  1 skipped (1)
+Tests       1 todo (1)
+Duration    754ms
+Typecheck   PASS
+```
+
+This was structural preparation, not behavioral RED.
+
+### Cycle 9A — Search parsing and delegation
+
+The executable test parses:
+
+```text
+kb search response --top-k 3
+```
+
+It expects one call to `KBClient.search()` with:
+
+```typescript
+{
+  query: 'response',
+  topK: 3,
+}
+```
+
+#### RED evidence
+
+Focused RED:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed (1)
+Error       CommanderError: error: unknown command 'search'
+Duration    782ms
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 13 passed (14)
+Tests       1 failed | 59 passed (60)
+Duration    7.17s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+The module loaded, the new test executed, and all 59 prior tests passed. The
+failure occurred because the typed search registrar still registered no
+`search` subcommand. This was absent approved command behavior, not an import,
+type, fixture, configuration, or environment failure.
+
+#### GREEN
+
+The minimum implementation registers `search <query>`, declares required
+`--top-k <number>`, converts the option with Commander's number parser, and
+delegates exactly once to `KBClient.search({ query, topK })`. It introduces no
+service layer or command-side business validation.
+
+Focused GREEN:
+
+```text
+Test Files  1 passed (1)
+Tests       1 passed (1)
+Duration    578ms
+Exit code   0
+```
+
+### Cycle 9B — Ordered search stdout
+
+The stdout test configures a fake client to return two results and expects:
+
+```text
+Customer Response Template [title]
+Password Reset Template [content]
+```
+
+#### RED evidence
+
+The delegation test remained green, while the new stdout test observed no log
+calls:
+
+```text
+Test Files  1 failed (1)
+Tests       1 failed | 1 passed (2)
+Expected    Customer Response Template [title], Password Reset Template [content]
+Received    []
+Duration    578ms
+Exit code   1
+```
+
+Full RED regression:
+
+```text
+Test Files  1 failed | 13 passed (14)
+Tests       1 failed | 60 passed (61)
+Duration    6.66s
+Exit code   1
+```
+
+**Classification: VALID BEHAVIORAL RED**
+
+Both Cycle 9 tests executed, delegation and all 59 pre-Cycle-9 tests passed,
+and failure was caused only by the command discarding returned search results.
+
+#### GREEN
+
+The minimum change stores the results and logs
+`${result.document.title} [${result.matchType}]` for each result using a
+`for...of` loop. The client-provided order is preserved without sorting or
+additional formatting.
+
+Focused GREEN:
+
+```text
+Test Files  1 passed (1)
+Tests       2 passed (2)
+Duration    586ms
+Exit code   0
+```
+
+### Regression and contract coverage
+
+After GREEN, three cases were added:
+
+- an empty search result completes without calling `console.log`;
+- omission of the positional query is rejected before client delegation;
+- omission of `--top-k` is rejected before client delegation.
+
+The required-input implementation and empty-result behavior already existed
+before these tests, so they are regression/contract coverage rather than new
+RED/GREEN cycles. Test-only client and program setup was consolidated without
+changing production behavior.
+
+### Final validation
+
+Focused Cycle 9 suite:
+
+```text
+Test Files  1 passed (1)
+Tests       5 passed (5)
+Duration    819ms
+Exit code   0
+```
+
+Full regression:
+
+```text
+Test Files  14 passed (14)
+Tests       64 passed (64)
+Duration    7.58s
+Exit code   0
+```
+
+Typecheck:
+
+```text
+npm run typecheck
+tsc --noEmit
+Exit code: 0
+```
+
+Build:
+
+```text
+npm run build
+tsc -p tsconfig.build.json
+Exit code: 0
+```
+
+These Node-based validations used approved out-of-sandbox execution because
+the environment's `C:\Users\anhde` resolution has already been established to
+produce sandbox-only `EPERM` failures. No project failure was observed.
+
+### Refactor review
+
+**Decision:** No-op production refactor
+
+The direct command-to-client delegation and ordered output loop match the
+approved command architecture. Only test setup duplication was reduced.
+
+### Scope review
+
+- Parent `kb` and nested `search` registration: implemented and tested in
+  process.
+- Required query and `--top-k`: implemented and covered.
+- Numeric conversion and exact-once search delegation: implemented and tested.
+- Ordered title-plus-match-type stdout: implemented and tested.
+- Empty-result silent success: implemented and tested.
+- Search matching, ordering, limiting, and validation remain in
+  `MockKBClient`: preserved.
+- Existing `kb list` behavior: preserved.
+- `src/cli.ts` production wiring: not implemented.
+- Subprocess E2E: not implemented.
+- Retrieve and add commands: not implemented.
+- `HTTPKBClient`, environment switching, and live API validation: deferred.
+
+### Cycle assessment
+
+Cycle 9 is complete for its approved in-process mock-first scope. It contains
+two valid behavioral REDs: search delegation and ordered stdout. Production
+composition and E2E remain reserved for a later cycle.

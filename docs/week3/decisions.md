@@ -177,6 +177,19 @@ fields. An empty result produces no stdout and completes successfully. This
 format is a project integration choice based on the existing Week 2 list
 convention, not a mentor-specified response format.
 
+For the Cycle 9 search command, the mock-first invocation is
+`tickets kb search <query> --top-k <number>`. The positional query and
+`--top-k` option are required and have no defaults. Commander handles presence,
+CLI parsing, and numeric conversion; search validation remains in `KBClient` /
+`MockKBClient`.
+
+The human-approved search stdout contract prints each result as
+`<document.title> [<matchType>]`, one result per line in client order, with no
+header or additional fields. An empty result produces no stdout and completes
+successfully. Required/default behavior and output formatting are project
+technical decisions; the mentor example establishes the query and `--top-k`
+syntax but does not specify those details.
+
 ## W3-D16 — Service layer
 
 **Source:** PROJECT TECHNICAL DECISION  
