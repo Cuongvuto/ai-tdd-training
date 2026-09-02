@@ -1,0 +1,50 @@
+[
+  {
+    "id": "W5-LOGIN-001",
+    "subject": "Không thể đăng nhập vào LMS",
+    "requesterEmail": "an.nguyen@example.test",
+    "description": "LMS báo sai tên đăng nhập hoặc mật khẩu."
+  },
+  {
+    "id": "W5-LOGIN-002",
+    "subject": "Không đăng nhập được LMS",
+    "requesterEmail": "minh.nguyen@example.test",
+    "description": "Tôi không thể đăng nhập vào LMS."
+  },
+  {
+    "id": "W5-LOGIN-003",
+    "subject": "Không đăng nhập được LMS",
+    "requesterEmail": "lan.tran@example.test",
+    "description": "Tôi cần truy cập tài liệu lớp học hôm nay."
+  },
+  {
+    "id": "W5-OTHER-001",
+    "subject": "Không tạo được lớp mới",
+    "requesterEmail": "hoa.le@example.test",
+    "description": "Cần hỗ trợ tạo lớp học."
+  },
+  {
+    "id": "W5-LOGIN-004",
+    "subject": "Không đăng nhập được LMS",
+    "description": "Không còn thông tin email để đối chiếu tài khoản."
+  },
+  {
+    "id": "W5-LOGIN-005",
+    "subject": "Không đăng nhập được LMS",
+    "requesterEmail": "system.issue@example.test",
+    "description": "Nhiều giáo viên cùng không đăng nhập được.",
+    "systemWideIssue": true
+  },
+  {
+    "id": "W5-LOGIN-006",
+    "subject": "Không đăng nhập được LMS",
+    "requesterEmail": "no-hr@example.test",
+    "description": "Cần hỗ trợ đăng nhập."
+  },
+  {
+    "id": "W5-LOGIN-007",
+    "subject": "Không đăng nhập được LMS",
+    "requesterEmail": "no-lms@example.test",
+    "description": "Cần hỗ trợ đăng nhập."
+  }
+]

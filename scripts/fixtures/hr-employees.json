@@ -1,0 +1,22 @@
+[
+  {
+    "email": "an.nguyen@example.test",
+    "employmentStatus": "active"
+  },
+  {
+    "email": "minh.nguyen@example.test",
+    "employmentStatus": "active"
+  },
+  {
+    "email": "lan.tran@example.test",
+    "employmentStatus": "terminated"
+  },
+  {
+    "email": "system.issue@example.test",
+    "employmentStatus": "active"
+  },
+  {
+    "email": "no-lms@example.test",
+    "employmentStatus": "active"
+  }
+]
