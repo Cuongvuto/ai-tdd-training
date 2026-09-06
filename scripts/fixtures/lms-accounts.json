@@ -1,0 +1,18 @@
+[
+  {
+    "email": "an.nguyen@example.test",
+    "accountStatus": "Active"
+  },
+  {
+    "email": "minh.nguyen@example.test",
+    "accountStatus": "Deactivated"
+  },
+  {
+    "email": "lan.tran@example.test",
+    "accountStatus": "Deactivated"
+  },
+  {
+    "email": "system.issue@example.test",
+    "accountStatus": "Deactivated"
+  }
+]

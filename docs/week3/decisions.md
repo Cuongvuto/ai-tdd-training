@@ -1,0 +1,290 @@
+# Week 3 Project Decisions
+
+This document records the human-approved mock-phase contract and separates
+mentor requirements from project choices. The authoritative mentor sources are
+`overview.md`, `architecture.md`, and `tasks.md`.
+
+Each decision has exactly one source classification:
+
+- **MENTOR-SPECIFIED** — explicitly stated in the mentor documents.
+- **PROJECT TECHNICAL DECISION** — chosen by the project and approved by a
+  human for the mock-first phase.
+- **DEFERRED FOR HTTP** — intentionally unresolved until the real API contract
+  is available.
+
+Project technical decisions are not claims about the production HTTP wire
+contract.
+
+## W3-D01 — Document model
+
+**Source:** MENTOR-SPECIFIED  
+**Status:** Approved
+
+The Knowledge Base document has exactly these fields for the current scope:
+
+```typescript
+interface Document {
+  id: string;
+  title: string;
+  content: string;
+  nodePath: string;
+  tags: string[];
+}
+```
+
+No timestamps, author, score, or general metadata fields are included.
+
+## W3-D02 — SearchResult shape
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved provisionally for the mock phase
+
+`SearchResult` contains a full `Document` and one `matchType`. This is an
+application contract for mock-first learning and is not the final HTTP response
+schema.
+
+## W3-D03 — Search match type
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved provisionally for the mock phase
+
+The approved match types are `title`, `content`, and `tag`. When more than one
+field matches, the precedence is title, then content, then tag.
+
+## W3-D04 — KBQuery filters
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved for staged implementation
+
+The staged search contract uses `query`. `topK` is introduced with its
+dedicated behavior. Filter shape and behavior are not invented, and the
+production HTTP representation remains unresolved.
+
+## W3-D05 — Mock seed data
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved for staged implementation
+
+The intended deterministic mock seed contains three documents:
+
+1. Customer Response Template at `/templates/email`.
+2. Password Reset Template at `/templates/email`.
+3. DevOps Team Contacts at `/team/devops`.
+
+This fixture stays small while supporting meaningful search, list, retrieve,
+and add examples across more than one node.
+
+## W3-D06 — Search matching
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved for staged implementation
+
+Mock search checks title, content, and individual tags using case-insensitive
+substring matching. It returns each matching document once and does not score
+or rank results. Match precedence follows W3-D03: title, then content, then
+tag.
+
+## W3-D07 — Search ordering, topK, and validation
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved for staged implementation
+
+Results preserve seed/insertion order. `topK` must be a positive integer. Blank
+queries and invalid `topK` values are rejected.
+
+## W3-D08 — List behavior
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved but not implemented
+
+Mock list will return documents whose `nodePath` exactly equals the requested
+path, preserve insertion order, apply a positive limit, return an empty list
+for a valid node with no documents, and reject invalid input. It will not
+perform recursive hierarchy traversal.
+
+## W3-D09 — Retrieve behavior
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved
+
+Mock retrieve will use exact, case-sensitive document IDs, return the full
+document, and use a KB-specific not-found error for a missing document. The
+mock application contract is `retrieve(documentId: string): Promise<Document>`;
+this does not establish the deferred HTTP request schema. The error class is
+`KBDocumentNotFoundError`; exact error message text is not a contract.
+
+## W3-D10 — Add command mapping
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved
+
+The mock-first invocation is
+`tickets kb add --file <file> --path <nodePath> --tags <tags>`. All three
+options are required and have no defaults. The command reads the file as
+UTF-8, derives the title from the file name stem, maps `--path` to `nodePath`,
+and parses tags by splitting on commas, trimming whitespace, and discarding
+empty entries. It delegates exactly once to `KBClient.add()` with `title`,
+`content`, `nodePath`, and `tags`; the file path does not belong in the client
+contract.
+
+A file-read failure is translated to `KBAddFileError`; exact error message
+text is not a contract. Errors from `KBClient.add()` propagate unchanged.
+
+Successful output follows the approved retrieve-command format and prints
+five labeled lines in this order: `ID`, `Title`, `Content`, `Node Path`, and
+comma-space-separated `Tags`. The invocation, option behavior, tag cleanup,
+error flow, and output formatting are project technical decisions rather than
+mentor-specified wire-contract requirements.
+
+## W3-D11 — Mock add behavior
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved
+
+Mock add will generate deterministic per-instance sequential IDs, append and
+return the document, and make it visible to search, list, and retrieve within
+that client instance. Duplicate titles and paths are allowed because no
+uniqueness rule is specified.
+
+## W3-D12 — Mock state lifetime
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved
+
+Mock state belongs to one `MockKBClient` instance. It is not shared globally
+and is not persisted across processes. JSON persistence will not be added to
+the mock.
+
+## W3-D13 — KBClient signatures
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved for staged implementation
+
+Client methods are asynchronous for future HTTP parity and use typed domain
+inputs and outputs. Operations are added when their behavior enters TDD. The
+interface contains no HTTP-library, Commander, console, filesystem, or
+environment details.
+
+## W3-D14 — CLI organization
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved
+
+KB command registration will be grouped under `src/commands/kb/`, with one
+parent registrar and one file per operation. No `src/week3/` directory will be
+created.
+
+## W3-D15 — CLI nesting
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved for the mock-first CLI contract
+
+The project will preserve the existing `tickets` executable and nest KB
+commands beneath it. The mock-first list invocation is `tickets kb list`.
+The mentor examples use `kb ...`; therefore this is a project integration
+choice rather than a mentor-authored requirement.
+
+For the Cycle 8 list command, `--node <path>` and `--limit <number>` are both
+required and have no defaults. Commander handles presence and CLI parsing;
+business validation remains in `KBClient` / `MockKBClient`.
+
+The human-approved list stdout contract prints each document title on its own
+line in the order returned by `KBClient.list()`, with no header or additional
+fields. An empty result produces no stdout and completes successfully. This
+format is a project integration choice based on the existing Week 2 list
+convention, not a mentor-specified response format.
+
+For the Cycle 9 search command, the mock-first invocation is
+`tickets kb search <query> --top-k <number>`. The positional query and
+`--top-k` option are required and have no defaults. Commander handles presence,
+CLI parsing, and numeric conversion; search validation remains in `KBClient` /
+`MockKBClient`.
+
+The human-approved search stdout contract prints each result as
+`<document.title> [<matchType>]`, one result per line in client order, with no
+header or additional fields. An empty result produces no stdout and completes
+successfully. Required/default behavior and output formatting are project
+technical decisions; the mentor example establishes the query and `--top-k`
+syntax but does not specify those details.
+
+For the Cycle 11 retrieve command, the mock-first invocation is
+`tickets kb retrieve <documentId>`. The positional document ID is required and
+is delegated unchanged to `KBClient.retrieve()`.
+
+The human-approved retrieve stdout contract follows the existing Week 2 show
+convention and prints five labeled lines in this order: `ID`, `Title`,
+`Content`, `Node Path`, and comma-space-separated `Tags`. The command does not
+translate `KBDocumentNotFoundError`; it propagates the client error to its
+caller. The `tickets` nesting, label formatting, and error propagation are
+project technical decisions rather than mentor-specified output/error text.
+
+## W3-D16 — Service layer
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved
+
+No `KBService` is introduced merely for symmetry with `TicketService`. Direct
+`KB command -> KBClient` delegation is sufficient until real application
+orchestration requires another layer.
+
+## W3-D17 — Mock-phase error model
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved
+
+The mock phase will reuse the existing input validation classification and add
+only a KB document-not-found error and a KB add-file error when those behaviors
+are implemented. A broad KB error hierarchy is not introduced.
+
+## W3-D18 — Test framework
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved for the mock-first phase
+
+The project continues with Vitest 4.1.10 to preserve the validated Week 2 test
+stack. The mention of Jest in `architecture.md` is not treated as a migration
+requirement.
+
+## W3-D19 — Mock E2E strategy
+
+**Source:** PROJECT TECHNICAL DECISION  
+**Status:** Approved and implemented
+
+Subprocess tests will remain independent. Add visibility across operations is
+tested in process with one client instance rather than by adding mock
+persistence. Cycle 14 covers all four KB commands through the real CLI process.
+Because each subprocess creates a fresh mock client, an added document is not
+expected to be retrievable from another process.
+
+## W3-D20 — HTTP and environment contract
+
+**Source:** DEFERRED FOR HTTP  
+**Status:** Deferred
+
+The base URL, authentication, client-selection environment variables, full
+response schemas, HTTP error mapping, timeout/retry behavior, response
+validation, and live-test cleanup policy remain unresolved. These decisions
+will be reviewed when the real API contract is available. No mock-phase
+decision is presented as an authoritative HTTP wire requirement.
+
+## W3-D21 — Local mock composition and CLI error presentation
+
+**Source:** PROJECT TECHNICAL DECISION
+**Status:** Approved and implemented
+
+Until a real API contract exists, the production CLI entrypoint will create a
+fresh `MockKBClient` and register the approved `kb` command group alongside the
+existing Week 2 commands. This is a local mock-first composition decision, not
+an environment-selection or production-HTTP contract. No environment variable
+or client selector is introduced.
+
+The CLI presents `KBDocumentNotFoundError` as `KB document not found` and
+`KBAddFileError` as `KB file error`, writes the concise message to stderr, and
+sets a failing exit code without exposing a stack trace. Existing
+`ValidationError` handling remains `Invalid input` for KB search/list input
+failures.
+
+Cycle 14 is the final cycle that can be completed without the real API. It does
+not make the external-API acceptance criteria complete and does not authorize
+`HTTPKBClient`, authentication, HTTP schemas, environment switching, or live
+API tests.

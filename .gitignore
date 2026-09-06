@@ -20,3 +20,13 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.log
+
+HELP/
+/data/
+
+# Keep Week 5 report data visible, including with broad local excludes
+!/docs/week-5/data/
+!/docs/week-5/data/**
+
+# Excel temporary lock files
+~$*.xlsx
