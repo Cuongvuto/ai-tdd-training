@@ -1,6 +1,71 @@
-# Ticket Manager CLI
+# AI/TDD Training — W1 đến W5
 
-## Overview
+Repository tổng hợp nghiên cứu TDD, Ticket Manager CLI, Knowledge Base mock,
+thực hành Helpdesk và automation local. Tài liệu mentor là nguồn yêu cầu;
+README chỉ hướng dẫn đọc và chạy dự án, không thay thế các yêu cầu đó.
+
+## Đọc theo tuần
+
+| Tuần | Nội dung | Hướng dẫn và evidence |
+| --- | --- | --- |
+| W1 | Nghiên cứu TDD và kiểm soát AI | [Week 1](docs/week1/README.md) |
+| W2 | CLI quản lý ticket, lưu JSON, kiểm thử | [Week 2](docs/week2/README.md) |
+| W3 | Mở rộng CLI với Knowledge Base | [Week 3](docs/week3/README.md) — hoàn thành pha local/mock, chưa tích hợp HTTP |
+| W4 | Quy trình xử lý ticket và giao tiếp trên Odoo | [Week 4](docs/week4/README.md) |
+| W5 | Báo cáo, phân tích vấn đề lặp lại và automation | [Week 5](docs/week-5/README.md) — automation local/mock, chưa nối hệ thống thật |
+
+[Mục lục tài liệu và ghi chú liên kết thiếu](docs/README.md).
+Các kết quả test trong evidence là kết quả tại thời điểm ghi nhận, không phải
+kết quả kiểm thử mới của nhánh tổng hợp.
+
+## Cấu trúc chính
+
+```text
+docs/               Yêu cầu, báo cáo và evidence W1–W5
+src/                CLI TypeScript của W2/W3
+tests/              Unit, integration và E2E bằng Vitest
+scripts/week5/      Automation Python và unittest
+scripts/fixtures/   Dữ liệu giả lập ticket, HR và LMS cho W5
+Rework/             Báo cáo W1 làm lại, hiện giữ nguyên vị trí
+note/               Ghi chú bổ sung, hiện chỉ có README
+data/               Dữ liệu ticket chạy local, không commit
+dist/               Kết quả build, không commit
+```
+
+## Chạy và kiểm tra từ thư mục gốc
+
+Cần Node.js/npm cho CLI và Python 3.10+ cho automation. W5 hiện dùng thư viện
+chuẩn Python, không cần cài thêm package Python.
+
+```powershell
+npm ci
+npm run test:run
+npm run typecheck
+npm run build
+node dist/cli.js --help
+python scripts/week5/test_login_issue_automation.py
+```
+
+`npm run test:run` chỉ chạy bộ test TypeScript; phải chạy lệnh Python riêng để
+kiểm tra W5. Lệnh Python trên chạy kiểm thử workflow, không khởi động webhook
+hay kết nối Odoo.
+
+## Knowledge Base — W3 local/mock
+
+```powershell
+npm run dev -- kb search "template" --top-k 2
+npm run dev -- kb list --node /templates/email --limit 2
+npm run dev -- kb retrieve doc-001
+npm run dev -- kb add --file README.md --path /docs --tags training,guide
+```
+
+Lệnh `add` trên dùng README làm tài liệu mẫu trong bộ nhớ, không sửa README.
+Mỗi lần chạy CLI tạo mock mới: tài liệu vừa thêm không tồn tại ở lần chạy sau.
+Chưa có HTTP client hoặc lựa chọn mock/HTTP qua biến môi trường.
+
+## Ticket Manager CLI — W2
+
+Phần dưới giữ hướng dẫn kỹ thuật W2; lệnh `kb` của W3 được trình bày ở trên.
 
 Ticket Manager is a local command-line application built with Node.js,
 TypeScript, Commander.js, and a JSON file repository. Vitest covers the domain
